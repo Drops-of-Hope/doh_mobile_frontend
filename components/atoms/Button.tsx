@@ -10,7 +10,7 @@ export default function Button({ title, onPress }: { title: string; onPress: () 
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#6200ee',
+    backgroundColor: '#ff0000',
     padding: 12,
     borderRadius: 5,
     alignItems: 'center',

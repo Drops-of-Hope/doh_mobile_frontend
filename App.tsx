@@ -1,26 +1,36 @@
-// import { StatusBar } from 'expo-status-bar';
-// import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
+import AppNavigator from "./app/navigation/AppNavigator";
+//import "./global.css"; // If you're using NativeWind
 
-// export default function App() {
-//   return (
-//     <View style={styles.container}>
-//       <Text>Open up App.tsx to start working on your app!</Text>
-//       <StatusBar style="auto" />
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-// });
-
-import AppNavigator from './app/navigation/AppNavigator';
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  return <AppNavigator />;
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Pre-load fonts, make any API calls here
+        // await Font.loadAsync({...});
+
+        // Artificially delay for demo purposes
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Hide the native splash screen
+        await SplashScreen.hideAsync();
+      }
+    }
+
+    prepare();
+  }, []);
+
+  return (
+    <>
+      <StatusBar style="dark" />
+      <AppNavigator />
+    </>
+  );
 }
