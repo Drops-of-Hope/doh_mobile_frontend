@@ -2,17 +2,54 @@ import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { styled } from "nativewind";
 import Svg, { Path } from "react-native-svg";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 // NativeWind components
 const StyledView = styled(View);
 const StyledTouchableOpacity = styled(TouchableOpacity);
 const StyledText = styled(Text);
 
+type RootStackParamList = {
+  Splash: undefined;
+  Entry: undefined;
+  Login: undefined;
+  Signup: undefined;
+  Home: undefined;
+  Profile: undefined;
+  Donate: undefined;
+  Explore: undefined;
+  Activities: undefined;
+};
+
 interface BottomTabBarProps {
   activeTab?: "donate" | "explore" | "home" | "activities" | "account";
 }
 
 const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const handleNavigation = (tabId: string) => {
+    switch (tabId) {
+      case "donate":
+        navigation.navigate("Donate");
+        break;
+      case "explore":
+        navigation.navigate("Explore");
+        break;
+      case "home":
+        navigation.navigate("Home");
+        break;
+      case "activities":
+        navigation.navigate("Activities");
+        break;
+      case "account":
+        navigation.navigate("Profile");
+        break;
+      default:
+        console.log(`Navigation to ${tabId} not implemented`);
+    }
+  };
   // Icon components
   const DropIcon = ({ isActive }: { isActive: boolean }) => (
     <View className="w-6 h-6">
@@ -144,7 +181,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
         {tabs.map((tab) => (
           <StyledTouchableOpacity
             key={tab.id}
-            onPress={() => console.log(`${tab.label} pressed`)}
+            onPress={() => handleNavigation(tab.id)}
             className="flex-1 items-center py-2"
             activeOpacity={0.7}
           >

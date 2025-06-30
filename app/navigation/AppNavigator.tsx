@@ -9,6 +9,9 @@ import SignupFormScreen from "../screens/SignupFormScreen";
 
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import DonationScreen from "../screens/DonationScreen";
+import ExploreScreen from "../screens/ExploreScreen";
+import ActivitiesScreen from "../screens/ActivitiesScreen";
 
 type RootStackParamList = {
   Splash: undefined; //undefined means no parameters are expected
@@ -17,6 +20,9 @@ type RootStackParamList = {
   Signup: undefined;
   Home: undefined;
   Profile: undefined;
+  Donate: undefined;
+  Explore: undefined;
+  Activities: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,12 +45,9 @@ export default function AppNavigator() {
         {/* Screens related to Users */}
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
-        {/* 
-        
-        <Stack.Screen name="Activities" component={ActivitiesScreen} />
+        <Stack.Screen name="Donate" component={DonationScreen} />
         <Stack.Screen name="Explore" component={ExploreScreen} />
-        <Stack.Screen name="Donate" component={DonateScreen} />
-        */}
+        <Stack.Screen name="Activities" component={ActivitiesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
