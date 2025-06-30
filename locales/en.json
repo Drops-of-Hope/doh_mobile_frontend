@@ -1,0 +1,82 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "close": "Close",
+    "save": "Save",
+    "submit": "Submit",
+    "retry": "Retry"
+  },
+  "navigation": {
+    "explore": "Explore",
+    "donate": "Donate", 
+    "home": "Home",
+    "activities": "Activities",
+    "profile": "Profile"
+  },
+  "explore": {
+    "title": "Blood Donation Campaigns",
+    "subtitle": "Find and join donation campaigns near you",
+    "loading": "Loading campaigns...",
+    "join_button": "Join Campaign",
+    "join_success_title": "Registration Successful!",
+    "join_success_message": "You have successfully registered for \"{campaignTitle}\". You will receive a notification with details.",
+    "join_error_title": "Registration Failed",
+    "join_error_message": "Unable to register for this campaign. Please try again.",
+    "location": "Location",
+    "date": "Date",
+    "time": "Time",
+    "participants": "{count} participants"
+  },
+  "donation": {
+    "qr_title": "Your Donation QR Code",
+    "qr_subtitle": "Show this QR code to staff at the donation center",
+    "form_title": "Health Questionnaire",
+    "form_subtitle": "Please answer all questions honestly",
+    "fill_form_button": "Fill Donation Form",
+    "scan_instruction": "Scan this QR code to view donor information",
+    "uid_label": "UID",
+    "questions": {
+      "age": "Are you 18 years or older?",
+      "weight": "Do you weigh at least 50kg (110 lbs)?",
+      "illness": "Have you been ill in the past 2 weeks?",
+      "medication": "Are you currently taking any medications?",
+      "travel": "Have you traveled outside the country in the past 3 months?",
+      "pregnancy": "Are you currently pregnant or breastfeeding? (if applicable)",
+      "piercing": "Have you had any piercings or tattoos in the past 6 months?",
+      "alcohol": "Have you consumed alcohol in the past 24 hours?",
+      "drugs": "Have you used any recreational drugs in the past month?",
+      "donation": "Have you donated blood in the past 8 weeks?"
+    },
+    "validation_error": "Please answer all questions",
+    "submit_success": "Form submitted successfully!",
+    "submit_error": "Failed to submit form. Please try again."
+  },
+  "activities": {
+    "title": "My Donation Activities",
+    "subtitle": "Track your donation history and status",
+    "loading": "Loading activities...",
+    "no_activities": "No donation activities yet",
+    "no_activities_subtitle": "Your donation history will appear here",
+    "view_details": "View Details",
+    "details_title": "Donation Details",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "details": {
+      "campaign": "Campaign",
+      "location": "Location", 
+      "date": "Date",
+      "status": "Status",
+      "submitted": "Submitted",
+      "blood_type": "Blood Type",
+      "volume": "Volume",
+      "notes": "Notes"
+    }
+  }
+}
