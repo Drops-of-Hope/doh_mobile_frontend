@@ -1,58 +1,25 @@
-// app/screens/EntryScreen.tsx
+// app/screens/HomeScreen.tsx
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Button from '../../components/atoms/Button';
-import TitlePage from '../../components/molecules/TitlePage';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { View, Text, SafeAreaView } from 'react-native';
+import BottomTabBar from '../../components/organisms/BottomTabBar';
 
-type RootStackParamList = {
-  Entry: undefined;
-  Login: undefined;
-  Signup: undefined;
-};
-
-
-export default function EntryScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
+export default function HomeScreen() {
   return (
-    <View className="flex-1 bg-white">
-
-      {/* Main content */}
-      <View className="flex-1 px-6 relative z-10">
-        {/* Top section - Logo, Title, Subtitle */}
-        <View className="flex-1 justify-center items-center">
-          <TitlePage showWelcomeMessage={true} />
-        </View>
-        
-        {/* Bottom section - Buttons and Terms */}
-        <View className="pb-12">
-          {/* Login button */}
-          <View className="w-full mb-4">
-            <Button 
-              title="Login" 
-              onPress={() => navigation.navigate('Login')} 
-            />
-          </View>
-          
-          {/* Sign up button */}
-          <View className="w-full mb-8">
-            <Button 
-              title="Sign Up" 
-              onPress={() => navigation.navigate('Signup')} 
-            />
-          </View>
-          
-          {/* Terms and Privacy */}
-          <Text className="text-sm text-gray-500 text-center px-8 leading-5">
-            By continuing, you agree to our{' '}
-            <Text className="text-red-600">Terms of Service</Text>
-            {'\n'}and{' '}
-            <Text className="text-red-600">Privacy Policy</Text>.
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1">
+        {/* Main content */}
+        <View className="flex-1 justify-center items-center px-6">
+          <Text className="text-2xl font-bold text-gray-800 mb-4">
+            Welcome to Drops of Hope
+          </Text>
+          <Text className="text-lg text-gray-600 text-center">
+            Your home screen content goes here
           </Text>
         </View>
+        
+        {/* Bottom Tab Bar */}
+        <BottomTabBar activeTab="home" />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

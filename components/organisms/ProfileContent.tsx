@@ -13,7 +13,7 @@ interface ProfileContentProps {
     imageUri?: string;
     membershipType?: string;
   };
-  
+
   onEditProfile?: () => void;
   onProfilePicturePress?: () => void;
   onMyDonations?: () => void;

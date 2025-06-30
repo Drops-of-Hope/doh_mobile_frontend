@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import AppNavigator from "./app/navigation/AppNavigator";
-//import "./global.css"; // If you're using NativeWind
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
