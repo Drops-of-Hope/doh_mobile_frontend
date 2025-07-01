@@ -1,15 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, SafeAreaView } from "react-native";
 import ProfileContent from "../../components/organisms/ProfileContent";
 import BottomTabBar from "../../components/organisms/BottomTabBar";
+import { getAuthState, clearAuthState } from "../services/auth";
+import { clearAuthToken } from "../services/api";
 
 const ProfileScreen: React.FC = () => {
-  // Mock user data - replace with your actual data source
-  const userData = {
-    name: "Sabrina Aryan",
-    email: "SabrinaAry208@gmail.com",
+  const [userData, setUserData] = useState({
+    name: "Loading...",
+    email: "Loading...",
     imageUri: "https://example.com/profile-image.jpg",
-    membershipType: "SILVER MEMBER",
+    membershipType: "MEMBER",
+  });
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const authState = await getAuthState();
+      if (authState && authState.idToken) {
+        // Decode the ID token to get user info (basic implementation)
+        const tokenParts = authState.idToken.split('.');
+        const payload = JSON.parse(atob(tokenParts[1]));
+        
+        setUserData({
+          name: payload.given_name || payload.name || "User",
+          email: payload.email || "user@example.com",
+          imageUri: payload.picture || "https://example.com/profile-image.jpg",
+          membershipType: "ASGARDEO MEMBER",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load user data:", error);
+    }
   };
 
   const handleEditProfile = () => {
@@ -44,8 +69,15 @@ const ProfileScreen: React.FC = () => {
     console.log("FAQs pressed");
   };
 
-  const handleLogOut = () => {
-    console.log("Log Out pressed");
+  const handleLogOut = async () => {
+    try {
+      await clearAuthState();
+      await clearAuthToken();
+      console.log("Logged out successfully");
+      // The AppNavigator will automatically redirect to login screen
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (

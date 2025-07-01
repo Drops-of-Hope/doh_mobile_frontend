@@ -8,10 +8,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type RootStackParamList = {
   Entry: undefined;
-  Login: undefined;
-  Signup: undefined;
+  Auth: undefined;
 };
-
 
 export default function EntryScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -28,19 +26,11 @@ export default function EntryScreen() {
         
         {/* Bottom section - Buttons and Terms */}
         <View className="pb-12">
-          {/* Login button */}
-          <View className="w-full mb-4">
-            <Button 
-              title="Login" 
-              onPress={() => navigation.navigate('Login')} 
-            />
-          </View>
-          
-          {/* Sign up button */}
+          {/* Get Started button */}
           <View className="w-full mb-8">
             <Button 
-              title="Sign Up" 
-              onPress={() => navigation.navigate('Signup')} 
+              title="Get Started" 
+              onPress={() => navigation.navigate('Auth')} 
             />
           </View>
           

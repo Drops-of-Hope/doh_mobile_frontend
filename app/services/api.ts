@@ -49,22 +49,42 @@ export const apiRequest = async (
   }
 };
 
-// Auth token management (you can integrate with AsyncStorage later)
-let authToken: string | null = null;
+import * as SecureStore from "expo-secure-store";
 
-export const setAuthToken = (token: string) => {
-  authToken = token;
+// Auth token management using SecureStore instead of memory
+export const setAuthToken = async (token: string) => {
+  try {
+    await SecureStore.setItemAsync("accessToken", token);
+  } catch (error) {
+    console.error("Failed to save auth token:", error);
+  }
 };
 
-export const getAuthToken = () => authToken;
+export const getAuthToken = async (): Promise<string | null> => {
+  try {
+    return await SecureStore.getItemAsync("accessToken");
+  } catch (error) {
+    console.error("Failed to retrieve auth token:", error);
+    return null;
+  }
+};
+
+export const clearAuthToken = async () => {
+  try {
+    await SecureStore.deleteItemAsync("accessToken");
+  } catch (error) {
+    console.error("Failed to clear auth token:", error);
+  }
+};
 
 export const apiRequestWithAuth = async (
   endpoint: string,
   options: RequestInit = {}
 ): Promise<any> => {
+  const token = await getAuthToken();
   const headers = {
     ...options.headers,
-    ...(authToken && { Authorization: `Bearer ${authToken}` }),
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
 
   return apiRequest(endpoint, { ...options, headers });
