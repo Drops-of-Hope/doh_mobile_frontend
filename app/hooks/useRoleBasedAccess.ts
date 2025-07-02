@@ -1,5 +1,6 @@
 import { useAuth } from '../context/AuthContext';
 import { RoleBasedAccess } from '../utils/roleBasedAccess';
+import { USER_ROLES, isDonorType, hasDonorPrivileges } from '../context/AuthContext';
 
 export const useRoleBasedAccess = () => {
   const { userRole, userType, hasRole } = useAuth();
@@ -28,18 +29,18 @@ export const useRoleBasedAccess = () => {
     },
     
     // Check if user can access admin features
-    isAdmin: () => hasRole('admin'),
+    isAdmin: () => hasRole(USER_ROLES.ADMIN),
     
-    // Check if user can make donations
-    canDonate: () => hasRole('donor') || hasRole('admin'),
+    // Check if user can make donations - using the helper function from AuthContext
+    canDonate: () => hasDonorPrivileges(currentRole),
     
-    // Check if user can volunteer
-    canVolunteer: () => hasRole('volunteer') || hasRole('admin'),
+    // Check if user can volunteer - volunteers, camp organizers, and admin can volunteer
+    canVolunteer: () => hasRole(USER_ROLES.VOLUNTEER) || hasRole(USER_ROLES.CAMP_ORGANIZER) || hasRole(USER_ROLES.ADMIN),
     
-    // Check if user can manage campaigns
-    canManageCampaigns: () => hasRole('organization') || hasRole('admin'),
+    // Check if user can manage campaigns - organizations, camp organizers, and admin
+    canManageCampaigns: () => hasRole(USER_ROLES.ORGANIZATION) || hasRole(USER_ROLES.CAMP_ORGANIZER) || hasRole(USER_ROLES.ADMIN),
     
     // Check if user can access support services
-    canAccessSupport: () => hasRole('beneficiary') || hasRole('admin'),
+    canAccessSupport: () => hasRole(USER_ROLES.BENEFICIARY) || hasRole(USER_ROLES.ADMIN),
   };
 };
