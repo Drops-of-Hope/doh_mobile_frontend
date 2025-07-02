@@ -1,12 +1,11 @@
 // app/navigation/AppNavigator.tsx
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import * as SecureStore from "expo-secure-store";
+import { useAuth } from "../context/AuthContext";
 
 import SplashScreen from "../screens/SplashScreen";
 import EntryScreen from "../screens/EntryScreen";
-import AuthScreen from "../screens/AuthScreen";
 
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
@@ -15,9 +14,8 @@ import ExploreScreen from "../screens/ExploreScreen";
 import ActivitiesScreen from "../screens/ActivitiesScreen";
 
 type RootStackParamList = {
-  Splash: undefined; //undefined means no parameters are expected
+  Splash: undefined;
   Entry: undefined;
-  Auth: undefined; // Unified auth screen
   Home: undefined;
   Profile: undefined;
   Donate: undefined;
@@ -28,19 +26,7 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const authState = await SecureStore.getItemAsync("authState");
-        setIsAuthenticated(!!authState);
-      } catch (error) {
-        console.error("Failed to retrieve auth state:", error);
-      }
-    }
-    checkAuth();
-  }, []);
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <NavigationContainer>
@@ -59,11 +45,10 @@ export default function AppNavigator() {
             <Stack.Screen name="Activities" component={ActivitiesScreen} />
           </>
         ) : (
-          // Screens for unauthenticated users
+          // Screens for unauthenticated users - simplified flow
           <>
             <Stack.Screen name="Splash" component={SplashScreen} />
             <Stack.Screen name="Entry" component={EntryScreen} />
-            <Stack.Screen name="Auth" component={AuthScreen} />
           </>
         )}
       </Stack.Navigator>

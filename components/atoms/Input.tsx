@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 16,
+    paddingVertical: 4,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -100,9 +101,10 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 14,
     fontSize: 16,
     color: '#111827',
+    lineHeight: 20,
   },
   inputWithLeftIcon: {
     marginLeft: 12,
@@ -112,6 +114,8 @@ const styles = StyleSheet.create({
   },
   leftIcon: {
     opacity: 0.6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rightIcon: {
     opacity: 0.6,

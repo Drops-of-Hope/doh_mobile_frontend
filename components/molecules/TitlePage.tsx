@@ -17,12 +17,13 @@ const TitlePage: React.FC<TitlePageProps> = ({
   // Blood drop with heartbeat component
   const BloodDropIcon = () => (
     <View className="items-center mb-4">
-      <Image 
-        source={DOHLogo} 
+      <Image
+        source={DOHLogo}
         style={{
-          width: titleSize === 'small' ? 60 : titleSize === 'medium' ? 80 : 100,
-          height: titleSize === 'small' ? 60 : titleSize === 'medium' ? 80 : 100,
-          resizeMode: 'contain'
+          width: titleSize === "small" ? 60 : titleSize === "medium" ? 80 : 100,
+          height:
+            titleSize === "small" ? 60 : titleSize === "medium" ? 80 : 100,
+          resizeMode: "contain",
         }}
       />
     </View>
@@ -74,7 +75,9 @@ const TitlePage: React.FC<TitlePageProps> = ({
 
       {/* Subtitle */}
       <Text
-        className={`${titleSize === 'small' ? 'text-sm' : 'text-lg'} text-gray-600 ${titleSize === 'small' ? 'mb-4' : 'mb-8'} px-4 ${
+        className={`${
+          titleSize === "small" ? "text-sm" : "text-lg"
+        } text-gray-600 ${titleSize === "small" ? "mb-4" : "mb-8"} px-4 ${
           alignment === "center"
             ? "text-center"
             : alignment === "left"
@@ -97,7 +100,6 @@ const TitlePage: React.FC<TitlePageProps> = ({
                 : "text-right"
             }`}
           >
-            Welcome to our community of life-savers.{"\n"}
             Your contribution makes a difference.
           </Text>
         </View>

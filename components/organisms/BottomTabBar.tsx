@@ -4,6 +4,7 @@ import { styled } from "nativewind";
 import Svg, { Path } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRoleBasedAccess } from "../../app/hooks/useRoleBasedAccess";
 
 // NativeWind components
 const StyledView = styled(View);
@@ -23,38 +24,40 @@ type RootStackParamList = {
 };
 
 interface BottomTabBarProps {
-  activeTab?: "donate" | "explore" | "home" | "activities" | "account";
+  activeTab?: string;
 }
 
 const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { getRoleColors, canDonate, canVolunteer, canManageCampaigns } = useRoleBasedAccess();
+  const roleColors = getRoleColors();
 
-  const handleNavigation = (tabId: string) => {
-    switch (tabId) {
-      case "donate":
+  const handleNavigation = (route: string) => {
+    switch (route) {
+      case "Donate":
         navigation.navigate("Donate");
         break;
-      case "explore":
+      case "Explore":
         navigation.navigate("Explore");
         break;
-      case "home":
+      case "Home":
         navigation.navigate("Home");
         break;
-      case "activities":
+      case "Activities":
         navigation.navigate("Activities");
         break;
-      case "account":
+      case "Profile":
         navigation.navigate("Profile");
         break;
       default:
-        console.log(`Navigation to ${tabId} not implemented`);
+        console.log(`Navigation to ${route} not implemented`);
     }
   };
-  // Icon components
+  // Icon components with role-based active color
   const DropIcon = ({ isActive }: { isActive: boolean }) => (
     <View className="w-6 h-6">
       <Svg
-        fill={isActive ? "#dc2626" : "none"}
+        fill={isActive ? roleColors.primary : "none"}
         viewBox="0 0 24 24"
         strokeWidth={1.5}
         stroke="currentColor"
@@ -72,7 +75,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
   const SearchIcon = ({ isActive }: { isActive: boolean }) => (
     <View className="w-6 h-6">
       <Svg
-        fill={isActive ? "#dc2626" : "none"}
+        fill={isActive ? roleColors.primary : "none"}
         viewBox="0 0 24 24"
         strokeWidth={1.5}
         stroke="currentColor"
@@ -90,7 +93,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
   const HomeIcon = ({ isActive }: { isActive: boolean }) => (
     <View className="w-6 h-6">
       <Svg
-        fill={isActive ? "#dc2626" : "none"}
+        fill={isActive ? roleColors.primary : "none"}
         viewBox="0 0 24 24"
         strokeWidth={1.5}
         stroke="currentColor"
@@ -108,7 +111,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
   const HeartIcon = ({ isActive }: { isActive: boolean }) => (
     <View className="w-6 h-6">
       <Svg
-        fill={isActive ? "#dc2626" : "none"}
+        fill={isActive ? roleColors.primary : "none"}
         viewBox="0 0 24 24"
         strokeWidth={1.5}
         stroke="currentColor"
@@ -126,7 +129,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
   const PersonIcon = ({ isActive }: { isActive: boolean }) => (
     <View className="w-6 h-6">
       <Svg
-        fill={isActive ? "#dc2626" : "none"}
+        fill={isActive ? roleColors.primary : "none"}
         viewBox="0 0 24 24"
         strokeWidth={1.5}
         stroke="currentColor"
@@ -141,39 +144,54 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
     </View>
   );
 
-  // Tab data with icons
-  const tabs = [
-    {
-      id: "donate",
-      label: "Donate",
-      isActive: activeTab === "donate",
-      icon: <DropIcon isActive={activeTab === "donate"} />,
-    },
-    {
-      id: "explore",
+  // Dynamic tab data based on user role
+  const getTabsForRole = () => {
+    const baseTabs = [
+      {
+        id: "Home",
+        label: "Home",
+        isActive: activeTab === "home",
+        icon: <HomeIcon isActive={activeTab === "home"} />,
+      },
+    ];
+
+    // Add role-specific tabs
+    if (canDonate()) {
+      baseTabs.push({
+        id: "Donate",
+        label: "Donate",
+        isActive: activeTab === "donate",
+        icon: <DropIcon isActive={activeTab === "donate"} />,
+      });
+    }
+
+    baseTabs.push({
+      id: "Explore",
       label: "Explore",
       isActive: activeTab === "explore",
       icon: <SearchIcon isActive={activeTab === "explore"} />,
-    },
-    {
-      id: "home",
-      label: "Home",
-      isActive: activeTab === "home",
-      icon: <HomeIcon isActive={activeTab === "home"} />,
-    },
-    {
-      id: "activities",
-      label: "Activities",
-      isActive: activeTab === "activities",
-      icon: <HeartIcon isActive={activeTab === "activities"} />,
-    },
-    {
-      id: "account",
+    });
+
+    if (canVolunteer() || canManageCampaigns()) {
+      baseTabs.push({
+        id: "Activities",
+        label: "Activities",
+        isActive: activeTab === "activities",
+        icon: <HeartIcon isActive={activeTab === "activities"} />,
+      });
+    }
+
+    baseTabs.push({
+      id: "Profile",
       label: "Account",
       isActive: activeTab === "account",
       icon: <PersonIcon isActive={activeTab === "account"} />,
-    },
-  ];
+    });
+
+    return baseTabs;
+  };
+
+  const tabs = getTabsForRole();
 
   return (
     <StyledView className="bg-white border-t border-gray-200 px-4 py-2">
@@ -188,8 +206,11 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
             <StyledView className="mb-1">{tab.icon}</StyledView>
             <StyledText
               className={`text-xs font-medium ${
-                tab.isActive ? "text-red-600" : "text-gray-600"
+                tab.isActive ? "text-gray-800" : "text-gray-600"
               }`}
+              style={{
+                color: tab.isActive ? roleColors.primary : "#6B7280"
+              }}
             >
               {tab.label}
             </StyledText>
@@ -197,10 +218,13 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
         ))}
       </StyledView>
 
-      {/* Bottom indicator */}
+      {/* Bottom indicator with role-based color */}
       <StyledView
-        className="h-1 bg-gray-300 rounded-full mt-2 mx-auto"
-        style={{ width: 134 }}
+        className="h-1 rounded-full mt-2 mx-auto"
+        style={{ 
+          width: 134, 
+          backgroundColor: roleColors.secondary
+        }}
       />
     </StyledView>
   );
