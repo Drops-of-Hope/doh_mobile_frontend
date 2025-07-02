@@ -30,7 +30,7 @@ export default function SplashContent({
       <View className="relative">
         <Image
           source={BloodIcon}
-          style={{ width: 650, height: 650, top: 48 }}
+          style={{ width: 650, height: 650, top: 360 }}
         />
 
         {/* Gradient overlay to fade bottom of the image */}
