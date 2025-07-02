@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 
 // Import auth functions individually to avoid circular dependencies
 import * as SecureStore from "expo-secure-store";
@@ -58,17 +64,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshAuthState = async () => {
     try {
       setIsLoading(true);
-      const authState = await getAuthState();
-      
-      if (authState && authState.accessToken) {
+
+      // Import the enhanced auth check
+      const { ensureValidAuth, getCurrentUser } = await import(
+        "../services/auth"
+      );
+
+      // Use the enhanced validation that handles token refresh
+      const isValid = await ensureValidAuth();
+
+      if (isValid) {
+        const currentUser = await getCurrentUser();
         setIsAuthenticatedState(true);
-        setUser(authState.userInfo || null);
+        setUser(currentUser);
+        console.log("Auth state valid/refreshed successfully");
       } else {
         setIsAuthenticatedState(false);
         setUser(null);
+        console.log("Auth state invalid, user needs to re-authenticate");
       }
     } catch (error) {
-      console.error('Error refreshing auth state:', error);
+      console.error("Error refreshing auth state:", error);
       setIsAuthenticatedState(false);
       setUser(null);
     } finally {
@@ -86,11 +102,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await clearAuthState();
+      // Import the enhanced logout function from auth service
+      const { logout: authLogout } = await import("../services/auth");
+
+      // Call the enhanced logout that handles Asgardeo session termination
+      await authLogout();
+
+      // Update local state
       setUser(null);
       setIsAuthenticatedState(false);
+
+      console.log("Logout completed successfully");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
+
+      // Even if logout fails, clear local state to ensure user is logged out locally
+      setUser(null);
+      setIsAuthenticatedState(false);
     }
   };
 
@@ -124,28 +152,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     hasRole,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
 // Role constants that can be used throughout the app
 export const USER_ROLES = {
-  ADMIN: 'admin',
-  DONOR: 'donor',
-  VOLUNTEER: 'volunteer',
-  BENEFICIARY: 'beneficiary',
-  ORGANIZATION: 'organization',
+  ADMIN: "admin",
+  DONOR: "donor",
+  SELFSIGNUP: "selfsignup",
+  CAMP_ORGANIZER: "camp_organizer",
+  VOLUNTEER: "volunteer",
+  BENEFICIARY: "beneficiary",
+  ORGANIZATION: "organization",
 } as const;
 
-export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
+
+// Helper function to check if a role is donor-type
+export const isDonorType = (role: string | null): boolean => {
+  return role === USER_ROLES.DONOR || role === USER_ROLES.SELFSIGNUP;
+};
+
+// Helper function to check if a role has donor privileges (including camp organizers)
+export const hasDonorPrivileges = (role: string | null): boolean => {
+  return isDonorType(role) || role === USER_ROLES.CAMP_ORGANIZER;
+};

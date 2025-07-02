@@ -1,14 +1,20 @@
 import * as SecureStore from "expo-secure-store";
 import * as AuthSession from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
 
 const authConfig = {
   issuer: "https://api.asgardeo.io/t/dropsofhope",
   clientId: "cvkLW1k579ozp8tp7tRx7vGqvssa",
-  redirectUri: "doh_mobile://redirect", // Explicitly set to a registered URI
   scopes: ["openid", "profile", "email", "roles"],
 };
 
-console.log("Redirect URI:", authConfig.redirectUri);
+// Create proper redirect URI for Expo
+const redirectUri = AuthSession.makeRedirectUri({
+  scheme: "com.dropsofhope",
+  path: "auth",
+});
+
+console.log("Redirect URI:", redirectUri);
 
 // Types for user information
 export interface UserInfo {
@@ -55,7 +61,7 @@ const getUserInfo = async (accessToken: string): Promise<UserInfo | null> => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    
+
     if (response.ok) {
       const userInfo = await response.json();
       console.log("User info retrieved:", userInfo);
@@ -79,47 +85,82 @@ const clearAuthState = async () => {
 };
 
 // Unified login and signup logic
-export const authenticate = async (isSignup = false): Promise<AuthState | null> => {
+export const authenticate = async (
+  isSignup = false
+): Promise<AuthState | null> => {
   try {
-    const config = isSignup
-      ? { ...authConfig, extraParams: { signup: "true" } }
-      : authConfig;
+    console.log("Starting authentication with redirect URI:", redirectUri);
 
-    const authRequest = new AuthSession.AuthRequest(config);
+    // Create proper AuthRequest with PKCE (required by Asgardeo)
+    const authRequest = new AuthSession.AuthRequest({
+      clientId: authConfig.clientId,
+      scopes: authConfig.scopes,
+      redirectUri: redirectUri,
+      responseType: AuthSession.ResponseType.Code,
+      extraParams: isSignup ? { signup: "true" } : {},
+      // PKCE configuration - let AuthRequest generate the challenge
+      codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
+    });
+
     const discovery = {
       authorizationEndpoint: `${authConfig.issuer}/oauth2/authorize`,
       tokenEndpoint: `${authConfig.issuer}/oauth2/token`,
       revocationEndpoint: `${authConfig.issuer}/oauth2/revoke`,
     };
+
     const result = await authRequest.promptAsync(discovery);
+
+    console.log("Auth result:", result);
 
     if (result.type === "success") {
       console.log(
         `${isSignup ? "Signup" : "Login"} successful:`,
         result.params
       );
-      
-      // Create AuthState object
-      const authState: AuthState = {
-        accessToken: result.params.access_token,
-        refreshToken: result.params.refresh_token,
-        idToken: result.params.id_token,
-        ...result.params
-      };
 
-      // Fetch user info
-      if (authState.accessToken) {
-        const userInfo = await getUserInfo(authState.accessToken);
-        if (userInfo) {
-          authState.userInfo = userInfo;
+      // Exchange authorization code for tokens with PKCE
+      if (result.params.code && authRequest.codeVerifier) {
+        const tokenResult = await AuthSession.exchangeCodeAsync(
+          {
+            clientId: authConfig.clientId,
+            code: result.params.code,
+            redirectUri: redirectUri,
+            extraParams: {
+              code_verifier: authRequest.codeVerifier, // PKCE code verifier
+            },
+          },
+          discovery
+        );
+
+        // Create AuthState object
+        const authState: AuthState = {
+          accessToken: tokenResult.accessToken,
+          refreshToken: tokenResult.refreshToken,
+          idToken: tokenResult.idToken,
+        };
+
+        // Fetch user info
+        if (authState.accessToken) {
+          const userInfo = await getUserInfo(authState.accessToken);
+          if (userInfo) {
+            authState.userInfo = userInfo;
+          }
         }
-      }
 
-      await saveAuthState(authState);
-      return authState;
+        await saveAuthState(authState);
+        return authState;
+      }
+    } else if (result.type === "error") {
+      console.error("Auth error:", result.error);
+      throw new Error(
+        `Authentication error: ${result.error?.message || "Unknown error"}`
+      );
     } else {
-      throw new Error("Authentication canceled or failed.");
+      console.log("Authentication cancelled");
+      throw new Error("Authentication was cancelled");
     }
+
+    throw new Error("Authentication failed");
   } catch (error) {
     console.error(`${isSignup ? "Signup" : "Login"} failed:`, error);
     throw error;
@@ -161,37 +202,90 @@ export const refreshToken = async (refreshToken: string) => {
   }
 };
 
-// Logout function
+// Logout function - Enhanced to properly revoke Asgardeo session
 export const logout = async () => {
   try {
     const authState = await getAuthState();
-    if (authState && authState.accessToken) {
-      const revokeUrl = `${authConfig.issuer}/oauth2/revoke`;
-      await fetch(revokeUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `token=${authState.accessToken}&client_id=${authConfig.clientId}`,
-      });
+    
+    if (authState) {
+      // Step 1: Revoke access token if available
+      if (authState.accessToken) {
+        try {
+          const revokeUrl = `${authConfig.issuer}/oauth2/revoke`;
+          await fetch(revokeUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `token=${authState.accessToken}&client_id=${authConfig.clientId}&token_type_hint=access_token`,
+          });
+          console.log("Access token revoked successfully");
+        } catch (error) {
+          console.error("Failed to revoke access token:", error);
+          // Continue with logout even if token revocation fails
+        }
+      }
+
+      // Step 2: Revoke refresh token if available
+      if (authState.refreshToken) {
+        try {
+          const revokeUrl = `${authConfig.issuer}/oauth2/revoke`;
+          await fetch(revokeUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `token=${authState.refreshToken}&client_id=${authConfig.clientId}&token_type_hint=refresh_token`,
+          });
+          console.log("Refresh token revoked successfully");
+        } catch (error) {
+          console.error("Failed to revoke refresh token:", error);
+          // Continue with logout even if token revocation fails
+        }
+      }
+
+      // Step 3: Clear Asgardeo session by opening logout URL
+      if (authState.idToken) {
+        try {
+          // Construct the logout URL with proper parameters
+          const logoutUrl = `${authConfig.issuer}/oidc/logout`;
+          const logoutParams = new URLSearchParams({
+            id_token_hint: authState.idToken,
+            post_logout_redirect_uri: redirectUri,
+          });
+
+          const fullLogoutUrl = `${logoutUrl}?${logoutParams.toString()}`;
+          
+          // Use WebBrowser to open logout URL which will clear Asgardeo session
+          // Open logout URL in a browser session to clear server-side session
+          const result = await WebBrowser.openAuthSessionAsync(
+            fullLogoutUrl,
+            redirectUri
+          );
+          
+          console.log("Logout session result:", result);
+          console.log("Asgardeo session cleared successfully");
+        } catch (error) {
+          console.error("Failed to clear Asgardeo session:", error);
+          // Continue with logout even if session clear fails
+        }
+      }
     }
+
+    // Step 4: Always clear local auth state
     await clearAuthState();
-    console.log("Logged out successfully");
+    console.log("Logged out successfully - all tokens revoked and session cleared");
   } catch (error) {
     console.error("Logout failed:", error);
+    // Even if logout fails, clear local state to ensure user is logged out locally
+    await clearAuthState();
     throw error;
   }
 };
 
 // Helper functions for authentication status and user info
 export const isAuthenticated = async (): Promise<boolean> => {
-  try {
-    const authState = await getAuthState();
-    return !!(authState && authState.accessToken);
-  } catch (error) {
-    console.error("Error checking authentication status:", error);
-    return false;
-  }
+  return await ensureValidAuth();
 };
 
 export const getCurrentUser = async (): Promise<UserInfo | null> => {
@@ -228,4 +322,143 @@ export const hasRole = async (roleName: string): Promise<boolean> => {
     console.error("Error checking user role:", error);
     return false;
   }
+};
+
+// Enhanced authentication check with automatic refresh
+export const ensureValidAuth = async (): Promise<boolean> => {
+  try {
+    const authState = await getAuthState();
+    
+    if (!authState || !authState.accessToken) {
+      console.log("No auth state found");
+      return false;
+    }
+
+    // Check if the current token is valid
+    const isValid = await isTokenValid(authState.accessToken);
+    if (isValid) {
+      console.log("Token is valid");
+      return true;
+    }
+
+    console.log("Access token invalid, attempting refresh...");
+
+    // If access token is invalid, try refresh
+    if (authState.refreshToken) {
+      try {
+        console.log("Attempting token refresh...");
+        const refreshResult = await AuthSession.refreshAsync(
+          {
+            clientId: authConfig.clientId,
+            refreshToken: authState.refreshToken,
+          },
+          { tokenEndpoint: `${authConfig.issuer}/oauth2/token` }
+        );
+
+        // Update auth state with new tokens
+        const newAuthState: AuthState = {
+          accessToken: refreshResult.accessToken,
+          refreshToken: refreshResult.refreshToken || authState.refreshToken,
+          idToken: refreshResult.idToken || authState.idToken,
+          userInfo: authState.userInfo, // Keep existing user info
+        };
+
+        // Verify the refreshed token works
+        const userInfo = await getUserInfo(newAuthState.accessToken);
+        if (userInfo) {
+          newAuthState.userInfo = userInfo;
+          await saveAuthState(newAuthState);
+          console.log("Token refresh successful");
+          return true;
+        } else {
+          console.log("Refreshed token invalid");
+          await handleExpiredToken();
+          return false;
+        }
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+        await handleExpiredToken();
+        return false;
+      }
+    }
+
+    console.log("No refresh token available, auth invalid");
+    await handleExpiredToken();
+    return false;
+  } catch (error) {
+    console.error("Error ensuring valid auth:", error);
+    await handleExpiredToken();
+    return false;
+  }
+};
+
+// Check if token is expired by trying to use it
+const isTokenValid = async (accessToken: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${authConfig.issuer}/oauth2/userinfo`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error validating token:", error);
+    return false;
+  }
+};
+
+// Handle expired/invalid tokens by clearing state
+export const handleExpiredToken = async (): Promise<void> => {
+  console.log("Token expired or invalid, clearing auth state");
+  await clearAuthState();
+};
+
+// Global auth error handler for API calls
+export const handleAuthError = async (error: any): Promise<boolean> => {
+  if (error?.status === 401 || error?.message?.includes('unauthorized')) {
+    console.log("401 error detected, checking auth state...");
+    
+    // Try to refresh the token
+    const isValid = await ensureValidAuth();
+    
+    if (!isValid) {
+      console.log("Token refresh failed, user needs to re-authenticate");
+      // This will trigger the AuthContext to update and show EntryScreen
+      return false;
+    }
+    
+    console.log("Token refreshed successfully");
+    return true; // Indicate that the caller should retry the request
+  }
+  
+  return false; // Not an auth error, don't retry
+};
+
+// Wrapper for API calls that automatically handles auth errors
+export const apiCallWithAuth = async <T>(
+  apiCall: () => Promise<T>,
+  maxRetries = 1
+): Promise<T> => {
+  let attempts = 0;
+  
+  while (attempts <= maxRetries) {
+    try {
+      return await apiCall();
+    } catch (error) {
+      attempts++;
+      
+      if (attempts <= maxRetries) {
+        const shouldRetry = await handleAuthError(error);
+        if (shouldRetry) {
+          console.log(`Retrying API call (attempt ${attempts + 1})`);
+          continue;
+        }
+      }
+      
+      // If we get here, either it's not an auth error or we've exhausted retries
+      throw error;
+    }
+  }
+  
+  throw new Error("Maximum retry attempts exceeded");
 };

@@ -1,4 +1,4 @@
-import { USER_ROLES, UserRole } from '../context/AuthContext';
+import { USER_ROLES, UserRole, isDonorType, hasDonorPrivileges } from '../context/AuthContext';
 
 // Role-based navigation and feature access utilities
 export const RoleBasedAccess = {
@@ -19,6 +19,25 @@ export const RoleBasedAccess = {
       'tax_receipts',
       'explore_campaigns',
       'volunteer_opportunities'
+    ],
+    [USER_ROLES.SELFSIGNUP]: [
+      'make_donation',
+      'donation_history',
+      'impact_tracking',
+      'tax_receipts',
+      'explore_campaigns',
+      'volunteer_opportunities'
+    ],
+    [USER_ROLES.CAMP_ORGANIZER]: [
+      'make_donation',
+      'donation_history',
+      'impact_tracking',
+      'tax_receipts',
+      'explore_campaigns',
+      'volunteer_opportunities',
+      'campaign_management',
+      'donor_analytics',
+      'volunteer_coordination'
     ],
     [USER_ROLES.VOLUNTEER]: [
       'volunteer_opportunities',
@@ -57,6 +76,21 @@ export const RoleBasedAccess = {
       { name: 'Explore', route: 'Explore', icon: 'search' },
       { name: 'Profile', route: 'Profile', icon: 'user' }
     ],
+    [USER_ROLES.SELFSIGNUP]: [
+      { name: 'Home', route: 'Home', icon: 'home' },
+      { name: 'Donate', route: 'Donate', icon: 'heart' },
+      { name: 'History', route: 'History', icon: 'history' },
+      { name: 'Explore', route: 'Explore', icon: 'search' },
+      { name: 'Profile', route: 'Profile', icon: 'user' }
+    ],
+    [USER_ROLES.CAMP_ORGANIZER]: [
+      { name: 'Home', route: 'Home', icon: 'home' },
+      { name: 'Donate', route: 'Donate', icon: 'heart' },
+      { name: 'Campaigns', route: 'Campaigns', icon: 'megaphone' },
+      { name: 'History', route: 'History', icon: 'history' },
+      { name: 'Explore', route: 'Explore', icon: 'search' },
+      { name: 'Profile', route: 'Profile', icon: 'user' }
+    ],
     [USER_ROLES.VOLUNTEER]: [
       { name: 'Home', route: 'Home', icon: 'home' },
       { name: 'Opportunities', route: 'Opportunities', icon: 'calendar' },
@@ -91,7 +125,12 @@ export const RoleBasedAccess = {
   // Get navigation items for a specific role
   getNavigationItems: (userRole: string | null) => {
     if (!userRole || !RoleBasedAccess.navigationItems[userRole as UserRole]) {
-      // Default navigation for unknown roles
+      // Default navigation for unknown roles or donor-type roles
+      if (isDonorType(userRole)) {
+        return RoleBasedAccess.navigationItems[USER_ROLES.DONOR];
+      }
+      
+      // Fallback for completely unknown roles
       return [
         { name: 'Home', route: 'Home', icon: 'home' },
         { name: 'Profile', route: 'Profile', icon: 'user' }
@@ -112,6 +151,16 @@ export const RoleBasedAccess = {
         primary: '#059669', // Green
         secondary: '#D1FAE5',
         accent: '#047857'
+      },
+      [USER_ROLES.SELFSIGNUP]: {
+        primary: '#059669', // Green (same as donor)
+        secondary: '#D1FAE5',
+        accent: '#047857'
+      },
+      [USER_ROLES.CAMP_ORGANIZER]: {
+        primary: '#0891B2', // Cyan
+        secondary: '#CFFAFE',
+        accent: '#0E7490'
       },
       [USER_ROLES.VOLUNTEER]: {
         primary: '#7C3AED', // Purple
@@ -135,6 +184,16 @@ export const RoleBasedAccess = {
       secondary: '#F3F4F6',
       accent: '#4B5563'
     };
+  },
+
+  // Check if user should see donor-related screens
+  shouldShowDonorScreens: (userRole: string | null): boolean => {
+    return isDonorType(userRole) || userRole === USER_ROLES.CAMP_ORGANIZER;
+  },
+
+  // Check if user has camp organizer privileges
+  hasCampOrganizerPrivileges: (userRole: string | null): boolean => {
+    return userRole === USER_ROLES.CAMP_ORGANIZER;
   }
 };
 
@@ -158,3 +217,7 @@ export const roleBasedStyles = (userRole: string | null) => {
     }
   };
 };
+
+// Export specific role checking functions for easier usage
+export const isDonorTypeRole = isDonorType;
+export const hasDonorPrivilegesRole = hasDonorPrivileges;
