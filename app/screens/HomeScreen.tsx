@@ -94,30 +94,27 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
 
   const getProgressColor = (urgency: UrgencyLevel): string => {
     switch(urgency) {
-      case 'Critical': return '#f87171';
-      case 'Moderate': return '#fb923c';
-      case 'Low': return '#4ade80';
-      default: return '#60a5fa';
+      case 'Critical': return '#FF4757';
+      case 'Moderate': return '#3B82F6';
+      case 'Low': return '#00D2D3';
+      default: return '#3B82F6';
     }
   };
 
   const getUrgencyColors = (urgency: UrgencyLevel) => {
     switch(urgency) {
-      case 'Critical': return { text: '#dc2626', bg: '#fef2f2' };
-      case 'Moderate': return { text: '#ea580c', bg: '#fff7ed' };
-      case 'Low': return { text: '#16a34a', bg: '#f0fdf4' };
-      default: return { text: '#2563eb', bg: '#eff6ff' };
+      case 'Critical': return { text: '#FF4757', bg: '#FFF5F5' };
+      case 'Moderate': return { text: '#3B82F6', bg: '#F0F6FF' };
+      case 'Low': return { text: '#00D2D3', bg: '#F0FDFA' };
+      default: return { text: '#3B82F6', bg: '#F0F6FF' };
     }
   };
 
   const handleDonateNow = (emergency: Emergency) => {
-    // Handle donate now action
     console.log(`Donate to ${emergency.hospital} for ${emergency.bloodType}`);
-    // You can navigate to donation booking screen or show confirmation modal
   };
 
   const handleNotificationPress = () => {
-    // Navigate to notifications screen
     if (navigation) {
       navigation.navigate('Notifications');
     } else {
@@ -163,7 +160,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
           </View>
         </View>
 
-        {/* Action Buttons */}
         <View style={styles.emergencyActions}>
           <TouchableOpacity 
             style={styles.donateButton}
@@ -199,7 +195,7 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
         <Text style={styles.campaignTitle}>{campaign.title}</Text>
         
         <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={16} color="#6b7280" />
+          <Ionicons name="location-outline" size={16} color="#8E8E93" />
           <Text style={styles.locationText}>{campaign.location}</Text>
         </View>
         
@@ -228,10 +224,9 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View style={styles.greetingContainer}>
@@ -244,20 +239,18 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
             </View>
           </View>
 
-          {/* Search Bar */}
           <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
+            <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search campaigns, hospitals..."
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#9CA3AF"
               value={searchText}
               onChangeText={setSearchText}
             />
           </View>
         </View>
 
-        {/* Main Stats Card */}
         <View style={styles.statsCard}>
           <View style={styles.statsCenter}>
             <Text style={styles.statsNumber}>12</Text>
@@ -267,10 +260,9 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
             </View>
           </View>
 
-          {/* Status - Left Aligned */}
           <View style={styles.statusRow}>
             <View style={styles.statusIcon}>
-              <Ionicons name="checkmark-circle" size={24} color="white" />
+              <Ionicons name="checkmark-circle" size={20} color="white" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Ready to Donate</Text>
@@ -279,14 +271,11 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
           </View>
         </View>
 
-        {/* Main Components Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Main Components:</Text>
-          
           <View style={styles.componentRow}>
             <View style={styles.componentCard}>
               <View style={styles.componentIcon}>
-                <Ionicons name="water" size={20} color="white" />
+                <Ionicons name="water" size={18} color="white" />
               </View>
               <View style={styles.componentContent}>
                 <Text style={styles.componentTitle}>Blood Type</Text>
@@ -295,8 +284,8 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
               <Text style={styles.componentValue}>O+</Text>
             </View>
             <View style={styles.componentCard}>
-              <View style={[styles.componentIcon, { backgroundColor: '#3b82f6' }]}>
-                <Ionicons name="calendar" size={20} color="white" />
+              <View style={[styles.componentIcon, { backgroundColor: '#5F27CD' }]}>
+                <Ionicons name="calendar" size={18} color="white" />
               </View>
               <View style={styles.componentContent}>
                 <Text style={styles.componentTitle}>Last Donation</Text>
@@ -307,18 +296,16 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
           </View>
         </View>
         
-        {/* Next Appointment */}
         <View style={styles.appointmentCard}>
           <View style={styles.appointmentHeader}>
             <View style={styles.appointmentIcon}>
-              <Ionicons name="heart" size={24} color="white" />
+              <Ionicons name="heart" size={20} color="white" />
             </View>
             <View style={styles.appointmentContent}>
               <Text style={styles.appointmentTitle}>Blood Donation</Text>
               <Text style={styles.appointmentDateTime}>July 15, 2025 at 10:00 AM</Text>
               <Text style={styles.appointmentLocation}>Colombo General Hospital</Text>
               <Text style={styles.confirmedText}>Confirmed</Text>
-              
             </View>
           </View>
           
@@ -329,7 +316,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
           </View>
         </View>
 
-        {/* Emergency Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Emergency</Text>
@@ -345,7 +331,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
           </View>
         </View>
 
-        {/* Upcoming Campaigns */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Upcoming Campaigns</Text>
@@ -364,7 +349,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
         <View style={styles.bottomPadding} />
       </ScrollView>
 
-      {/* Floating Notification Button */}
       <TouchableOpacity 
         style={styles.floatingButton}
         onPress={handleNotificationPress}
@@ -381,7 +365,7 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#FAFBFC',
   },
   scrollView: {
     flex: 1,
@@ -389,13 +373,13 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 60,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 28,
   },
   greetingContainer: {
     flex: 1,
@@ -403,17 +387,19 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontWeight: '800',
+    color: '#1F2937',
     marginBottom: 4,
+    letterSpacing: -0.5,
   },
   subGreeting: {
     fontSize: 16,
-    color: '#6b7280',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   donorBadge: {
-    marginTop: 10,
-    backgroundColor: 'rgba(75, 85, 99, 0.1)',
+    marginTop: 15,
+    backgroundColor: '#fefefe',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -425,43 +411,50 @@ const styles = StyleSheet.create({
   donorDot: {
     width: 8,
     height: 8,
-    backgroundColor: '#4b5563',
+    backgroundColor: '#A0A0A0',
     borderRadius: 4,
     marginRight: 8,
   },
   donorText: {
-    color: '#374151',
+    color: '#1F2937',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   searchContainer: {
     position: 'relative',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   searchIcon: {
     position: 'absolute',
-    left: 16,
-    top: 16,
+    left: 20,
+    top: 18,
     zIndex: 1,
   },
   searchInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    borderRadius: 16,
-    paddingLeft: 48,
-    paddingRight: 16,
-    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingLeft: 52,
+    paddingRight: 20,
+    paddingVertical: 18,
     fontSize: 16,
-    color: '#111827',
-    borderWidth: 1,
-    borderColor: 'rgba(156, 163, 175, 0.3)',
+    color: '#1F2937',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 2,
+    fontWeight: '500',
   },
   statsCard: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 24,
+    padding: 28,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
   statsCenter: {
     flexDirection: 'row',
@@ -471,11 +464,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   statsNumber: {
-    fontSize: 100,
-    fontWeight: '300',
-    color: '#111827',
+    fontSize: 64,
+    fontWeight: '900',
+    color: '#3B82F6',
     marginRight: 20,
-    lineHeight: 100,
+    lineHeight: 70,
   },
   statsLabelContainer: {
     flexDirection: 'column',
@@ -483,20 +476,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statsLabel: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: '#f97316',
-    lineHeight: 28,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    lineHeight: 24,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
   },
   statusIcon: {
-    backgroundColor: '#10b981',
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    backgroundColor: '#00D2D3',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -505,31 +500,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
   },
   statusSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   appointmentCard: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 24,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
   appointmentHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   appointmentIcon: {
-    backgroundColor: '#ef4444',
-    width: 56,
-    height: 56,
+    backgroundColor: '#FF4757',
+    width: 48,
+    height: 48,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -540,65 +539,55 @@ const styles = StyleSheet.create({
   },
   appointmentTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
   },
   appointmentDateTime: {
     fontSize: 14,
-    color: '#6b7280',
-    marginVertical: 4,
+    color: '#6B7280',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  appointmentLocation: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+    fontWeight: '500',
   },
   confirmedText: {
-    color: '#166534',
+    color: '#00D2D3',
     fontSize: 12,
-    fontWeight: '500',
-    backgroundColor: '#f0fdf4',
+    fontWeight: '700',
+    backgroundColor: '#F0FDFA',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     alignSelf: 'flex-start',
-    marginVertical: 4,
-  },
-  appointmentLocation: {
-    fontSize: 14,
-    color: '#9ca3af',
-    marginTop: 4,
   },
   appointmentButtons: {
     flexDirection: 'row',
     gap: 12,
   },
-  rescheduleButton: {
-    flex: 1,
-    backgroundColor: 'rgba(156, 163, 175, 0.2)',
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(156, 163, 175, 0.3)',
-  },
-  rescheduleButtonText: {
-    color: '#374151',
-    fontWeight: '500',
-  },
   detailsButton: {
     flex: 1,
-    backgroundColor: '#ef4444',
-    paddingVertical: 12,
-    borderRadius: 12,
+    backgroundColor: '#FF4757',
+    paddingVertical: 14,
+    borderRadius: 16,
     alignItems: 'center',
   },
   detailsButtonText: {
     color: 'white',
-    fontWeight: '500',
+    fontWeight: '700',
+    fontSize: 14,
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: '800',
+    color: '#1F2937',
     marginBottom: 16,
   },
   sectionHeader: {
@@ -608,19 +597,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   viewAllButton: {
-    color: '#ef4444',
-    fontWeight: '500',
+    color: '#5F27CD',
+    fontWeight: '700',
+    fontSize: 14,
   },
   emergenciesContainer: {
     gap: 12,
   },
   emergencyCard: {
-    backgroundColor: 'rgba(243, 244, 246, 0.6)',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 20,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(209, 213, 219, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   emergencyHeader: {
     flexDirection: 'row',
@@ -630,30 +622,33 @@ const styles = StyleSheet.create({
   },
   timeLeft: {
     fontSize: 12,
-    color: '#dc2626',
-    fontWeight: '500',
+    color: '#FF4757',
+    fontWeight: '700',
   },
   emergencyHospital: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 12,
   },
   componentRow: {
     gap: 12,
   },
   componentCard: {
-    backgroundColor: 'rgba(243, 244, 246, 0.6)',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(209, 213, 219, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   componentIcon: {
-    backgroundColor: '#ef4444',
+    backgroundColor: '#FF4757',
     width: 40,
     height: 40,
     borderRadius: 12,
@@ -666,28 +661,32 @@ const styles = StyleSheet.create({
   },
   componentTitle: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 2,
   },
   componentSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   componentValue: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: '800',
+    color: '#1F2937',
   },
   campaignsContainer: {
     gap: 12,
   },
   campaignCard: {
-    backgroundColor: 'rgba(243, 244, 246, 0.6)',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 20,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(209, 213, 219, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   campaignHeader: {
     flexDirection: 'row',
@@ -697,51 +696,54 @@ const styles = StyleSheet.create({
   },
   urgencyBadge: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   urgencyText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   campaignDate: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   campaignTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 8,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   locationText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#6B7280',
     marginLeft: 8,
+    fontWeight: '500',
   },
   bloodTypeContainer: {
-    backgroundColor: 'rgba(156, 163, 175, 0.1)',
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 12,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   bloodTypeText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 4,
   },
   slotsContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   slotsText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   progressContainer: {
     marginTop: 8,
@@ -749,7 +751,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#E5E7EB',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -757,7 +759,6 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  // New styles for emergency action buttons
   emergencyActions: {
     flexDirection: 'row',
     gap: 12,
@@ -765,18 +766,18 @@ const styles = StyleSheet.create({
   },
   donateButton: {
     flex: 2,
-    backgroundColor: '#dc2626',
-    paddingVertical: 12,
+    backgroundColor: '#FF4757',
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#dc2626',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: '#FF4757',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   donateButtonIcon: {
     marginRight: 8,
@@ -784,76 +785,50 @@ const styles = StyleSheet.create({
   donateButtonText: {
     color: 'white',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   detailsButtonSecondary: {
     flex: 1,
-    backgroundColor: 'rgba(156, 163, 175, 0.2)',
-    paddingVertical: 12,
+    backgroundColor: '#F8F9FA',
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(156, 163, 175, 0.3)',
   },
   detailsButtonSecondaryText: {
-    color: '#374151',
+    color: '#6B7280',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   floatingButton: {
     position: 'absolute',
-    bottom: 112,
+    bottom: 120,
     right: 24,
-    width: 56,
-    height: 56,
-    backgroundColor: '#ef4444',
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    backgroundColor: '#5F27CD',
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowColor: '#5F27CD',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
     elevation: 8,
   },
   notificationBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 16,
-    height: 16,
-    backgroundColor: '#f97316',
-    borderRadius: 8,
+    top: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    backgroundColor: '#FF4757',
+    borderRadius: 7,
     borderWidth: 2,
     borderColor: 'white',
   },
-  tabBar: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(229, 231, 235, 0.5)',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    paddingBottom: 32,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    maxWidth: 320,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  tabItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  tabLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
   bottomPadding: {
-    height: 20,
+    height: 24,
   },
 });

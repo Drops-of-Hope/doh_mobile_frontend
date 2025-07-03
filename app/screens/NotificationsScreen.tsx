@@ -102,21 +102,21 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
   };
 
   const getNotificationColor = (type: NotificationType, priority: string) => {
-    if (priority === 'high') return '#dc2626';
+    if (priority === 'high') return '#FF4757';
     
     switch (type) {
       case 'emergency':
-        return '#dc2626';
+        return '#FF4757';
       case 'campaign':
-        return '#2563eb';
+        return '#3B82F6';
       case 'appointment':
-        return '#059669';
+        return '#00D2D3';
       case 'reminder':
-        return '#d97706';
+        return '#F59E0B';
       case 'achievement':
-        return '#7c3aed';
+        return '#5F27CD';
       default:
-        return '#6b7280';
+        return '#6B7280';
     }
   };
 
@@ -171,11 +171,11 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
         activeOpacity={0.7}
       >
         <View style={styles.notificationHeader}>
-          <View style={[styles.notificationIcon, { backgroundColor: `${iconColor}15` }]}>
+          <View style={[styles.notificationIcon, { backgroundColor: iconColor }]}>
             <Ionicons 
               name={getNotificationIcon(notification.type)} 
               size={20} 
-              color={iconColor} 
+              color="white" 
             />
           </View>
           
@@ -216,7 +216,7 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
       
       {/* Header */}
       <View style={styles.header}>
@@ -225,7 +225,7 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
             style={styles.backButton}
             onPress={() => navigation?.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="#111827" />
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
           </TouchableOpacity>
           
           <View style={styles.headerTitleContainer}>
@@ -255,7 +255,7 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
         {notifications.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Ionicons name="notifications-off" size={48} color="#9ca3af" />
+              <Ionicons name="notifications-off" size={48} color="#9CA3AF" />
             </View>
             <Text style={styles.emptyTitle}>No Notifications</Text>
             <Text style={styles.emptyMessage}>
@@ -281,15 +281,13 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#FAFBFC',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 24,
-    paddingBottom: 16,
-    backgroundColor: '#f9fafb',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(229, 231, 235, 0.5)',
+    paddingBottom: 24,
+    backgroundColor: '#FAFBFC',
   },
   headerContent: {
     flexDirection: 'row',
@@ -297,12 +295,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: 'rgba(243, 244, 246, 0.6)',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   headerTitleContainer: {
     flex: 1,
@@ -312,68 +315,93 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1F2937',
+    letterSpacing: -0.5,
   },
   headerBadge: {
-    backgroundColor: '#dc2626',
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
+    backgroundColor: '#FF4757',
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
+    shadowColor: '#FF4757',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   headerBadgeText: {
     color: 'white',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   markAllButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   markAllButtonText: {
-    color: '#dc2626',
+    color: '#5F27CD',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 16,
   },
   notificationsContainer: {
     gap: 12,
   },
   notificationCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.5)',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
     position: 'relative',
     overflow: 'hidden',
   },
   unreadCard: {
-    backgroundColor: 'rgba(239, 68, 68, 0.05)',
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: '#FFFFFF',
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF4757',
+    shadowColor: '#FF4757',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 4,
   },
   notificationHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
   notificationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   notificationContent: {
     flex: 1,
@@ -382,29 +410,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   notificationTitle: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
+    fontWeight: '600',
+    color: '#1F2937',
     flex: 1,
   },
   unreadTitle: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
   unreadDot: {
-    width: 8,
-    height: 8,
-    backgroundColor: '#dc2626',
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    backgroundColor: '#FF4757',
+    borderRadius: 5,
     marginLeft: 8,
   },
   notificationMessage: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#6B7280',
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 16,
+    fontWeight: '500',
   },
   notificationFooter: {
     flexDirection: 'row',
@@ -413,20 +442,21 @@ const styles = StyleSheet.create({
   },
   notificationTime: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#9CA3AF',
+    fontWeight: '500',
   },
   actionBadge: {
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#fbbf24',
+    borderColor: '#F59E0B',
   },
   actionBadgeText: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#92400e',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#92400E',
   },
   highPriorityBorder: {
     position: 'absolute',
@@ -434,7 +464,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 4,
-    backgroundColor: '#dc2626',
+    backgroundColor: '#FF4757',
   },
   emptyState: {
     alignItems: 'center',
@@ -445,25 +475,27 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(156, 163, 175, 0.1)',
+    backgroundColor: '#F8F9FA',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1F2937',
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   emptyMessage: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: 16,
+    color: '#6B7280',
     textAlign: 'center',
     paddingHorizontal: 32,
-    lineHeight: 20,
+    lineHeight: 24,
+    fontWeight: '500',
   },
   bottomPadding: {
-    height: 20,
+    height: 24,
   },
 });
