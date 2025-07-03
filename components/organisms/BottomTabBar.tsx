@@ -28,8 +28,15 @@ interface BottomTabBarProps {
 }
 
 const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { getRoleColors, canDonate, canVolunteer, canManageCampaigns, currentRole } = useRoleBasedAccess();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {
+    getRoleColors,
+    canDonate,
+    canVolunteer,
+    canManageCampaigns,
+    currentRole,
+  } = useRoleBasedAccess();
   const roleColors = getRoleColors();
 
   // Debug logging to understand role-based access
@@ -37,7 +44,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
     currentRole,
     canDonate: canDonate(),
     canVolunteer: canVolunteer(),
-    canManageCampaigns: canManageCampaigns()
+    canManageCampaigns: canManageCampaigns(),
   });
 
   const handleNavigation = (route: string) => {
@@ -194,10 +201,13 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
       canDonate: canDonate(),
       canVolunteer: canVolunteer(),
       canManageCampaigns: canManageCampaigns(),
-      showingAllTabs: true
+      showingAllTabs: true,
     });
 
-    console.log("Generated tabs:", allTabs.map(tab => tab.label));
+    console.log(
+      "Generated tabs:",
+      allTabs.map((tab) => tab.label)
+    );
     return allTabs;
   };
 
@@ -219,7 +229,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
                 tab.isActive ? "text-gray-800" : "text-gray-600"
               }`}
               style={{
-                color: tab.isActive ? roleColors.primary : "#6B7280"
+                color: tab.isActive ? roleColors.primary : "#6B7280",
               }}
             >
               {tab.label}
@@ -231,9 +241,9 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
       {/* Bottom indicator with role-based color */}
       <StyledView
         className="h-1 rounded-full mt-2 mx-auto"
-        style={{ 
-          width: 134, 
-          backgroundColor: roleColors.secondary
+        style={{
+          width: 134,
+          backgroundColor: roleColors.secondary,
         }}
       />
     </StyledView>

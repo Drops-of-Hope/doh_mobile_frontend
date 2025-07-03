@@ -1,13 +1,13 @@
-import { TextInput, StyleSheet, View, Text } from 'react-native';
-import { useState } from 'react';
+import { TextInput, StyleSheet, View, Text } from "react-native";
+import { useState } from "react";
 
 interface InputProps {
   placeholder?: string;
   value?: string;
   onChangeText?: (text: string) => void;
   secureTextEntry?: boolean;
-  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad";
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
   label?: string;
   error?: string;
   leftIcon?: React.ReactNode;
@@ -19,8 +19,8 @@ export default function Input({
   value,
   onChangeText,
   secureTextEntry = false,
-  keyboardType = 'default',
-  autoCapitalize = 'sentences',
+  keyboardType = "default",
+  autoCapitalize = "sentences",
   label,
   error,
   leftIcon,
@@ -32,17 +32,19 @@ export default function Input({
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[
-        styles.inputContainer,
-        isFocused && styles.focused,
-        error && styles.error,
-      ]}>
+      <View
+        style={[
+          styles.inputContainer,
+          isFocused && styles.focused,
+          error && styles.error,
+        ]}
+      >
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
         <TextInput
           style={[
-            styles.input, 
-            leftIcon ? styles.inputWithLeftIcon : null, 
-            rightIcon ? styles.inputWithRightIcon : null
+            styles.input,
+            leftIcon ? styles.inputWithLeftIcon : null,
+            rightIcon ? styles.inputWithRightIcon : null,
           ]}
           placeholder={placeholder}
           value={value}
@@ -68,20 +70,20 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    fontWeight: "600",
+    color: "#374151",
     marginBottom: 6,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 1,
@@ -91,19 +93,19 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   focused: {
-    borderColor: '#DC2626',
-    backgroundColor: '#FFFFFF',
+    borderColor: "#DC2626",
+    backgroundColor: "#FFFFFF",
     shadowOpacity: 0.1,
   },
   error: {
-    borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
+    borderColor: "#EF4444",
+    backgroundColor: "#FEF2F2",
   },
   input: {
     flex: 1,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#111827',
+    color: "#111827",
     lineHeight: 20,
   },
   inputWithLeftIcon: {
@@ -114,15 +116,15 @@ const styles = StyleSheet.create({
   },
   leftIcon: {
     opacity: 0.6,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   rightIcon: {
     opacity: 0.6,
   },
   errorText: {
     fontSize: 12,
-    color: '#EF4444',
+    color: "#EF4444",
     marginTop: 4,
     marginLeft: 4,
   },

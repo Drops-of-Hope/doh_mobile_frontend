@@ -1,4 +1,4 @@
-import { apiRequestWithAuth, API_ENDPOINTS } from './api';
+import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 
 // User profile interface
 export interface UserProfile {
@@ -31,7 +31,7 @@ export const donationService = {
   // Submit donation form
   submitDonationForm: async (formData: DonationFormData): Promise<any> => {
     return apiRequestWithAuth(API_ENDPOINTS.DONATION_FORM, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(formData),
     });
   },
@@ -39,7 +39,7 @@ export const donationService = {
   // Join campaign
   joinCampaign: async (campaignId: string): Promise<any> => {
     return apiRequestWithAuth(API_ENDPOINTS.JOIN_CAMPAIGN, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ campaignId }),
     });
   },
@@ -47,21 +47,21 @@ export const donationService = {
   // Get user profile for QR code
   getUserProfile: async (): Promise<UserProfile> => {
     return apiRequestWithAuth(API_ENDPOINTS.USER_PROFILE, {
-      method: 'GET',
+      method: "GET",
     });
   },
 
   // Get campaigns
   getCampaigns: async (): Promise<any[]> => {
     return apiRequestWithAuth(API_ENDPOINTS.CAMPAIGNS, {
-      method: 'GET',
+      method: "GET",
     });
   },
 
   // Get donation history
   getDonationHistory: async (): Promise<any[]> => {
-    return apiRequestWithAuth('/api/donations/history', {
-      method: 'GET',
+    return apiRequestWithAuth("/api/donations/history", {
+      method: "GET",
     });
   },
 };

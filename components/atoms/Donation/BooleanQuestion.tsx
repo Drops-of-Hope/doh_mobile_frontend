@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, Switch } from 'react-native';
-import { styled } from 'nativewind';
+import React from "react";
+import { View, Text, Switch } from "react-native";
+import { styled } from "nativewind";
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -34,8 +34,8 @@ const BooleanQuestion: React.FC<BooleanQuestionProps> = ({
         <Switch
           value={value}
           onValueChange={onValueChange}
-          trackColor={{ false: '#f3f4f6', true: '#dc2626' }}
-          thumbColor={value ? '#ffffff' : '#ffffff'}
+          trackColor={{ false: "#f3f4f6", true: "#dc2626" }}
+          thumbColor={value ? "#ffffff" : "#ffffff"}
         />
       </StyledView>
     </StyledView>

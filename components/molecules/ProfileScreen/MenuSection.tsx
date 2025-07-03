@@ -1,6 +1,6 @@
-import React from 'react';
-import { View } from 'react-native';
-import MenuItem from '../../atoms/ProfileScreen/MenuItem';
+import React from "react";
+import { View } from "react-native";
+import MenuItem from "../../atoms/ProfileScreen/MenuItem";
 
 interface MenuItemData {
   id: string;
@@ -19,7 +19,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({
   showSeparator = true,
 }) => {
   return (
-    <View className={`bg-white ${showSeparator ? 'mb-4' : ''}`}>
+    <View className={`bg-white ${showSeparator ? "mb-4" : ""}`}>
       {items.map((item, index) => (
         <View key={item.id}>
           <MenuItem

@@ -1,7 +1,7 @@
 // app/screens/HomeScreen.tsx
-import React from 'react';
-import { View, Text, SafeAreaView } from 'react-native';
-import BottomTabBar from '../../components/organisms/BottomTabBar';
+import React from "react";
+import { View, Text, SafeAreaView } from "react-native";
+import BottomTabBar from "../../components/organisms/BottomTabBar";
 
 export default function HomeScreen() {
   return (
@@ -16,7 +16,7 @@ export default function HomeScreen() {
             Your home screen content goes here
           </Text>
         </View>
-        
+
         {/* Bottom Tab Bar */}
         <BottomTabBar activeTab="home" />
       </View>

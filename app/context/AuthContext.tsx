@@ -123,11 +123,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const getUserRole = (): string | null => {
-    const role = user?.roles && user.roles.length > 0 ? user.roles[0] : user?.userType || null;
-    console.log("AuthContext getUserRole:", { 
-      userRoles: user?.roles, 
-      userType: user?.userType, 
-      returnedRole: role 
+    const role =
+      user?.roles && user.roles.length > 0
+        ? user.roles[0]
+        : user?.userType || null;
+    console.log("AuthContext getUserRole:", {
+      userRoles: user?.roles,
+      userType: user?.userType,
+      returnedRole: role,
     });
     return role;
   };
@@ -137,19 +140,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const hasRole = (role: string): boolean => {
-    console.log("hasRole check:", { 
-      role, 
-      userRoles: user?.roles, 
+    console.log("hasRole check:", {
+      role,
+      userRoles: user?.roles,
       userType: user?.userType,
-      user 
+      user,
     });
-    
+
     if (user?.roles) {
       const hasRoleResult = user.roles.includes(role);
       console.log("hasRole result (from roles array):", hasRoleResult);
       return hasRoleResult;
     }
-    
+
     const userTypeMatch = getUserType() === role;
     console.log("hasRole result (from userType):", userTypeMatch);
     return userTypeMatch;

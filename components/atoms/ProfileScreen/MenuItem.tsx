@@ -37,7 +37,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
         <StyledView className="w-2 h-2 border-r-2 border-b-2 border-gray-400" />
       )}
     </StyledTouchableOpacity>
-  ); 
+  );
 };
 
 export default MenuItem;

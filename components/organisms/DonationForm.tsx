@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Alert } from 'react-native';
-import { styled } from 'nativewind';
-import DonationQuestions from '../molecules/Donation/DonationQuestions';
-import Button from '../atoms/Button';
-import { DonationFormData, donationService } from '../../app/services/donationService';
+import React, { useState } from "react";
+import { View, ScrollView, Alert } from "react-native";
+import { styled } from "nativewind";
+import DonationQuestions from "../molecules/Donation/DonationQuestions";
+import Button from "../atoms/Button";
+import {
+  DonationFormData,
+  donationService,
+} from "../../app/services/donationService";
 
 const StyledView = styled(View);
 const StyledScrollView = styled(ScrollView);
@@ -37,7 +40,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleUpdateField = (field: keyof DonationFormData, value: boolean) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -46,30 +49,30 @@ const DonationForm: React.FC<DonationFormProps> = ({
   const validateForm = (): boolean => {
     // Check for conditions that might disqualify donation
     const disqualifyingConditions = [
-      'anyDifficulty',
-      'medicalAdvice',
-      'takingMedicines',
-      'anySurgery',
-      'pregnant',
-      'haveHepatitis',
-      'tattoos',
-      'travelledAbroad',
-      'receivedBlood',
-      'chemotherapy',
-      'bookAspin',
-      'knowledgeAgent',
-      'feverLymphNode',
+      "anyDifficulty",
+      "medicalAdvice",
+      "takingMedicines",
+      "anySurgery",
+      "pregnant",
+      "haveHepatitis",
+      "tattoos",
+      "travelledAbroad",
+      "receivedBlood",
+      "chemotherapy",
+      "bookAspin",
+      "knowledgeAgent",
+      "feverLymphNode",
     ];
 
     const hasDisqualifyingCondition = disqualifyingConditions.some(
-      condition => formData[condition as keyof DonationFormData]
+      (condition) => formData[condition as keyof DonationFormData]
     );
 
     if (hasDisqualifyingCondition || !formData.feelingWell) {
       Alert.alert(
-        'Donation Not Recommended',
-        'Based on your responses, you may not be eligible to donate blood at this time. Please consult with medical staff for further evaluation.',
-        [{ text: 'OK' }]
+        "Donation Not Recommended",
+        "Based on your responses, you may not be eligible to donate blood at this time. Please consult with medical staff for further evaluation.",
+        [{ text: "OK" }]
       );
       return false;
     }
@@ -86,20 +89,20 @@ const DonationForm: React.FC<DonationFormProps> = ({
     try {
       await donationService.submitDonationForm(formData);
       Alert.alert(
-        'Form Submitted Successfully',
-        'Your donation form has been submitted. You are eligible to donate blood!',
+        "Form Submitted Successfully",
+        "Your donation form has been submitted. You are eligible to donate blood!",
         [
           {
-            text: 'OK',
+            text: "OK",
             onPress: onSubmitSuccess,
           },
         ]
       );
     } catch (error) {
       Alert.alert(
-        'Submission Failed',
-        'Failed to submit your donation form. Please try again.',
-        [{ text: 'OK' }]
+        "Submission Failed",
+        "Failed to submit your donation form. Please try again.",
+        [{ text: "OK" }]
       );
     } finally {
       setIsSubmitting(false);
@@ -108,29 +111,22 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
   return (
     <StyledView className="flex-1 bg-white">
-      <StyledScrollView 
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-      >
+      <StyledScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <DonationQuestions
           formData={formData}
           onUpdateField={handleUpdateField}
         />
-        
+
         <StyledView className="p-4 pb-8">
           <Button
             title={isSubmitting ? "Submitting..." : "Submit Form"}
             onPress={handleSubmit}
             disabled={isSubmitting}
           />
-          
+
           {onCancel && (
             <StyledView className="mt-3">
-              <Button
-                title="Cancel"
-                onPress={onCancel}
-                variant="outline"
-              />
+              <Button title="Cancel" onPress={onCancel} variant="outline" />
             </StyledView>
           )}
         </StyledView>

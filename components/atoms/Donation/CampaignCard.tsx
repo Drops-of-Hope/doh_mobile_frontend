@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { styled } from 'nativewind';
-import Svg, { Path } from 'react-native-svg';
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { styled } from "nativewind";
+import Svg, { Path } from "react-native-svg";
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -29,22 +29,10 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Path
-        d="M8 8H10V10H8V8Z"
-        fill="currentColor"
-      />
-      <Path
-        d="M14 8H16V10H14V8Z"
-        fill="currentColor"
-      />
-      <Path
-        d="M8 14H10V16H8V14Z"
-        fill="currentColor"
-      />
-      <Path
-        d="M14 14H16V16H14V14Z"
-        fill="currentColor"
-      />
+      <Path d="M8 8H10V10H8V8Z" fill="currentColor" />
+      <Path d="M14 8H16V10H14V8Z" fill="currentColor" />
+      <Path d="M8 14H10V16H8V14Z" fill="currentColor" />
+      <Path d="M14 14H16V16H14V14Z" fill="currentColor" />
     </Svg>
   );
 
@@ -67,7 +55,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
           <QRIcon />
         </StyledView>
       </StyledView>
-      
+
       <StyledView className="flex-row items-center justify-between">
         <StyledText className="text-sm text-gray-500">
           {participants} participants joined

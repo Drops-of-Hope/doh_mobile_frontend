@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
-import { styled } from 'nativewind';
-import CampaignCard from '../../atoms/Donation/CampaignCard';
+import React from "react";
+import { View, Text, ScrollView } from "react-native";
+import { styled } from "nativewind";
+import CampaignCard from "../../atoms/Donation/CampaignCard";
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -31,8 +31,8 @@ const CampaignList: React.FC<CampaignListProps> = ({
       <StyledText className="text-base text-gray-600 mb-6 px-4">
         Join a blood donation campaign and help save lives in your community
       </StyledText>
-      
-      <StyledScrollView 
+
+      <StyledScrollView
         className="flex-1 px-4"
         showsVerticalScrollIndicator={false}
       >
@@ -45,7 +45,7 @@ const CampaignList: React.FC<CampaignListProps> = ({
             onPress={() => onCampaignPress(campaign)}
           />
         ))}
-        
+
         {campaigns.length === 0 && (
           <StyledView className="flex-1 justify-center items-center py-20">
             <StyledText className="text-gray-500 text-center text-lg">

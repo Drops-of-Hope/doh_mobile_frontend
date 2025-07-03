@@ -8,7 +8,9 @@ type LoadingDotProps = {
 
 export default function LoadingDot({ animValue, color }: LoadingDotProps) {
   return (
-    <Animated.View style={[styles.dot, { opacity: animValue, backgroundColor: color }]} />
+    <Animated.View
+      style={[styles.dot, { opacity: animValue, backgroundColor: color }]}
+    />
   );
 }
 

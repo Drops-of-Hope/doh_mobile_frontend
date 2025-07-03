@@ -12,7 +12,7 @@
   },
   "navigation": {
     "explore": "Explore",
-    "donate": "Donate", 
+    "donate": "Donate",
     "home": "Home",
     "activities": "Activities",
     "profile": "Profile"
@@ -70,7 +70,7 @@
     },
     "details": {
       "campaign": "Campaign",
-      "location": "Location", 
+      "location": "Location",
       "date": "Date",
       "status": "Status",
       "submitted": "Submitted",

@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text } from 'react-native';
-import ProfilePicture from '../../atoms/ProfileScreen/ProfilePicture';
-import Button from '../../atoms/ProfileScreen/Button';
+import React from "react";
+import { View, Text } from "react-native";
+import ProfilePicture from "../../atoms/ProfileScreen/ProfilePicture";
+import Button from "../../atoms/ProfileScreen/Button";
 
 interface ProfileHeaderProps {
   name: string;
@@ -29,16 +29,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           showCameraIcon={true}
           onPress={onProfilePicturePress}
         />
-        
       </View>
 
-      <Text className="text-2xl font-bold text-gray-900 mb-1">
-        {name}
-      </Text>
-      
-      <Text className="text-base text-gray-600 mb-4">
-        {email}
-      </Text>
+      <Text className="text-2xl font-bold text-gray-900 mb-1">{name}</Text>
+
+      <Text className="text-base text-gray-600 mb-4">{email}</Text>
 
       <Button
         title="Edit Profile"

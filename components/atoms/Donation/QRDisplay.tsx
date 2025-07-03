@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text } from 'react-native';
-import { styled } from 'nativewind';
-import QRCode from 'react-native-qrcode-svg';
+import React from "react";
+import { View, Text } from "react-native";
+import { styled } from "nativewind";
+import QRCode from "react-native-qrcode-svg";
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -34,7 +34,7 @@ const QRDisplay: React.FC<QRDisplayProps> = ({
         <StyledText className="text-base text-gray-600 mb-6 text-center">
           {userEmail}
         </StyledText>
-        
+
         <StyledView className="bg-gray-100 p-8 rounded-xl border border-gray-200 items-center justify-center">
           {/* Real QR Code */}
           <QRCode
@@ -44,7 +44,7 @@ const QRDisplay: React.FC<QRDisplayProps> = ({
             backgroundColor="white"
           />
         </StyledView>
-        
+
         <StyledText className="text-sm text-gray-500 mt-4 text-center">
           UID: {userUID}
         </StyledText>

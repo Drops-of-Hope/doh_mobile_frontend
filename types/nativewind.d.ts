@@ -1,7 +1,7 @@
 // types/nativewind.d.ts
-import { ViewProps, TextProps, PressableProps } from 'react-native';
+import { ViewProps, TextProps, PressableProps } from "react-native";
 
-declare module 'react-native' {
+declare module "react-native" {
   interface ViewProps {
     className?: string;
   }

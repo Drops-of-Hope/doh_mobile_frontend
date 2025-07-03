@@ -32,21 +32,18 @@ export default function Login() {
     const handleAuthResponse = async () => {
       if (response?.type === "success" && response.params.code) {
         try {
-          const tokenResponse = await fetch(
-            discovery.tokenEndpoint,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-              },
-              body: new URLSearchParams({
-                grant_type: "authorization_code",
-                code: response.params.code,
-                redirect_uri: authConfig.redirectUri,
-                client_id: authConfig.clientId,
-              }).toString(),
-            }
-          );
+          const tokenResponse = await fetch(discovery.tokenEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              grant_type: "authorization_code",
+              code: response.params.code,
+              redirect_uri: authConfig.redirectUri,
+              client_id: authConfig.clientId,
+            }).toString(),
+          });
 
           const tokens = await tokenResponse.json();
           setAuthState(tokens);
@@ -66,7 +63,11 @@ export default function Login() {
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Text>Login Screen</Text>
-      <Button title="Login with Asgardeo" onPress={() => promptAsync()} disabled={!request} />
+      <Button
+        title="Login with Asgardeo"
+        onPress={() => promptAsync()}
+        disabled={!request}
+      />
     </View>
   );
 }

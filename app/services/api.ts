@@ -1,21 +1,21 @@
 // API configuration and base setup
-const API_BASE_URL = 'http://localhost:3000/api'; // Replace with your Node.js backend URL
+const API_BASE_URL = "http://localhost:3000/api"; // Replace with your Node.js backend URL
 // For production: 'https://your-backend-domain.com/api'
 // For local development with real device: 'http://YOUR_LOCAL_IP:3000/api'
 
 // API endpoints
 export const API_ENDPOINTS = {
   // Auth endpoints
-  LOGIN: '/auth/login',
-  REGISTER: '/auth/register',
-  
+  LOGIN: "/auth/login",
+  REGISTER: "/auth/register",
+
   // Donation endpoints
-  DONATION_FORM: '/donations/form',
-  JOIN_CAMPAIGN: '/donations/join-campaign',
-  USER_PROFILE: '/users/profile',
-  
+  DONATION_FORM: "/donations/form",
+  JOIN_CAMPAIGN: "/donations/join-campaign",
+  USER_PROFILE: "/users/profile",
+
   // Campaign endpoints
-  CAMPAIGNS: '/campaigns',
+  CAMPAIGNS: "/campaigns",
 } as const;
 
 // Generic API request function
@@ -24,9 +24,9 @@ export const apiRequest = async (
   options: RequestInit = {}
 ): Promise<any> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   const defaultHeaders = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
 
   try {
@@ -44,7 +44,7 @@ export const apiRequest = async (
 
     return await response.json();
   } catch (error) {
-    console.error('API request failed:', error);
+    console.error("API request failed:", error);
     throw error;
   }
 };

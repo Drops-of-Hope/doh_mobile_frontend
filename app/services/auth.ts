@@ -3,14 +3,16 @@ import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 
 const authConfig = {
-  issuer: "https://api.asgardeo.io/t/dropsofhope",
-  clientId: "cvkLW1k579ozp8tp7tRx7vGqvssa",
+  issuer:
+    process.env.EXPO_PUBLIC_ASGARDEO_ISSUER ||
+    "https://api.asgardeo.io/t/dropsofhope",
+  clientId: process.env.EXPO_PUBLIC_ASGARDEO_CLIENT_ID || "",
   scopes: ["openid", "profile", "email", "roles"],
 };
 
 // Create proper redirect URI for Expo
 const redirectUri = AuthSession.makeRedirectUri({
-  scheme: "com.dropsofhope",
+  scheme: process.env.EXPO_PUBLIC_APP_SCHEME || "com.dropsofhope",
   path: "auth",
 });
 
@@ -206,7 +208,7 @@ export const refreshToken = async (refreshToken: string) => {
 export const logout = async () => {
   try {
     const authState = await getAuthState();
-    
+
     if (authState) {
       // Step 1: Revoke access token if available
       if (authState.accessToken) {
@@ -255,14 +257,14 @@ export const logout = async () => {
           });
 
           const fullLogoutUrl = `${logoutUrl}?${logoutParams.toString()}`;
-          
+
           // Use WebBrowser to open logout URL which will clear Asgardeo session
           // Open logout URL in a browser session to clear server-side session
           const result = await WebBrowser.openAuthSessionAsync(
             fullLogoutUrl,
             redirectUri
           );
-          
+
           console.log("Logout session result:", result);
           console.log("Asgardeo session cleared successfully");
         } catch (error) {
@@ -274,7 +276,9 @@ export const logout = async () => {
 
     // Step 4: Always clear local auth state
     await clearAuthState();
-    console.log("Logged out successfully - all tokens revoked and session cleared");
+    console.log(
+      "Logged out successfully - all tokens revoked and session cleared"
+    );
   } catch (error) {
     console.error("Logout failed:", error);
     // Even if logout fails, clear local state to ensure user is logged out locally
@@ -328,7 +332,7 @@ export const hasRole = async (roleName: string): Promise<boolean> => {
 export const ensureValidAuth = async (): Promise<boolean> => {
   try {
     const authState = await getAuthState();
-    
+
     if (!authState || !authState.accessToken) {
       console.log("No auth state found");
       return false;
@@ -415,22 +419,22 @@ export const handleExpiredToken = async (): Promise<void> => {
 
 // Global auth error handler for API calls
 export const handleAuthError = async (error: any): Promise<boolean> => {
-  if (error?.status === 401 || error?.message?.includes('unauthorized')) {
+  if (error?.status === 401 || error?.message?.includes("unauthorized")) {
     console.log("401 error detected, checking auth state...");
-    
+
     // Try to refresh the token
     const isValid = await ensureValidAuth();
-    
+
     if (!isValid) {
       console.log("Token refresh failed, user needs to re-authenticate");
       // This will trigger the AuthContext to update and show EntryScreen
       return false;
     }
-    
+
     console.log("Token refreshed successfully");
     return true; // Indicate that the caller should retry the request
   }
-  
+
   return false; // Not an auth error, don't retry
 };
 
@@ -440,13 +444,13 @@ export const apiCallWithAuth = async <T>(
   maxRetries = 1
 ): Promise<T> => {
   let attempts = 0;
-  
+
   while (attempts <= maxRetries) {
     try {
       return await apiCall();
     } catch (error) {
       attempts++;
-      
+
       if (attempts <= maxRetries) {
         const shouldRetry = await handleAuthError(error);
         if (shouldRetry) {
@@ -454,11 +458,11 @@ export const apiCallWithAuth = async <T>(
           continue;
         }
       }
-      
+
       // If we get here, either it's not an auth error or we've exhausted retries
       throw error;
     }
   }
-  
+
   throw new Error("Maximum retry attempts exceeded");
 };

@@ -1,25 +1,25 @@
-import { Pressable, Text, StyleSheet, View } from 'react-native';
+import { Pressable, Text, StyleSheet, View } from "react-native";
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
-  variant?: 'primary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: "primary" | "outline" | "ghost";
+  size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
 
-export default function Button({ 
-  title, 
-  onPress, 
-  disabled = false, 
-  variant = 'primary',
-  size = 'md',
+export default function Button({
+  title,
+  onPress,
+  disabled = false,
+  variant = "primary",
+  size = "md",
   fullWidth = true,
   leftIcon,
-  rightIcon
+  rightIcon,
 }: ButtonProps) {
   const buttonStyle = [
     styles.button,
@@ -37,11 +37,11 @@ export default function Button({
   ];
 
   return (
-    <Pressable 
+    <Pressable
       style={({ pressed }) => [
         buttonStyle,
         pressed && !disabled ? styles.pressed : null,
-      ]} 
+      ]}
       onPress={onPress}
       disabled={disabled}
     >
@@ -57,10 +57,10 @@ export default function Button({
 const styles = StyleSheet.create({
   button: {
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginVertical: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -70,9 +70,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   leftIcon: {
     marginRight: 8,
@@ -81,28 +81,28 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   text: {
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   fullWidth: {
-    width: '100%',
+    width: "100%",
   },
-  
+
   // Variants
   primary: {
-    backgroundColor: '#DC2626', // Red theme for blood donation
+    backgroundColor: "#DC2626", // Red theme for blood donation
     borderWidth: 0,
   },
   outline: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 2,
-    borderColor: '#DC2626',
+    borderColor: "#DC2626",
   },
   ghost: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 0,
   },
-  
+
   // Sizes
   sm: {
     paddingVertical: 8,
@@ -116,18 +116,18 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
   },
-  
+
   // Text styles
   primaryText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   outlineText: {
-    color: '#DC2626',
+    color: "#DC2626",
   },
   ghostText: {
-    color: '#DC2626',
+    color: "#DC2626",
   },
-  
+
   // Text sizes
   smText: {
     fontSize: 14,
@@ -138,17 +138,17 @@ const styles = StyleSheet.create({
   lgText: {
     fontSize: 18,
   },
-  
+
   // States
   pressed: {
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
   },
   disabled: {
-    backgroundColor: '#F3F4F6',
-    borderColor: '#E5E7EB',
+    backgroundColor: "#F3F4F6",
+    borderColor: "#E5E7EB",
   },
   disabledText: {
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
 });
