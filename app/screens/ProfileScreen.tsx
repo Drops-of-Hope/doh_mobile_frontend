@@ -1,18 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { View, SafeAreaView, Alert } from "react-native";
+import { View, SafeAreaView, Alert, Modal } from "react-native";
 import ProfileContent from "../../components/organisms/ProfileContent";
 import BottomTabBar from "../../components/organisms/BottomTabBar";
+import LanguageSelectionScreen from "./LanguageSelectionScreen";
+import FAQsScreen from "./FAQsScreen";
+import EditProfileScreen from "./EditProfileScreen";
 import { useAuth, USER_ROLES } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import { RoleBasedAccess } from "../utils/roleBasedAccess";
 
 const ProfileScreen: React.FC = () => {
-  const { user, userRole, logout, hasRole } = useAuth();
+  const { user, userRole, logout, hasRole, getFullName } = useAuth();
+  const { t } = useLanguage();
   const [userData, setUserData] = useState({
     name: "Loading...",
     email: "Loading...",
     imageUri: "https://example.com/profile-image.jpg",
     membershipType: "MEMBER",
   });
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showFAQModal, setShowFAQModal] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -22,7 +30,7 @@ const ProfileScreen: React.FC = () => {
     try {
       if (user) {
         setUserData({
-          name: user.name || user.given_name || "User",
+          name: getFullName(),
           email: user.email || "user@example.com",
           imageUri: user.picture || "https://example.com/profile-image.jpg",
           membershipType: getRoleMembershipType(),
@@ -44,7 +52,7 @@ const ProfileScreen: React.FC = () => {
 
   const handleEditProfile = () => {
     console.log("Edit profile pressed");
-    // Navigate to edit profile screen
+    setShowEditProfileModal(true);
   };
 
   const handleProfilePicturePress = () => {
@@ -72,7 +80,7 @@ const ProfileScreen: React.FC = () => {
 
   const handleLanguage = () => {
     console.log("Language pressed");
-    // Navigate to language settings
+    setShowLanguageModal(true);
   };
 
   const handleNotifications = () => {
@@ -80,20 +88,46 @@ const ProfileScreen: React.FC = () => {
     // Navigate to notification settings
   };
 
+  const handleBecomeCampOrganizer = () => {
+    console.log("Become Camp Organizer pressed");
+    Alert.alert(
+      t('profile.camp_organizer_application'),
+      t('profile.camp_organizer_message'),
+      [
+        {
+          text: t('common.cancel'),
+          style: "cancel",
+        },
+        {
+          text: t('profile.apply'),
+          onPress: () => {
+            // TODO: Navigate to camp organizer application process
+            console.log("User wants to become camp organizer");
+            Alert.alert(
+              t('profile.application_submitted'),
+              t('profile.application_success_message'),
+              [{ text: t('common.ok') }]
+            );
+          },
+        },
+      ]
+    );
+  };
+
   const handleFAQs = () => {
     console.log("FAQs pressed");
-    // Navigate to FAQs
+    setShowFAQModal(true);
   };
 
   const handleLogOut = async () => {
     try {
-      Alert.alert("Logout", "Are you sure you want to logout?", [
+      Alert.alert(t('profile.logout_confirm_title'), t('profile.logout_confirm_message'), [
         {
-          text: "Cancel",
+          text: t('common.cancel'),
           style: "cancel",
         },
         {
-          text: "Logout",
+          text: t('profile.log_out'),
           style: "destructive",
           onPress: async () => {
             await logout();
@@ -118,12 +152,40 @@ const ProfileScreen: React.FC = () => {
           onUpcomingAppointment={handleUpcomingAppointment}
           onLanguage={handleLanguage}
           onNotifications={handleNotifications}
+          onBecomeCampOrganizer={handleBecomeCampOrganizer}
           onFAQs={handleFAQs}
           onLogOut={handleLogOut}
         />
 
         <BottomTabBar activeTab="account" />
       </View>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLanguageModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <LanguageSelectionScreen onClose={() => setShowLanguageModal(false)} />
+      </Modal>
+
+      {/* FAQs Modal */}
+      <Modal
+        visible={showFAQModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <FAQsScreen onBack={() => setShowFAQModal(false)} />
+      </Modal>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={showEditProfileModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <EditProfileScreen onClose={() => setShowEditProfileModal(false)} />
+      </Modal>
     </SafeAreaView>
   );
 };

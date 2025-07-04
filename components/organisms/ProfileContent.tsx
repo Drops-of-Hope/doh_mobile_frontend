@@ -5,6 +5,8 @@ import Svg, { Path } from "react-native-svg";
 import ProfileHeader from "../molecules/ProfileScreen/ProfileHeader";
 import MenuSection from "../molecules/ProfileScreen/MenuSection";
 import Button from "../atoms/ProfileScreen/Button";
+import { useLanguage } from "../../app/context/LanguageContext";
+import { useAuth, USER_ROLES } from "../../app/context/AuthContext";
 
 interface ProfileContentProps {
   userData: {
@@ -21,6 +23,7 @@ interface ProfileContentProps {
   onUpcomingAppointment?: () => void;
   onLanguage?: () => void;
   onNotifications?: () => void;
+  onBecomeCampOrganizer?: () => void;
   onFAQs?: () => void;
   onLogOut?: () => void;
 }
@@ -34,9 +37,17 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
   onUpcomingAppointment,
   onLanguage,
   onNotifications,
+  onBecomeCampOrganizer,
   onFAQs,
   onLogOut,
 }) => {
+  const { t } = useLanguage();
+  const { hasRole } = useAuth();
+
+  // Debug: Log user roles
+  console.log("User roles check - DONOR:", hasRole(USER_ROLES.DONOR));
+  console.log("User roles check - SELFSIGNUP:", hasRole(USER_ROLES.SELFSIGNUP));
+  console.log("User roles check - CAMP_ORGANIZER:", hasRole(USER_ROLES.CAMP_ORGANIZER));
   // Icons as simple components (you can replace with your preferred icon library)
   const DropIcon = () => (
     <View className="w-5 h-5 rounded-full">
@@ -146,23 +157,41 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
     </View>
   );
 
+  const CampOrganizerIcon = () => (
+    <View className="w-5 h-5 rounded-sm">
+      <Svg
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="size-6"
+      >
+        <Path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+        />
+      </Svg>
+    </View>
+  );
+
   const mainMenuItems = [
     {
       id: "donations",
       icon: <DropIcon />,
-      title: "My Donations",
+      title: t('profile.my_donations'),
       onPress: onMyDonations,
     },
     {
       id: "eligibility",
       icon: <Elligibility />,
-      title: "Donation Eligibility",
+      title: t('profile.donation_eligibility'),
       onPress: onDonationEligibility,
     },
     {
       id: "appointment",
       icon: <CalendarIcon />,
-      title: "Upcoming appointment",
+      title: t('profile.upcoming_appointment'),
       onPress: onUpcomingAppointment,
     },
   ];
@@ -171,19 +200,29 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
     {
       id: "language",
       icon: <GlobeIcon />,
-      title: "Language",
+      title: t('profile.language'),
       onPress: onLanguage,
     },
-    {
-      id: "notifications",
-      icon: <BellIcon />,
-      title: "Notifications",
-      onPress: onNotifications,
-    },
+    // Show "Become Camp Organizer" for donors (including selfsignup), "Notifications" for others
+    ...(hasRole(USER_ROLES.DONOR) || hasRole(USER_ROLES.SELFSIGNUP) ? [
+      {
+        id: "become_organizer",
+        icon: <CampOrganizerIcon />,
+        title: t('profile.become_camp_organizer'),
+        onPress: onBecomeCampOrganizer,
+      }
+    ] : [
+      {
+        id: "notifications",
+        icon: <BellIcon />,
+        title: t('profile.notifications'),
+        onPress: onNotifications,
+      }
+    ]),
     {
       id: "faqs",
       icon: <QuestionIcon />,
-      title: "FAQs",
+      title: t('profile.faqs'),
       onPress: onFAQs,
     },
   ];
@@ -208,7 +247,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
 
       <View className="px-6 py-8">
         <Button
-          title="Log Out"
+          title={t('profile.log_out')}
           variant="outline"
           size="lg"
           onPress={onLogOut}

@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BottomTabBar from "../../components/organisms/BottomTabBar";
+import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 const { width } = Dimensions.get('window');
 
@@ -40,6 +42,16 @@ interface Emergency {
 
 export default function HomeScreen({ navigation }: { navigation?: any }) {
   const [searchText, setSearchText] = useState<string>('');
+  const { getFirstName, logout } = useAuth();
+  const { t } = useLanguage();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const emergencies: Emergency[] = [
     {
@@ -230,12 +242,21 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View style={styles.greetingContainer}>
-              <Text style={styles.greeting}>Hello, Nadhiya</Text>
+              <Text style={styles.greeting}>Hello, {getFirstName()}</Text>
               <Text style={styles.subGreeting}>Your summary for the day</Text>
             </View>
-            <View style={styles.donorBadge}>
-              <View style={styles.donorDot} />
-              <Text style={styles.donorText}>Silver Donor</Text>
+            <View style={styles.headerRight}>
+              <View style={styles.donorBadge}>
+                <View style={styles.donorDot} />
+                <Text style={styles.donorText}>Silver Donor</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.logoutButton} 
+                onPress={handleLogout}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="log-out-outline" size={24} color="#DC2626" />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -419,6 +440,17 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     fontSize: 14,
     fontWeight: '700',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoutButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
+    marginTop: 15,
   },
   searchContainer: {
     position: 'relative',

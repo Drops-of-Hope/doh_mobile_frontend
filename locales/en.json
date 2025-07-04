@@ -39,7 +39,23 @@
     "fill_form_button": "Fill Donation Form",
     "scan_instruction": "Scan this QR code to view donor information",
     "uid_label": "UID",
+    "questionnaire_title": "Donation Eligibility Questionnaire",
+    "questionnaire_subtitle": "Please answer all questions honestly. This information helps ensure the safety of both donors and recipients.",
     "questions": {
+      "anyDifficulty": "Do you have any difficulty in donating blood?",
+      "medicalAdvice": "Are you under medical advice?",
+      "feelingWell": "Are you feeling well today?",
+      "takingMedicines": "Are you taking any medicines?",
+      "anySurgery": "Have you had any surgery recently?",
+      "pregnant": "Are you pregnant or breastfeeding?",
+      "haveHepatitis": "Do you have hepatitis?",
+      "tattoos": "Have you got any tattoos or piercings recently?",
+      "travelledAbroad": "Have you travelled abroad recently?",
+      "receivedBlood": "Have you received blood transfusion?",
+      "chemotherapy": "Have you undergone chemotherapy?",
+      "bookAspin": "Have you taken aspirin recently?",
+      "knowledgeAgent": "Do you have knowledge of any infectious agent?",
+      "feverLymphNode": "Do you have fever or swollen lymph nodes?",
       "age": "Are you 18 years or older?",
       "weight": "Do you weigh at least 50kg (110 lbs)?",
       "illness": "Have you been ill in the past 2 weeks?",
@@ -50,6 +66,22 @@
       "alcohol": "Have you consumed alcohol in the past 24 hours?",
       "drugs": "Have you used any recreational drugs in the past month?",
       "donation": "Have you donated blood in the past 8 weeks?"
+    },
+    "descriptions": {
+      "anyDifficulty": "Any physical or medical difficulties",
+      "medicalAdvice": "Currently receiving medical treatment",
+      "feelingWell": "General health and wellness",
+      "takingMedicines": "Any prescribed or over-the-counter medications",
+      "anySurgery": "Surgery within the last 6 months",
+      "pregnant": "For female donors only",
+      "haveHepatitis": "Any form of hepatitis infection",
+      "tattoos": "Within the last 12 months",
+      "travelledAbroad": "International travel within the last 3 months",
+      "receivedBlood": "Blood transfusion within the last 12 months",
+      "chemotherapy": "Cancer treatment history",
+      "bookAspin": "Within the last 3 days",
+      "knowledgeAgent": "Exposure to infectious diseases",
+      "feverLymphNode": "Current symptoms of illness"
     },
     "validation_error": "Please answer all questions",
     "submit_success": "Form submitted successfully!",
@@ -78,5 +110,31 @@
       "volume": "Volume",
       "notes": "Notes"
     }
+  },
+  "profile": {
+    "title": "Profile",
+    "edit_profile": "Edit Profile",
+    "my_donations": "My Donations",
+    "donation_eligibility": "Donation Eligibility",
+    "upcoming_appointment": "Upcoming Appointment",
+    "language": "Language",
+    "notifications": "Notifications",
+    "faqs": "FAQs",
+    "become_camp_organizer": "Become Camp Organizer",
+    "log_out": "Log Out",
+    "logout_confirm_title": "Logout",
+    "logout_confirm_message": "Are you sure you want to logout?",
+    "language_selection": "Language Selection",
+    "select_language": "Select your preferred language",
+    "camp_organizer_application": "Camp Organizer Application",
+    "camp_organizer_message": "Would you like to apply to become a camp organizer? This will allow you to create and manage blood donation camps.",
+    "application_submitted": "Application Submitted",
+    "application_success_message": "Your application to become a camp organizer has been submitted. We will review it and get back to you soon.",
+    "apply": "Apply"
+  },
+  "faqs": {
+    "title": "Frequently Asked Questions",
+    "donor_info": "Donor Information",
+    "camp_organizer_info": "Camp Organizer Information"
   }
 }

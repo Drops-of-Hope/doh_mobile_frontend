@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import AppNavigator from "./app/navigation/AppNavigator";
 import { AuthProvider } from "./app/context/AuthContext";
+import { LanguageProvider } from "./app/context/LanguageContext";
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -28,9 +29,11 @@ export default function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <StatusBar style="dark" />
-      <AppNavigator />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <StatusBar style="dark" />
+        <AppNavigator />
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

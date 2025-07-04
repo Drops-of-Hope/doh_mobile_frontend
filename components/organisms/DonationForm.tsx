@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { View, ScrollView, Alert } from "react-native";
+import { View, ScrollView, Alert, Text } from "react-native";
 import { styled } from "nativewind";
 import DonationQuestions from "../molecules/Donation/DonationQuestions";
+import LanguageTabs from "../molecules/LanguageTabs";
 import Button from "../atoms/Button";
 import {
   DonationFormData,
   donationService,
 } from "../../app/services/donationService";
+import { useLanguage } from "../../app/context/LanguageContext";
 
 const StyledView = styled(View);
 const StyledScrollView = styled(ScrollView);
@@ -20,6 +22,8 @@ const DonationForm: React.FC<DonationFormProps> = ({
   onSubmitSuccess,
   onCancel,
 }) => {
+  const { t, currentLanguage, setLanguage } = useLanguage();
+  const [formLanguage, setFormLanguage] = useState<'en' | 'si' | 'ta'>(currentLanguage);
   const [formData, setFormData] = useState<DonationFormData>({
     anyDifficulty: false,
     medicalAdvice: false,
@@ -38,6 +42,11 @@ const DonationForm: React.FC<DonationFormProps> = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLanguageChange = async (language: 'en' | 'si' | 'ta') => {
+    setFormLanguage(language);
+    await setLanguage(language);
+  };
 
   const handleUpdateField = (field: keyof DonationFormData, value: boolean) => {
     setFormData((prev) => ({
@@ -70,9 +79,9 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
     if (hasDisqualifyingCondition || !formData.feelingWell) {
       Alert.alert(
-        "Donation Not Recommended",
+        t('donation.validation_error'),
         "Based on your responses, you may not be eligible to donate blood at this time. Please consult with medical staff for further evaluation.",
-        [{ text: "OK" }]
+        [{ text: t('common.ok') }]
       );
       return false;
     }
@@ -89,20 +98,20 @@ const DonationForm: React.FC<DonationFormProps> = ({
     try {
       await donationService.submitDonationForm(formData);
       Alert.alert(
-        "Form Submitted Successfully",
+        t('donation.submit_success'),
         "Your donation form has been submitted. You are eligible to donate blood!",
         [
           {
-            text: "OK",
+            text: t('common.ok'),
             onPress: onSubmitSuccess,
           },
         ]
       );
     } catch (error) {
       Alert.alert(
-        "Submission Failed",
+        t('donation.submit_error'),
         "Failed to submit your donation form. Please try again.",
-        [{ text: "OK" }]
+        [{ text: t('common.ok') }]
       );
     } finally {
       setIsSubmitting(false);
@@ -112,6 +121,21 @@ const DonationForm: React.FC<DonationFormProps> = ({
   return (
     <StyledView className="flex-1 bg-white">
       <StyledScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <StyledView className="p-4">
+          <Text className="text-2xl font-bold text-gray-900 mb-2">
+            {t('donation.form_title')}
+          </Text>
+          <Text className="text-gray-600 mb-4">
+            {t('donation.form_subtitle')}
+          </Text>
+          
+          {/* Language Tabs */}
+          <LanguageTabs 
+            currentLanguage={formLanguage}
+            onLanguageChange={handleLanguageChange}
+          />
+        </StyledView>
+
         <DonationQuestions
           formData={formData}
           onUpdateField={handleUpdateField}
@@ -119,14 +143,14 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
         <StyledView className="p-4 pb-8">
           <Button
-            title={isSubmitting ? "Submitting..." : "Submit Form"}
+            title={isSubmitting ? t('common.loading') : t('common.submit')}
             onPress={handleSubmit}
             disabled={isSubmitting}
           />
 
           {onCancel && (
             <StyledView className="mt-3">
-              <Button title="Cancel" onPress={onCancel} variant="outline" />
+              <Button title={t('common.cancel')} onPress={onCancel} variant="outline" />
             </StyledView>
           )}
         </StyledView>
