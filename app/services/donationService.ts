@@ -64,4 +64,36 @@ export const donationService = {
       method: "GET",
     });
   },
+
+  // Appointment management
+  bookAppointment: async (appointmentData: {
+    hospitalId: string;
+    date: string;
+    time: string;
+    region: string;
+  }): Promise<any> => {
+    return apiRequestWithAuth("/api/appointments", {
+      method: "POST",
+      body: JSON.stringify(appointmentData),
+    });
+  },
+
+  getAppointments: async (): Promise<any[]> => {
+    return apiRequestWithAuth("/api/appointments", {
+      method: "GET",
+    });
+  },
+
+  rescheduleAppointment: async (appointmentId: string, newDate: string, newTime: string): Promise<any> => {
+    return apiRequestWithAuth(`/api/appointments/${appointmentId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ date: newDate, time: newTime }),
+    });
+  },
+
+  cancelAppointment: async (appointmentId: string): Promise<any> => {
+    return apiRequestWithAuth(`/api/appointments/${appointmentId}`, {
+      method: "DELETE",
+    });
+  },
 };

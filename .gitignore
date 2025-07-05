@@ -40,3 +40,4 @@ yarn-error.*
 
 # Miscellaneous
 pw_info.md
+/info

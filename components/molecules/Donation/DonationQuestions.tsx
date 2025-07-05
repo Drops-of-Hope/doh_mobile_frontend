@@ -3,6 +3,7 @@ import { View, Text } from "react-native";
 import { styled } from "nativewind";
 import BooleanQuestion from "../../atoms/Donation/BooleanQuestion";
 import { DonationFormData } from "../../../app/services/donationService";
+import { useLanguage } from "../../../app/context/LanguageContext";
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -16,87 +17,88 @@ const DonationQuestions: React.FC<DonationQuestionsProps> = ({
   formData,
   onUpdateField,
 }) => {
+  const { t } = useLanguage();
+  
   const questions = [
     {
       key: "anyDifficulty" as keyof DonationFormData,
-      question: "Do you have any difficulty in donating blood?",
-      description: "Any physical or medical difficulties",
+      question: t('donation.questions.anyDifficulty'),
+      description: t('donation.descriptions.anyDifficulty'),
     },
     {
       key: "medicalAdvice" as keyof DonationFormData,
-      question: "Are you under medical advice?",
-      description: "Currently receiving medical treatment",
+      question: t('donation.questions.medicalAdvice'),
+      description: t('donation.descriptions.medicalAdvice'),
     },
     {
       key: "feelingWell" as keyof DonationFormData,
-      question: "Are you feeling well today?",
-      description: "General health and wellness",
+      question: t('donation.questions.feelingWell'),
+      description: t('donation.descriptions.feelingWell'),
     },
     {
       key: "takingMedicines" as keyof DonationFormData,
-      question: "Are you taking any medicines?",
-      description: "Any prescribed or over-the-counter medications",
+      question: t('donation.questions.takingMedicines'),
+      description: t('donation.descriptions.takingMedicines'),
     },
     {
       key: "anySurgery" as keyof DonationFormData,
-      question: "Have you had any surgery recently?",
-      description: "Surgery within the last 6 months",
+      question: t('donation.questions.anySurgery'),
+      description: t('donation.descriptions.anySurgery'),
     },
     {
       key: "pregnant" as keyof DonationFormData,
-      question: "Are you pregnant or breastfeeding?",
-      description: "For female donors only",
+      question: t('donation.questions.pregnant'),
+      description: t('donation.descriptions.pregnant'),
     },
     {
       key: "haveHepatitis" as keyof DonationFormData,
-      question: "Do you have hepatitis?",
-      description: "Any form of hepatitis infection",
+      question: t('donation.questions.haveHepatitis'),
+      description: t('donation.descriptions.haveHepatitis'),
     },
     {
       key: "tattoos" as keyof DonationFormData,
-      question: "Have you got any tattoos or piercings recently?",
-      description: "Within the last 12 months",
+      question: t('donation.questions.tattoos'),
+      description: t('donation.descriptions.tattoos'),
     },
     {
       key: "travelledAbroad" as keyof DonationFormData,
-      question: "Have you travelled abroad recently?",
-      description: "International travel within the last 3 months",
+      question: t('donation.questions.travelledAbroad'),
+      description: t('donation.descriptions.travelledAbroad'),
     },
     {
       key: "receivedBlood" as keyof DonationFormData,
-      question: "Have you received blood transfusion?",
-      description: "Blood transfusion within the last 12 months",
+      question: t('donation.questions.receivedBlood'),
+      description: t('donation.descriptions.receivedBlood'),
     },
     {
       key: "chemotherapy" as keyof DonationFormData,
-      question: "Have you undergone chemotherapy?",
-      description: "Cancer treatment history",
+      question: t('donation.questions.chemotherapy'),
+      description: t('donation.descriptions.chemotherapy'),
     },
     {
       key: "bookAspin" as keyof DonationFormData,
-      question: "Have you taken aspirin recently?",
-      description: "Within the last 3 days",
+      question: t('donation.questions.bookAspin'),
+      description: t('donation.descriptions.bookAspin'),
     },
     {
       key: "knowledgeAgent" as keyof DonationFormData,
-      question: "Do you have knowledge of any infectious agent?",
-      description: "Exposure to infectious diseases",
+      question: t('donation.questions.knowledgeAgent'),
+      description: t('donation.descriptions.knowledgeAgent'),
     },
     {
       key: "feverLymphNode" as keyof DonationFormData,
-      question: "Do you have fever or swollen lymph nodes?",
-      description: "Current symptoms of illness",
+      question: t('donation.questions.feverLymphNode'),
+      description: t('donation.descriptions.feverLymphNode'),
     },
   ];
 
   return (
     <StyledView className="bg-gray-50 p-4">
       <StyledText className="text-xl font-bold text-gray-900 mb-4">
-        Donation Eligibility Questionnaire
+        {t('donation.questionnaire_title')}
       </StyledText>
       <StyledText className="text-sm text-gray-600 mb-6">
-        Please answer all questions honestly. This information helps ensure the
-        safety of both donors and recipients.
+        {t('donation.questionnaire_subtitle')}
       </StyledText>
 
       {questions.map((q) => (

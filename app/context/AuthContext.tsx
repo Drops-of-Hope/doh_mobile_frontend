@@ -28,6 +28,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshAuthState: () => Promise<void>;
   hasRole: (role: string) => boolean;
+  getFirstName: () => string;
+  getFullName: () => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -158,6 +160,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return userTypeMatch;
   };
 
+  const getFirstName = (): string => {
+    if (!user) return "User";
+
+    // Try to get first name from various possible fields
+    if (user.given_name) return user.given_name;
+    if (user.first_name) return user.first_name;
+    if (user.name) {
+      // Split full name and get first part
+      const nameParts = user.name.split(" ");
+      return nameParts[0];
+    }
+
+    return "User";
+  };
+
+  const getFullName = (): string => {
+    if (!user) return "User";
+
+    // Try to get full name from various possible fields
+    if (user.name) return user.name;
+    if (user.given_name && user.family_name) {
+      return `${user.given_name} ${user.family_name}`;
+    }
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+    if (user.given_name) return user.given_name;
+
+    return "User";
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: isAuthenticatedState,
@@ -168,6 +201,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     refreshAuthState,
     hasRole,
+    getFirstName,
+    getFullName,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -185,7 +220,7 @@ export const useAuth = (): AuthContextType => {
 export const USER_ROLES = {
   ADMIN: "admin",
   DONOR: "donor",
-  SELFSIGNUP: "selfsignup",
+  SELFSIGNUP: "Internal/selfsignup",
   CAMP_ORGANIZER: "camp_organizer",
   VOLUNTEER: "volunteer",
   BENEFICIARY: "beneficiary",

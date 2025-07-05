@@ -9,8 +9,11 @@ import {
 } from "react-native";
 import { styled } from "nativewind";
 import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from '@expo/vector-icons';
 import QRDisplay from "../../components/atoms/Donation/QRDisplay";
 import DonationForm from "../../components/organisms/DonationForm";
+import AppointmentTab from "../../components/organisms/DonationScreen/AppointmentTab";
+import AppointmentBookingForm from "../../components/organisms/DonationScreen/AppointmentBookingForm";
 import BottomTabBar from "../../components/organisms/BottomTabBar";
 import Button from "../../components/atoms/Button";
 import {
@@ -24,11 +27,33 @@ const StyledTouchableOpacity = styled(TouchableOpacity);
 const StyledText = styled(Text);
 
 const DonateScreen: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'qr' | 'appointment'>('qr');
   const [showQRModal, setShowQRModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [attendanceMarked, setAttendanceMarked] = useState(false);
+  
+  // Mock appointments data
+  const [appointments] = useState([
+    {
+      id: '1',
+      hospital: 'City General Hospital',
+      date: '2024-01-15',
+      time: '10:00 AM',
+      location: 'Blood Bank Unit, 3rd Floor',
+      status: 'upcoming' as const
+    },
+    {
+      id: '2',
+      hospital: 'University Medical Center',
+      date: '2023-12-20',
+      time: '2:00 PM',
+      location: 'Donation Center',
+      status: 'completed' as const
+    }
+  ]);
 
   const navigation = useNavigation();
 
@@ -91,6 +116,23 @@ const DonateScreen: React.FC = () => {
     setShowFormModal(false);
   };
 
+  const handleBookAppointment = () => {
+    setShowBookingModal(true);
+  };
+
+  const handleBookingModalClose = () => {
+    setShowBookingModal(false);
+  };
+
+  const handleBookingSuccess = () => {
+    setShowBookingModal(false);
+    Alert.alert(
+      "Appointment Booked Successfully!",
+      "Your appointment has been booked. You will receive a confirmation email shortly.",
+      [{ text: "OK" }]
+    );
+  };
+
   if (loading) {
     return (
       <StyledSafeAreaView className="flex-1 bg-white">
@@ -110,55 +152,90 @@ const DonateScreen: React.FC = () => {
             Donation Center
           </StyledText>
           <StyledText className="text-sm text-gray-600 mt-1">
-            Show your QR code or fill the donation form
+            Show your QR code or book an appointment
           </StyledText>
         </StyledView>
 
+        {/* Tab Navigation */}
+        <StyledView className="flex-row bg-gray-100 mx-6 mt-4 rounded-xl p-1.5 shadow-sm border border-gray-200">
+          <StyledTouchableOpacity 
+            className={`flex-1 py-3 px-4 rounded-lg ${activeTab === 'qr' ? 'bg-white shadow-md border border-red-100' : ''}`}
+            onPress={() => setActiveTab('qr')}
+          >
+            <StyledView className="flex-row items-center justify-center">
+              <Ionicons name="qr-code" size={16} color={activeTab === 'qr' ? '#DC2626' : '#6B7280'} />
+              <StyledText className={`ml-2 text-center font-semibold ${activeTab === 'qr' ? 'text-red-600' : 'text-gray-500'}`}>
+                QR Code
+              </StyledText>
+            </StyledView>
+          </StyledTouchableOpacity>
+          <StyledTouchableOpacity 
+            className={`flex-1 py-3 px-4 rounded-lg ${activeTab === 'appointment' ? 'bg-white shadow-md border border-red-100' : ''}`}
+            onPress={() => setActiveTab('appointment')}
+          >
+            <StyledView className="flex-row items-center justify-center">
+              <Ionicons name="calendar" size={16} color={activeTab === 'appointment' ? '#DC2626' : '#6B7280'} />
+              <StyledText className={`ml-2 text-center font-semibold ${activeTab === 'appointment' ? 'text-red-600' : 'text-gray-500'}`}>
+                Appointments
+              </StyledText>
+            </StyledView>
+          </StyledTouchableOpacity>
+        </StyledView>
+
         {/* Main Content */}
-        <StyledView className="flex-1 px-6 py-8">
-          {!attendanceMarked ? (
-            <StyledView className="flex-1 justify-center items-center">
-              <StyledView className="bg-blue-50 p-8 rounded-2xl border border-blue-200 items-center mb-8">
-                <StyledText className="text-6xl mb-4">📱</StyledText>
-                <StyledText className="text-xl font-semibold text-gray-800 text-center mb-2">
-                  Ready to Donate?
-                </StyledText>
-                <StyledText className="text-gray-600 text-center mb-6 max-w-xs">
-                  Show your QR code to the camp staff to mark your attendance
-                </StyledText>
+        <StyledView className="flex-1">
+          {activeTab === 'qr' ? (
+            <StyledView className="flex-1 px-6 py-8">
+              {!attendanceMarked ? (
+                <StyledView className="flex-1 justify-center items-center">
+                  <StyledView className="bg-blue-50 p-8 rounded-2xl border border-blue-200 items-center mb-8">
+                    <Ionicons name="phone-portrait" size={64} color="#3B82F6" style={{ marginBottom: 16 }} />
+                    <StyledText className="text-xl font-semibold text-gray-800 text-center mb-2">
+                      Ready to Donate?
+                    </StyledText>
+                    <StyledText className="text-gray-600 text-center mb-6 max-w-xs">
+                      Show your QR code to the camp staff to mark your attendance
+                    </StyledText>
 
-                <Button title="Show QR Code" onPress={handleShowQR} />
-              </StyledView>
+                    <Button title="Show QR Code" onPress={handleShowQR} />
+                  </StyledView>
 
-              <StyledView className="bg-gray-50 p-6 rounded-xl border border-gray-200 w-full">
-                <StyledText className="text-lg font-semibold text-gray-800 mb-2">
-                  Instructions:
-                </StyledText>
-                <StyledText className="text-gray-600 text-sm leading-6">
-                  1. Show your QR code to the reception staff{"\n"}
-                  2. Wait for attendance confirmation{"\n"}
-                  3. Fill the health questionnaire{"\n"}
-                  4. Proceed with medical screening
-                </StyledText>
-              </StyledView>
+                  <StyledView className="bg-gray-50 p-6 rounded-xl border border-gray-200 w-full">
+                    <StyledText className="text-lg font-semibold text-gray-800 mb-2">
+                      Instructions:
+                    </StyledText>
+                    <StyledText className="text-gray-600 text-sm leading-6">
+                      1. Show your QR code to the reception staff{"\n"}
+                      2. Wait for attendance confirmation{"\n"}
+                      3. Fill the health questionnaire{"\n"}
+                      4. Proceed with medical screening
+                    </StyledText>
+                  </StyledView>
+                </StyledView>
+              ) : (
+                <StyledView className="flex-1 justify-center items-center">
+                  <StyledView className="bg-green-50 p-8 rounded-2xl border border-green-200 items-center mb-8">
+                    <Ionicons name="checkmark-circle" size={64} color="#10B981" style={{ marginBottom: 16 }} />
+                    <StyledText className="text-xl font-semibold text-gray-800 text-center mb-2">
+                      Attendance Marked!
+                    </StyledText>
+                    <StyledText className="text-gray-600 text-center mb-6 max-w-xs">
+                      Please fill out the health questionnaire to continue
+                    </StyledText>
+
+                    <Button
+                      title="Fill Health Form"
+                      onPress={() => setShowFormModal(true)}
+                    />
+                  </StyledView>
+                </StyledView>
+              )}
             </StyledView>
           ) : (
-            <StyledView className="flex-1 justify-center items-center">
-              <StyledView className="bg-green-50 p-8 rounded-2xl border border-green-200 items-center mb-8">
-                <StyledText className="text-6xl mb-4">✅</StyledText>
-                <StyledText className="text-xl font-semibold text-gray-800 text-center mb-2">
-                  Attendance Marked!
-                </StyledText>
-                <StyledText className="text-gray-600 text-center mb-6 max-w-xs">
-                  Please fill out the health questionnaire to continue
-                </StyledText>
-
-                <Button
-                  title="Fill Health Form"
-                  onPress={() => setShowFormModal(true)}
-                />
-              </StyledView>
-            </StyledView>
+            <AppointmentTab 
+              appointments={appointments}
+              onBookAppointment={handleBookAppointment}
+            />
           )}
         </StyledView>
 
@@ -226,6 +303,18 @@ const DonateScreen: React.FC = () => {
               onCancel={handleFormCancel}
             />
           </StyledSafeAreaView>
+        </Modal>
+
+        {/* Appointment Booking Modal */}
+        <Modal
+          visible={showBookingModal}
+          animationType="slide"
+          presentationStyle="fullScreen"
+        >
+          <AppointmentBookingForm
+            onClose={handleBookingModalClose}
+            onBookingSuccess={handleBookingSuccess}
+          />
         </Modal>
       </StyledView>
     </StyledSafeAreaView>
