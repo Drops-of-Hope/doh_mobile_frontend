@@ -9,14 +9,17 @@ import { useAuth, USER_ROLES } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { RoleBasedAccess } from "../utils/roleBasedAccess";
 
-const ProfileScreen: React.FC = () => {
+const ProfileScreen: React.FC<{ navigation?: any }> = ({ navigation }) => {
   const { user, userRole, logout, hasRole, getFullName } = useAuth();
   const { t } = useLanguage();
   const [userData, setUserData] = useState({
     name: "Loading...",
     email: "Loading...",
+    bloodType: "Loading...",
+    mobileNumber: "Loading...",
+    donationBadge: "SILVER", // SILVER, GOLD, HERO
     imageUri: "https://example.com/profile-image.jpg",
-    membershipType: "MEMBER",
+    membershipType: "DONOR",
   });
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showFAQModal, setShowFAQModal] = useState(false);
@@ -32,6 +35,9 @@ const ProfileScreen: React.FC = () => {
         setUserData({
           name: getFullName(),
           email: user.email || "user@example.com",
+          bloodType: user.bloodType || "O+",
+          mobileNumber: user.mobileNumber || "000-000-0000",
+          donationBadge: getDonationBadge(),
           imageUri: user.picture || "https://example.com/profile-image.jpg",
           membershipType: getRoleMembershipType(),
         });
@@ -50,6 +56,16 @@ const ProfileScreen: React.FC = () => {
     return "MEMBER";
   };
 
+  const getDonationBadge = (): string => {
+    // This would be based on actual donation count from backend
+    // Mock logic for demo purposes
+    const donationCount = user?.donationCount || 0;
+    if (donationCount >= 20) return "HERO";
+    if (donationCount >= 10) return "GOLD";
+    if (donationCount >= 5) return "SILVER";
+    return "MEMBER";
+  };
+
   const handleEditProfile = () => {
     console.log("Edit profile pressed");
     setShowEditProfileModal(true);
@@ -62,20 +78,22 @@ const ProfileScreen: React.FC = () => {
 
   const handleMyDonations = () => {
     console.log("My Donations pressed");
-    // Only show for donors and admins
-    if (hasRole(USER_ROLES.DONOR) || hasRole(USER_ROLES.ADMIN)) {
-      // Navigate to donations screen
-    }
+    console.log("Current user roles:", user?.roles);
+    console.log("Has DONOR role:", hasRole(USER_ROLES.DONOR));
+    console.log("Has ADMIN role:", hasRole(USER_ROLES.ADMIN));
+    
+    // Navigate regardless of role for testing - remove role check temporarily
+    navigation?.navigate('MyDonations');
   };
 
   const handleDonationEligibility = () => {
     console.log("Donation Eligibility pressed");
-    // Show donation eligibility info
+    navigation?.navigate('DonationEligibility');
   };
 
   const handleUpcomingAppointment = () => {
     console.log("Upcoming appointment pressed");
-    // Show upcoming appointments (for volunteers and beneficiaries)
+    navigation?.navigate('UpcomingAppointment');
   };
 
   const handleLanguage = () => {
@@ -145,6 +163,7 @@ const ProfileScreen: React.FC = () => {
       <View className="flex-1">
         <ProfileContent
           userData={userData}
+          navigation={navigation}
           onEditProfile={handleEditProfile}
           onProfilePicturePress={handleProfilePicturePress}
           onMyDonations={handleMyDonations}

@@ -24,6 +24,10 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ onClose }) => {
     firstName: '',
     lastName: '',
     email: '',
+    bloodType: '',
+    mobileHome: '',
+    mobileOffice: '',
+    mobileMobile: '',
     birthday: '',
     nic: '',
     currentPassword: '',
@@ -41,6 +45,10 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ onClose }) => {
         firstName: user.given_name || user.first_name || nameParts[0] || '',
         lastName: user.family_name || user.last_name || nameParts.slice(1).join(' ') || '',
         email: user.email || '',
+        bloodType: user.bloodType || '',
+        mobileHome: user.mobileHome || '',
+        mobileOffice: user.mobileOffice || '',
+        mobileMobile: user.mobileMobile || user.mobileNumber || '',
         birthday: user.birthdate || user.birthday || '',
         nic: user.nic || user.national_id || user.id_number || '',
         currentPassword: '',
@@ -165,6 +173,49 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ onClose }) => {
               placeholder="Enter your email"
               keyboardType="email-address"
               autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Blood Type</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.bloodType}
+              onChangeText={(value) => handleInputChange('bloodType', value)}
+              placeholder="e.g., O+, A-, B+, AB-"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Home Phone</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.mobileHome}
+              onChangeText={(value) => handleInputChange('mobileHome', value)}
+              placeholder="Enter home phone number"
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Office Phone</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.mobileOffice}
+              onChangeText={(value) => handleInputChange('mobileOffice', value)}
+              placeholder="Enter office phone number"
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Mobile Phone</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.mobileMobile}
+              onChangeText={(value) => handleInputChange('mobileMobile', value)}
+              placeholder="Enter mobile phone number"
+              keyboardType="phone-pad"
             />
           </View>
 
