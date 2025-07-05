@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import ProfilePicture from "../../atoms/ProfileScreen/ProfilePicture";
 import Button from "../../atoms/ProfileScreen/Button";
 
@@ -38,10 +39,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
   const getBadgeIcon = (badge: string) => {
     switch (badge) {
-      case 'HERO': return '🏆';
-      case 'GOLD': return '🥇';
-      case 'SILVER': return '🥈';
-      default: return '👤';
+      case 'HERO': return 'trophy';
+      case 'GOLD': return 'medal';
+      case 'SILVER': return 'ribbon';
+      default: return 'person';
     }
   };
 
@@ -69,9 +70,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 colors={badgeColors}
                 style={styles.badgeContainer}
               >
-                <Text style={styles.badgeIcon}>
-                  {getBadgeIcon(donationBadge)}
-                </Text>
+                <Ionicons 
+                  name={getBadgeIcon(donationBadge) as keyof typeof Ionicons.glyphMap}
+                  size={16}
+                  color="white"
+                  style={styles.badgeIcon}
+                />
               </LinearGradient>
             )}
           </View>
@@ -107,7 +111,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               style={styles.infoCard}
             >
               <View style={styles.infoCardHeader}>
-                <Text style={styles.infoCardIcon}>🩸</Text>
+                <Ionicons name="water" size={20} color="#EF4444" style={styles.infoCardIcon} />
                 <Text style={styles.infoCardLabel} numberOfLines={1}>Blood Type</Text>
               </View>
               <Text style={styles.infoCardValue} numberOfLines={1}>
@@ -122,7 +126,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               style={styles.infoCard}
             >
               <View style={styles.infoCardHeader}>
-                <Text style={styles.infoCardIcon}>📱</Text>
+                <Ionicons name="phone-portrait" size={20} color="#3B82F6" style={styles.infoCardIcon} />
                 <Text style={styles.infoCardLabel} numberOfLines={1}>Mobile</Text>
               </View>
               <Text style={[styles.infoCardValue, { fontSize: mobileNumber && mobileNumber.length > 10 ? 14 : 16 }]} numberOfLines={1} adjustsFontSizeToFit>
@@ -137,7 +141,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             style={styles.infoCard}
           >
             <View style={styles.infoCardHeader}>
-              <Text style={styles.infoCardIcon}>💝</Text>
+              <Ionicons name="heart" size={20} color="#10B981" style={styles.infoCardIcon} />
               <Text style={styles.infoCardLabel} numberOfLines={1}>Donations</Text>
             </View>
             <Text style={styles.infoCardValue}>12</Text>
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   badgeIcon: {
-    fontSize: 16,
+    textAlign: 'center',
   },
   userInfo: {
     flex: 1,
@@ -276,7 +280,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   infoCardIcon: {
-    fontSize: 16,
     marginRight: 6,
   },
   infoCardLabel: {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '../context/LanguageContext';
 
 interface LanguageOption {
@@ -65,7 +66,7 @@ const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({ onClo
                 </View>
                 {currentLanguage === language.code && (
                   <View style={styles.checkmark}>
-                    <Text style={styles.checkmarkText}>✓</Text>
+                    <Ionicons name="checkmark" size={20} color="#10B981" />
                   </View>
                 )}
               </View>
@@ -148,14 +149,10 @@ const styles = StyleSheet.create({
   checkmark: {
     width: 24,
     height: 24,
-    backgroundColor: '#EF4444',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  checkmarkText: {
-    color: 'white',
-    fontSize: 12,
   },
   closeButton: {
     marginTop: 32,

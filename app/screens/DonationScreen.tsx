@@ -9,9 +9,11 @@ import {
 } from "react-native";
 import { styled } from "nativewind";
 import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from '@expo/vector-icons';
 import QRDisplay from "../../components/atoms/Donation/QRDisplay";
 import DonationForm from "../../components/organisms/DonationForm";
 import AppointmentTab from "../../components/organisms/DonationScreen/AppointmentTab";
+import AppointmentBookingForm from "../../components/organisms/DonationScreen/AppointmentBookingForm";
 import BottomTabBar from "../../components/organisms/BottomTabBar";
 import Button from "../../components/atoms/Button";
 import {
@@ -122,6 +124,15 @@ const DonateScreen: React.FC = () => {
     setShowBookingModal(false);
   };
 
+  const handleBookingSuccess = () => {
+    setShowBookingModal(false);
+    Alert.alert(
+      "Appointment Booked Successfully!",
+      "Your appointment has been booked. You will receive a confirmation email shortly.",
+      [{ text: "OK" }]
+    );
+  };
+
   if (loading) {
     return (
       <StyledSafeAreaView className="flex-1 bg-white">
@@ -151,17 +162,23 @@ const DonateScreen: React.FC = () => {
             className={`flex-1 py-3 px-4 rounded-lg ${activeTab === 'qr' ? 'bg-white shadow-md border border-red-100' : ''}`}
             onPress={() => setActiveTab('qr')}
           >
-            <StyledText className={`text-center font-semibold ${activeTab === 'qr' ? 'text-red-600' : 'text-gray-500'}`}>
-              🏥 QR Code
-            </StyledText>
+            <StyledView className="flex-row items-center justify-center">
+              <Ionicons name="qr-code" size={16} color={activeTab === 'qr' ? '#DC2626' : '#6B7280'} />
+              <StyledText className={`ml-2 text-center font-semibold ${activeTab === 'qr' ? 'text-red-600' : 'text-gray-500'}`}>
+                QR Code
+              </StyledText>
+            </StyledView>
           </StyledTouchableOpacity>
           <StyledTouchableOpacity 
             className={`flex-1 py-3 px-4 rounded-lg ${activeTab === 'appointment' ? 'bg-white shadow-md border border-red-100' : ''}`}
             onPress={() => setActiveTab('appointment')}
           >
-            <StyledText className={`text-center font-semibold ${activeTab === 'appointment' ? 'text-red-600' : 'text-gray-500'}`}>
-              📅 Appointments
-            </StyledText>
+            <StyledView className="flex-row items-center justify-center">
+              <Ionicons name="calendar" size={16} color={activeTab === 'appointment' ? '#DC2626' : '#6B7280'} />
+              <StyledText className={`ml-2 text-center font-semibold ${activeTab === 'appointment' ? 'text-red-600' : 'text-gray-500'}`}>
+                Appointments
+              </StyledText>
+            </StyledView>
           </StyledTouchableOpacity>
         </StyledView>
 
@@ -172,7 +189,7 @@ const DonateScreen: React.FC = () => {
               {!attendanceMarked ? (
                 <StyledView className="flex-1 justify-center items-center">
                   <StyledView className="bg-blue-50 p-8 rounded-2xl border border-blue-200 items-center mb-8">
-                    <StyledText className="text-6xl mb-4">📱</StyledText>
+                    <Ionicons name="phone-portrait" size={64} color="#3B82F6" style={{ marginBottom: 16 }} />
                     <StyledText className="text-xl font-semibold text-gray-800 text-center mb-2">
                       Ready to Donate?
                     </StyledText>
@@ -198,7 +215,7 @@ const DonateScreen: React.FC = () => {
               ) : (
                 <StyledView className="flex-1 justify-center items-center">
                   <StyledView className="bg-green-50 p-8 rounded-2xl border border-green-200 items-center mb-8">
-                    <StyledText className="text-6xl mb-4">✅</StyledText>
+                    <Ionicons name="checkmark-circle" size={64} color="#10B981" style={{ marginBottom: 16 }} />
                     <StyledText className="text-xl font-semibold text-gray-800 text-center mb-2">
                       Attendance Marked!
                     </StyledText>
@@ -286,6 +303,18 @@ const DonateScreen: React.FC = () => {
               onCancel={handleFormCancel}
             />
           </StyledSafeAreaView>
+        </Modal>
+
+        {/* Appointment Booking Modal */}
+        <Modal
+          visible={showBookingModal}
+          animationType="slide"
+          presentationStyle="fullScreen"
+        >
+          <AppointmentBookingForm
+            onClose={handleBookingModalClose}
+            onBookingSuccess={handleBookingSuccess}
+          />
         </Modal>
       </StyledView>
     </StyledSafeAreaView>

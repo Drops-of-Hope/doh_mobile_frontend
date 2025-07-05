@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../atoms/Button';
 
 interface AttendanceMarkedSectionProps {
@@ -10,7 +11,7 @@ export default function AttendanceMarkedSection({ onFillForm }: AttendanceMarked
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.checkmark}>✅</Text>
+        <Ionicons name="checkmark-circle" size={60} color="#10B981" style={styles.checkmark} />
         <Text style={styles.title}>Attendance Marked!</Text>
         <Text style={styles.subtitle}>
           Please fill out the health questionnaire to continue
@@ -40,7 +41,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   checkmark: {
-    fontSize: 60,
     marginBottom: 16,
   },
   title: {

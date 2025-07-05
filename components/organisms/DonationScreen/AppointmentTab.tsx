@@ -36,7 +36,10 @@ export default function AppointmentTab({ appointments, onBookAppointment }: Appo
           <View style={styles.appointmentsSection}>
             {upcomingAppointments.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>📅 Upcoming Appointments</Text>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="calendar" size={20} color="#3B82F6" />
+                  <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+                </View>
                 {upcomingAppointments.map((appointment) => (
                   <AppointmentCard
                     key={appointment.id}
@@ -48,7 +51,10 @@ export default function AppointmentTab({ appointments, onBookAppointment }: Appo
 
             {completedAppointments.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>📋 Donation History</Text>
+                <View style={styles.sectionTitleContainer}>
+                  <Ionicons name="clipboard" size={20} color="#10B981" />
+                  <Text style={styles.sectionTitle}>Donation History</Text>
+                </View>
                 {completedAppointments.map((appointment) => (
                   <AppointmentCard
                     key={appointment.id}
@@ -114,10 +120,20 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 12,
+    marginLeft: 8,
   },
 });

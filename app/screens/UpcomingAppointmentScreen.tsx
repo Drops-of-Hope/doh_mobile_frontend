@@ -139,7 +139,10 @@ export default function UpcomingAppointmentScreen({ navigation }: { navigation?:
         {/* Upcoming Appointments */}
         {upcomingAppointments.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📅 Upcoming Appointments</Text>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="calendar" size={20} color="#3B82F6" />
+              <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+            </View>
             
             {upcomingAppointments.map((appointment) => (
               <View key={appointment.id} style={styles.appointmentCard}>
@@ -224,7 +227,10 @@ export default function UpcomingAppointmentScreen({ navigation }: { navigation?:
         {/* Past Appointments */}
         {pastAppointments.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📋 Past Appointments</Text>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="clipboard" size={20} color="#10B981" />
+              <Text style={styles.sectionTitle}>Past Appointments</Text>
+            </View>
             
             {pastAppointments.map((appointment) => (
               <View key={appointment.id} style={[styles.appointmentCard, styles.pastCard]}>
@@ -346,11 +352,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginBottom: 24,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 16,
+    marginLeft: 8,
   },
   appointmentCard: {
     backgroundColor: '#FFFFFF',
