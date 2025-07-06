@@ -1,37 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
-  TouchableOpacity,
-  ScrollView,
+  Text,
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ScrollView,
+  TouchableOpacity,
   Modal,
-  Text,
-  Pressable,
   TextInput,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import BottomTabBar from "../../components/organisms/BottomTabBar";
-import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
-
-// Import new atomic components
-import HomeHeader from '../../components/organisms/HomeScreen/HomeHeader';
-import StatsCard from '../../components/molecules/HomeScreen/StatsCard';
-import ComponentRow from '../../components/molecules/HomeScreen/ComponentRow';
-import EmergenciesSection from '../../components/organisms/HomeScreen/EmergenciesSection';
-import CampaignsSection from '../../components/organisms/HomeScreen/CampaignsSection';
-import AppointmentSection from '../../components/organisms/HomeScreen/AppointmentSection';
 import { Emergency } from '../../components/molecules/HomeScreen/EmergencyCard';
-import { Campaign } from '../../components/molecules/HomeScreen/CampaignCard';
-import { Appointment } from '../../components/molecules/HomeScreen/AppointmentCard';
+import EmergencyCard from '../../components/molecules/HomeScreen/EmergencyCard';
 
-export default function HomeScreen({ navigation }: { navigation?: any }) {
-  const [searchText, setSearchText] = useState<string>('');
-  const [upcomingAppointment, setUpcomingAppointment] = useState<Appointment | null>(null);
-  const [showAppointmentModal, setShowAppointmentModal] = useState<boolean>(false);
+interface AllEmergenciesScreenProps {
+  navigation?: any;
+}
+
+export default function AllEmergenciesScreen({ navigation }: AllEmergenciesScreenProps) {
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
   const [showDonationModal, setShowDonationModal] = useState<boolean>(false);
   const [selectedEmergency, setSelectedEmergency] = useState<Emergency | null>(null);
@@ -39,43 +27,10 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
     contactNumber: '',
     specialRequests: '',
   });
-  const { getFirstName, logout } = useAuth();
-  const { t } = useLanguage();
 
-  useEffect(() => {
-    loadUpcomingAppointment();
-  }, []);
-
-  const loadUpcomingAppointment = async () => {
-    try {
-      // This would be replaced with actual API call
-      const mockAppointment: Appointment = {
-        id: "1",
-        date: "July 15, 2025",
-        time: "10:00 AM",
-        location: "Colombo Blood Bank",
-        hospital: "Colombo General Hospital",
-        status: "upcoming"
-      };
-      setUpcomingAppointment(mockAppointment);
-    } catch (error) {
-      console.error("Failed to load appointment:", error);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
-
-  const handleNotificationPress = () => {
+  const handleBack = () => {
     if (navigation) {
-      navigation.navigate('Notifications');
-    } else {
-      console.log('Navigate to Notifications screen');
+      navigation.goBack();
     }
   };
 
@@ -87,26 +42,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
   const handleViewEmergencyDetails = (emergency: Emergency) => {
     setSelectedEmergency(emergency);
     setShowEmergencyModal(true);
-  };
-
-  const handleViewAllEmergencies = () => {
-    navigation?.navigate('AllEmergencies');
-  };
-
-  const handleViewAllCampaigns = () => {
-    navigation?.navigate('AllCampaigns');
-  };
-
-  const handleAppointmentDetails = (appointment: Appointment) => {
-    setShowAppointmentModal(true);
-  };
-
-  const handleReschedule = (appointment: Appointment) => {
-    console.log(`Reschedule appointment ${appointment.id}`);
-  };
-
-  const closeModal = () => {
-    setShowAppointmentModal(false);
   };
 
   const closeEmergencyModal = () => {
@@ -129,7 +64,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
       return;
     }
 
-    // Here you would typically make an API call to book the donation
     Alert.alert(
       'Emergency Donation Registered!',
       `Thank you for responding to this emergency! We'll contact you immediately at ${donationForm.contactNumber} with instructions for immediate donation.`,
@@ -138,15 +72,14 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
           text: 'OK',
           onPress: () => {
             closeDonationModal();
-            // Optionally refresh the appointments
-            loadUpcomingAppointment();
           }
         }
       ]
     );
   };
 
-  const emergencies: Emergency[] = [
+  // Extended list of emergencies - Only showing emergencies compatible with O+ donor
+  const allEmergencies: Emergency[] = [
     {
       id: 1,
       hospital: 'City General Hospital',
@@ -172,186 +105,138 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
       contactNumber: '+94 31 234 5678',
       address: '456 Hospital Road, Negombo',
       requirements: 'Minimum 450ml donation, Age 18-65, Weight above 50kg'
-    }
-  ];
-
-  const upcomingCampaigns: Campaign[] = [
-    {
-      id: 1,
-      title: 'Emergency Relief Fund',
-      date: '2025-07-05',
-      location: 'City General Hospital',
-      slotsUsed: 65,
-      totalSlots: 100,
-      urgency: 'Critical'
-    },
-    {
-      id: 2,
-      title: 'University Blood Drive',
-      date: '2025-07-12',
-      location: 'University of Colombo',
-      slotsUsed: 23,
-      totalSlots: 50,
-      urgency: 'Moderate'
     },
     {
       id: 3,
-      title: 'Community Health Fair',
-      date: '2025-07-18',
-      location: 'Negombo Community Center',
-      slotsUsed: 12,
-      totalSlots: 75,
-      urgency: 'Low'
-    }
+      hospital: 'Kandy Teaching Hospital',
+      bloodType: 'O+ Needed',
+      slotsUsed: 2,
+      totalSlots: 6,
+      urgency: 'Moderate',
+      timeLeft: '8 hours left',
+      description: 'O+ blood type needed for surgery patient. Limited stock available and surgery scheduled tomorrow morning.',
+      contactNumber: '+94 81 234 5678',
+      address: '789 Peradeniya Road, Kandy',
+      requirements: 'Minimum 450ml donation, Age 18-65, Weight above 50kg'
+    },
+    {
+      id: 4,
+      hospital: 'Galle District Hospital',
+      bloodType: 'AB+ Needed',
+      slotsUsed: 1,
+      totalSlots: 4,
+      urgency: 'Low',
+      timeLeft: '12 hours left',
+      description: 'AB+ blood needed for planned surgery. Patient scheduled for operation and needs blood backup.',
+      contactNumber: '+94 91 234 5678',
+      address: '321 Galle Road, Galle',
+      requirements: 'Minimum 450ml donation, Age 18-65, Weight above 50kg'
+    },
+    {
+      id: 5,
+      hospital: 'Jaffna Teaching Hospital',
+      bloodType: 'O+ Needed',
+      slotsUsed: 4,
+      totalSlots: 5,
+      urgency: 'Critical',
+      timeLeft: '1 hour left',
+      description: 'O+ blood urgently needed for trauma patient. Emergency surgery in progress.',
+      contactNumber: '+94 21 234 5678',
+      address: '654 Hospital Street, Jaffna',
+      requirements: 'Minimum 450ml donation, Age 18-65, Weight above 50kg'
+    },
+    {
+      id: 6,
+      hospital: 'Anuradhapura Teaching Hospital',
+      bloodType: 'AB+ Needed',
+      slotsUsed: 1,
+      totalSlots: 3,
+      urgency: 'Moderate',
+      timeLeft: '6 hours left',
+      description: 'AB+ blood type needed for maternal emergency. Expecting mother requires blood support for safe delivery.',
+      contactNumber: '+94 25 234 5678',
+      address: '987 Old Road, Anuradhapura',
+      requirements: 'Minimum 450ml donation, Age 18-65, Weight above 50kg'
+    },
+    {
+      id: 7,
+      hospital: 'Batticaloa District Hospital',
+      bloodType: 'O+ Needed',
+      slotsUsed: 0,
+      totalSlots: 3,
+      urgency: 'Low',
+      timeLeft: '24 hours left',
+      description: 'O+ blood needed for scheduled surgery tomorrow. Elective procedure requires blood backup availability.',
+      contactNumber: '+94 65 234 5678',
+      address: '159 Coastal Road, Batticaloa',
+      requirements: 'Minimum 450ml donation, Age 18-65, Weight above 50kg'
+    },
   ];
+
+  // Calculate statistics
+  const getEmergencyStats = () => {
+    const critical = allEmergencies.filter(e => e.urgency === 'Critical').length;
+    const moderate = allEmergencies.filter(e => e.urgency === 'Moderate').length;
+    const low = allEmergencies.filter(e => e.urgency === 'Low').length;
+    
+    return { critical, moderate, low, total: allEmergencies.length };
+  };
+
+  const stats = getEmergencyStats();
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
       
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>All Emergencies</Text>
+        <View style={styles.headerRight} />
+      </View>
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <HomeHeader
-          firstName={getFirstName()}
-          donorLevel="Silver Donor"
-          searchText={searchText}
-          onSearchTextChange={setSearchText}
-          onLogout={handleLogout}
-        />
+        <View style={styles.content}>
+          <Text style={styles.subtitle}>
+            {allEmergencies.length} active emergencies need your help
+          </Text>
 
-        <StatsCard totalDonations={12} />
-
-        <View style={styles.section}>
-          <ComponentRow 
-            bloodType="O+"
-            lastDonationDays={473}
-          />
-        </View>
-
-        <AppointmentSection
-          appointment={upcomingAppointment}
-          title="Blood Donation"
-          onViewDetails={handleAppointmentDetails}
-          onReschedule={handleReschedule}
-        />
-
-        <EmergenciesSection
-          emergencies={emergencies}
-          onDonate={handleDonateNow}
-          onViewDetails={handleViewEmergencyDetails}
-          onViewAll={handleViewAllEmergencies}
-        />
-
-        <CampaignsSection
-          campaigns={upcomingCampaigns}
-          onViewAll={handleViewAllCampaigns}
-          limit={2}
-        />
-
-        <View style={styles.bottomPadding} />
-      </ScrollView>
-
-      <TouchableOpacity 
-        style={styles.floatingButton}
-        onPress={handleNotificationPress}
-      >
-        <Ionicons name="notifications" size={24} color="white" />
-        <View style={styles.notificationBadge} />
-      </TouchableOpacity>
-
-      {/* Appointment Details Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showAppointmentModal}
-        onRequestClose={closeModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* Header */}
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Appointment Details</Text>
-              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Content */}
-            {upcomingAppointment && (
-              <View style={styles.modalBody}>
-                <View style={styles.detailRow}>
-                  <Ionicons name="calendar" size={20} color="#3B82F6" />
-                  <View style={styles.detailText}>
-                    <Text style={styles.detailLabel}>Date & Time</Text>
-                    <Text style={styles.detailValue}>
-                      {upcomingAppointment.date} at {upcomingAppointment.time}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Ionicons name="location" size={20} color="#10B981" />
-                  <View style={styles.detailText}>
-                    <Text style={styles.detailLabel}>Location</Text>
-                    <Text style={styles.detailValue}>{upcomingAppointment.location}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Ionicons name="medical" size={20} color="#F59E0B" />
-                  <View style={styles.detailText}>
-                    <Text style={styles.detailLabel}>Hospital</Text>
-                    <Text style={styles.detailValue}>{upcomingAppointment.hospital}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Ionicons name="checkmark-circle" size={20} color="#8B5CF6" />
-                  <View style={styles.detailText}>
-                    <Text style={styles.detailLabel}>Status</Text>
-                    <Text style={[styles.detailValue, styles.statusText]}>
-                      {upcomingAppointment.status.toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Instructions */}
-                <View style={styles.instructionsContainer}>
-                  <Text style={styles.instructionsTitle}>Preparation Instructions</Text>
-                  <Text style={styles.instructionsText}>
-                    • Eat a healthy meal before donating{'\n'}
-                    • Drink plenty of water{'\n'}
-                    • Bring a valid ID{'\n'}
-                    • Avoid alcohol 24 hours before donation{'\n'}
-                    • Get a good night's sleep
-                  </Text>
-                </View>
+          {/* Statistics Section */}
+          <View style={styles.statsSection}>
+            <Text style={styles.statsTitle}>Emergency Breakdown</Text>
+            <View style={styles.statsContainer}>
+              <View style={styles.statCard}>
+                <View style={[styles.statIndicator, styles.criticalIndicator]} />
+                <Text style={styles.statNumber}>{stats.critical}</Text>
+                <Text style={styles.statLabel}>Critical</Text>
               </View>
-            )}
-
-            {/* Actions */}
-            <View style={styles.modalActions}>
-              <TouchableOpacity 
-                style={[styles.actionButton, styles.rescheduleButton]}
-                onPress={() => {
-                  closeModal();
-                  if (upcomingAppointment) {
-                    handleReschedule(upcomingAppointment);
-                  }
-                }}
-              >
-                <Text style={styles.rescheduleButtonText}>Reschedule</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.actionButton, styles.confirmButton]}
-                onPress={closeModal}
-              >
-                <Text style={styles.confirmButtonText}>Got it</Text>
-              </TouchableOpacity>
+              <View style={styles.statCard}>
+                <View style={[styles.statIndicator, styles.moderateIndicator]} />
+                <Text style={styles.statNumber}>{stats.moderate}</Text>
+                <Text style={styles.statLabel}>Moderate</Text>
+              </View>
+              <View style={styles.statCard}>
+                <View style={[styles.statIndicator, styles.lowIndicator]} />
+                <Text style={styles.statNumber}>{stats.low}</Text>
+                <Text style={styles.statLabel}>Low</Text>
+              </View>
             </View>
           </View>
+
+          <View style={styles.emergenciesContainer}>
+            {allEmergencies.map((emergency) => (
+              <EmergencyCard
+                key={emergency.id}
+                emergency={emergency}
+                onDonate={handleDonateNow}
+                onViewDetails={handleViewEmergencyDetails}
+              />
+            ))}
+          </View>
         </View>
-      </Modal>
+      </ScrollView>
 
       {/* Emergency Details Modal */}
       <Modal
@@ -431,7 +316,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
                   <Text style={styles.requirementsText}>{selectedEmergency.requirements}</Text>
                 </View>
                 
-                {/* Bottom padding for scrolling */}
                 <View style={styles.modalBottomPadding} />
               </ScrollView>
             )}
@@ -525,7 +409,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
                     </View>
                   </View>
                   
-                  {/* Bottom padding for scrolling */}
                   <View style={styles.modalBottomPadding} />
                 </>
               )}
@@ -549,8 +432,6 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
           </View>
         </View>
       </Modal>
-
-      <BottomTabBar activeTab="home" />
     </SafeAreaView>
   );
 }
@@ -560,44 +441,104 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAFBFC',
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+    backgroundColor: '#FAFBFC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F3F5',
+    paddingTop: 60, // Adjusted for status bar height
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  headerRight: {
+    width: 40,
+  },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 24,
   },
-  section: {
+  content: {
+    padding: 24,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  // Statistics Section Styles
+  statsSection: {
     marginBottom: 24,
   },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 120,
-    right: 24,
-    width: 60,
-    height: 60,
-    backgroundColor: '#DC2626',
-    borderRadius: 30,
+  statsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  notificationBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 14,
-    height: 14,
-    backgroundColor: '#FF4757',
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: 'white',
+  statIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginBottom: 8,
   },
-  bottomPadding: {
-    height: 24,
+  criticalIndicator: {
+    backgroundColor: '#DC2626',
   },
-  // Modal styles
+  moderateIndicator: {
+    backgroundColor: '#F59E0B',
+  },
+  lowIndicator: {
+    backgroundColor: '#10B981',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  emergenciesContainer: {
+    gap: 16,
+  },
+  // Modal styles - copied from HomeScreen
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -655,29 +596,6 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     fontWeight: '500',
   },
-  statusText: {
-    color: '#DC2626',
-    fontWeight: '600',
-  },
-  instructionsContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
-  },
-  instructionsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  instructionsText: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
   modalActions: {
     flexDirection: 'row',
     padding: 24,
@@ -712,30 +630,29 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
-  // Emergency Modal Styles
-  urgencyBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
+  emergencyInfo: {
+    backgroundColor: '#FEF3F2',
+    padding: 16,
+    borderRadius: 12,
     marginBottom: 20,
-    gap: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#DC2626',
   },
-  criticalBanner: {
-    backgroundColor: '#DC2626',
-  },
-  moderateBanner: {
-    backgroundColor: '#F59E0B',
-  },
-  urgencyText: {
-    color: 'white',
+  emergencyInfoTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    fontSize: 14,
+    color: '#1F2937',
+    marginBottom: 4,
   },
-  timeLeftText: {
-    color: 'white',
+  emergencyInfoText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  emergencyInfoUrgency: {
     fontSize: 12,
-    marginLeft: 'auto',
+    color: '#DC2626',
+    fontWeight: '600',
   },
   descriptionContainer: {
     marginTop: 20,
@@ -772,31 +689,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
-  },
-  // Donation Modal Styles
-  emergencyInfo: {
-    backgroundColor: '#FEF3F2',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
-  },
-  emergencyInfoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  emergencyInfoText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  emergencyInfoUrgency: {
-    fontSize: 12,
-    color: '#DC2626',
-    fontWeight: '600',
   },
   formContainer: {
     flex: 1,

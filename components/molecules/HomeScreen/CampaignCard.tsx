@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import UrgencyBadge, { UrgencyLevel } from '../../atoms/HomeScreen/UrgencyBadge';
 import ProgressBar from '../../atoms/HomeScreen/ProgressBar';
@@ -17,9 +17,12 @@ export interface Campaign {
 interface CampaignCardProps {
   campaign: Campaign;
   onPress?: (campaign: Campaign) => void;
+  showActions?: boolean;
+  onDetails?: (campaign: Campaign) => void;
+  onJoin?: (campaign: Campaign) => void;
 }
 
-export default function CampaignCard({ campaign, onPress }: CampaignCardProps) {
+export default function CampaignCard({ campaign, onPress, showActions = false, onDetails, onJoin }: CampaignCardProps) {
   return (
     <View style={styles.campaignCard}>
       <View style={styles.campaignHeader}>
@@ -45,6 +48,25 @@ export default function CampaignCard({ campaign, onPress }: CampaignCardProps) {
         total={campaign.totalSlots} 
         urgency={campaign.urgency}
       />
+      
+      {showActions && (
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={styles.detailsButton}
+            onPress={() => onDetails?.(campaign)}
+          >
+            <Ionicons name="information-circle" size={16} color="#6B7280" />
+            <Text style={styles.detailsButtonText}>Details</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.joinButton}
+            onPress={() => onJoin?.(campaign)}
+          >
+            <Ionicons name="add-circle" size={16} color="white" />
+            <Text style={styles.joinButtonText}>Join</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -95,5 +117,52 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     fontWeight: '500',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    marginTop: 16,
+    gap: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F3F5',
+  },
+  detailsButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 6,
+  },
+  detailsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  joinButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#DC2626',
+    gap: 6,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  joinButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'white',
   },
 });
