@@ -78,5 +78,36 @@
       "volume": "Volume",
       "notes": "Notes"
     }
+<<<<<<< Updated upstream
+=======
+  },
+  "profile": {
+    "title": "Profile",
+    "edit_profile": "Edit Profile",
+    "my_donations": "My Donations",
+    "donation_eligibility": "Donation Eligibility",
+    "upcoming_appointment": "Upcoming Appointment",
+    "settings": "Settings",
+    "app_preferences": "App preferences",
+    "language": "Language",
+    "notifications": "Notifications",
+    "faqs": "FAQs",
+    "become_camp_organizer": "Become Camp Organizer",
+    "log_out": "Log Out",
+    "logout_confirm_title": "Logout",
+    "logout_confirm_message": "Are you sure you want to logout?",
+    "language_selection": "Language Selection",
+    "select_language": "Select your preferred language",
+    "camp_organizer_application": "Camp Organizer Application",
+    "camp_organizer_message": "Would you like to apply to become a camp organizer? This will allow you to create and manage blood donation camps.",
+    "application_submitted": "Application Submitted",
+    "application_success_message": "Your application to become a camp organizer has been submitted. We will review it and get back to you soon.",
+    "apply": "Apply"
+  },
+  "faqs": {
+    "title": "Frequently Asked Questions",
+    "donor_info": "Donor Information",
+    "camp_organizer_info": "Camp Organizer Information"
+>>>>>>> Stashed changes
   }
 }

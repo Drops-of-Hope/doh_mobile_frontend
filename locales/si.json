@@ -78,5 +78,36 @@
       "volume": "පරිමාව",
       "notes": "සටහන්"
     }
+<<<<<<< Updated upstream
+=======
+  },
+  "profile": {
+    "title": "පැතිකඩ",
+    "edit_profile": "පැතිකඩ සංස්කරණය",
+    "my_donations": "මගේ දන්දීම්",
+    "donation_eligibility": "දන්දීමේ සුදුසුකම",
+    "upcoming_appointment": "ඉදිරි දිනයේ හමුවීම",
+    "settings": "සැකසුම්",
+    "app_preferences": "යෙදුම් මනාපයන්",
+    "language": "භාෂාව",
+    "notifications": "දැනුම්දීම්",
+    "faqs": "නිතර අසන ප්‍රශ්න",
+    "become_camp_organizer": "කදවුරු සංවිධායකයා වන්න",
+    "log_out": "ඉවත් වන්න",
+    "logout_confirm_title": "ඉවත් වීම",
+    "logout_confirm_message": "ඔබට ඉවත් වීමට අවශ්‍ය බව විශ්වාසද?",
+    "language_selection": "භාෂා තේරීම",
+    "select_language": "ඔබේ කැමති භාෂාව තෝරන්න",
+    "camp_organizer_application": "කදවුරු සංවිධායක අයදුම්පත",
+    "camp_organizer_message": "ඔබට කදවුරු සංවිධායකයෙකු වීමට අයදුම් කිරීමට අවශ්‍යද? මෙමගින් ඔබට ලේ දන්දීමේ කදවුරු සෑදීමට සහ කළමනාකරණය කිරීමට හැකි වේ.",
+    "application_submitted": "අයදුම්පත ඉදිරිපත් කරන ලදී",
+    "application_success_message": "කදවුරු සංවිධායකයෙකු වීමට ඔබේ අයදුම්පත ඉදිරිපත් කර ඇත. අපි එය සමාලෝචනය කර ඔබට ඉක්මනින් පිළිතුරු දෙන්නෙමු.",
+    "apply": "අයදුම් කරන්න"
+  },
+  "faqs": {
+    "title": "නිතර අසන ප්‍රශ්න",
+    "donor_info": "දන්දී කරන්නාගේ තොරතුරු",
+    "camp_organizer_info": "කදවුරු සංවිධායක තොරතුරු"
+>>>>>>> Stashed changes
   }
 }

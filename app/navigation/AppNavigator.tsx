@@ -12,6 +12,15 @@ import ProfileScreen from "../screens/ProfileScreen";
 import DonationScreen from "../screens/DonationScreen";
 import ExploreScreen from "../screens/ExploreScreen";
 import ActivitiesScreen from "../screens/ActivitiesScreen";
+<<<<<<< Updated upstream
+=======
+import MyDonationsScreen from "../screens/MyDonationsScreen";
+import DonationEligibilityScreen from "../screens/DonationEligibilityScreen";
+import UpcomingAppointmentScreen from "../screens/UpcomingAppointmentScreen";
+import NotificationsScreen from "../screens/NotificationsScreen";
+import AllEmergenciesScreen from "../screens/AllEmergenciesScreen";
+import AllCampaignsScreen from "../screens/AllCampaignsScreen";
+>>>>>>> Stashed changes
 
 type RootStackParamList = {
   Splash: undefined;
@@ -21,6 +30,15 @@ type RootStackParamList = {
   Donate: undefined;
   Explore: undefined;
   Activities: undefined;
+<<<<<<< Updated upstream
+=======
+  MyDonations: undefined;
+  DonationEligibility: undefined;
+  UpcomingAppointment: undefined;
+  Notifications: undefined;
+  AllEmergencies: undefined;
+  AllCampaigns: undefined;
+>>>>>>> Stashed changes
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -43,6 +61,15 @@ export default function AppNavigator() {
             <Stack.Screen name="Donate" component={DonationScreen} />
             <Stack.Screen name="Explore" component={ExploreScreen} />
             <Stack.Screen name="Activities" component={ActivitiesScreen} />
+<<<<<<< Updated upstream
+=======
+            <Stack.Screen name="MyDonations" component={MyDonationsScreen} />
+            <Stack.Screen name="DonationEligibility" component={DonationEligibilityScreen} />
+            <Stack.Screen name="UpcomingAppointment" component={UpcomingAppointmentScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="AllEmergencies" component={AllEmergenciesScreen} />
+            <Stack.Screen name="AllCampaigns" component={AllCampaignsScreen} />
+>>>>>>> Stashed changes
           </>
         ) : (
           // Screens for unauthenticated users - simplified flow
