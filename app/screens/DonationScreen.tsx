@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   Text,
   Alert,
+  ScrollView,
+  StyleSheet,
+  StatusBar,
 } from "react-native";
-import { styled } from "nativewind";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from '@expo/vector-icons';
 import QRDisplay from "../../components/atoms/Donation/QRDisplay";
@@ -20,11 +22,6 @@ import {
   donationService,
   UserProfile,
 } from "../../app/services/donationService";
-
-const StyledView = styled(View);
-const StyledSafeAreaView = styled(SafeAreaView);
-const StyledTouchableOpacity = styled(TouchableOpacity);
-const StyledText = styled(Text);
 
 const DonateScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'qr' | 'appointment'>('qr');
@@ -135,190 +132,449 @@ const DonateScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <StyledSafeAreaView className="flex-1 bg-white">
-        <StyledView className="flex-1 justify-center items-center">
-          <StyledText className="text-lg text-gray-600">Loading...</StyledText>
-        </StyledView>
-      </StyledSafeAreaView>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <StyledSafeAreaView className="flex-1 bg-white">
-      <StyledView className="flex-1 pt-10">
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+      
+      <View style={styles.content}>
         {/* Header */}
-        <StyledView className="px-6 py-4 border-b border-gray-200">
-          <StyledText className="text-2xl font-bold text-gray-800">
-            Donation Center
-          </StyledText>
-          <StyledText className="text-sm text-gray-600 mt-1">
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Donation Center</Text>
+          <Text style={styles.headerSubtitle}>
             Show your QR code or book an appointment
-          </StyledText>
-        </StyledView>
+          </Text>
+        </View>
 
         {/* Tab Navigation */}
-        <StyledView className="flex-row bg-gray-100 mx-6 mt-4 rounded-xl p-1.5 shadow-sm border border-gray-200">
-          <StyledTouchableOpacity 
-            className={`flex-1 py-3 px-4 rounded-lg ${activeTab === 'qr' ? 'bg-white shadow-md border border-red-100' : ''}`}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'qr' && styles.activeTab]}
             onPress={() => setActiveTab('qr')}
           >
-            <StyledView className="flex-row items-center justify-center">
+            <View style={styles.tabContent}>
               <Ionicons name="qr-code" size={16} color={activeTab === 'qr' ? '#DC2626' : '#6B7280'} />
-              <StyledText className={`ml-2 text-center font-semibold ${activeTab === 'qr' ? 'text-red-600' : 'text-gray-500'}`}>
+              <Text style={[styles.tabText, activeTab === 'qr' && styles.activeTabText]}>
                 QR Code
-              </StyledText>
-            </StyledView>
-          </StyledTouchableOpacity>
-          <StyledTouchableOpacity 
-            className={`flex-1 py-3 px-4 rounded-lg ${activeTab === 'appointment' ? 'bg-white shadow-md border border-red-100' : ''}`}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'appointment' && styles.activeTab]}
             onPress={() => setActiveTab('appointment')}
           >
-            <StyledView className="flex-row items-center justify-center">
+            <View style={styles.tabContent}>
               <Ionicons name="calendar" size={16} color={activeTab === 'appointment' ? '#DC2626' : '#6B7280'} />
-              <StyledText className={`ml-2 text-center font-semibold ${activeTab === 'appointment' ? 'text-red-600' : 'text-gray-500'}`}>
+              <Text style={[styles.tabText, activeTab === 'appointment' && styles.activeTabText]}>
                 Appointments
-              </StyledText>
-            </StyledView>
-          </StyledTouchableOpacity>
-        </StyledView>
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
         {/* Main Content */}
-        <StyledView className="flex-1">
+        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
           {activeTab === 'qr' ? (
-            <StyledView className="flex-1 px-6 py-8">
+            <View style={styles.qrContainer}>
               {!attendanceMarked ? (
-                <StyledView className="flex-1 justify-center items-center">
-                  <StyledView className="bg-blue-50 p-8 rounded-2xl border border-blue-200 items-center mb-8">
-                    <Ionicons name="phone-portrait" size={64} color="#3B82F6" style={{ marginBottom: 16 }} />
-                    <StyledText className="text-xl font-semibold text-gray-800 text-center mb-2">
-                      Ready to Donate?
-                    </StyledText>
-                    <StyledText className="text-gray-600 text-center mb-6 max-w-xs">
+                <View style={styles.qrContent}>
+                  <View style={styles.qrCard}>
+                    <Ionicons name="phone-portrait" size={64} color="#DC2626" style={{ marginBottom: 16 }} />
+                    <Text style={styles.cardTitle}>Ready to Donate?</Text>
+                    <Text style={styles.cardSubtitle}>
                       Show your QR code to the camp staff to mark your attendance
-                    </StyledText>
+                    </Text>
 
-                    <Button title="Show QR Code" onPress={handleShowQR} />
-                  </StyledView>
+                    <TouchableOpacity style={styles.primaryButton} onPress={handleShowQR}>
+                      <Text style={styles.primaryButtonText}>Show QR Code</Text>
+                    </TouchableOpacity>
+                  </View>
 
-                  <StyledView className="bg-gray-50 p-6 rounded-xl border border-gray-200 w-full">
-                    <StyledText className="text-lg font-semibold text-gray-800 mb-2">
-                      Instructions:
-                    </StyledText>
-                    <StyledText className="text-gray-600 text-sm leading-6">
+                  <View style={styles.instructionsCard}>
+                    <Text style={styles.instructionsTitle}>Instructions:</Text>
+                    <Text style={styles.instructionsText}>
                       1. Show your QR code to the reception staff{"\n"}
                       2. Wait for attendance confirmation{"\n"}
                       3. Fill the health questionnaire{"\n"}
                       4. Proceed with medical screening
-                    </StyledText>
-                  </StyledView>
-                </StyledView>
+                    </Text>
+                  </View>
+                </View>
               ) : (
-                <StyledView className="flex-1 justify-center items-center">
-                  <StyledView className="bg-green-50 p-8 rounded-2xl border border-green-200 items-center mb-8">
+                <View style={styles.qrContent}>
+                  <View style={styles.successCard}>
                     <Ionicons name="checkmark-circle" size={64} color="#10B981" style={{ marginBottom: 16 }} />
-                    <StyledText className="text-xl font-semibold text-gray-800 text-center mb-2">
-                      Attendance Marked!
-                    </StyledText>
-                    <StyledText className="text-gray-600 text-center mb-6 max-w-xs">
+                    <Text style={styles.cardTitle}>Attendance Marked!</Text>
+                    <Text style={styles.cardSubtitle}>
                       Please fill out the health questionnaire to continue
-                    </StyledText>
+                    </Text>
 
-                    <Button
-                      title="Fill Health Form"
-                      onPress={() => setShowFormModal(true)}
-                    />
-                  </StyledView>
-                </StyledView>
+                    <TouchableOpacity style={styles.primaryButton} onPress={() => setShowFormModal(true)}>
+                      <Text style={styles.primaryButtonText}>Fill Health Form</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               )}
-            </StyledView>
+            </View>
           ) : (
             <AppointmentTab 
               appointments={appointments}
               onBookAppointment={handleBookAppointment}
             />
           )}
-        </StyledView>
+        </ScrollView>
+      </View>
 
-        <BottomTabBar activeTab="donate" />
+      <BottomTabBar activeTab="donate" />
 
-        {/* QR Code Modal */}
-        <Modal
-          visible={showQRModal}
-          animationType="slide"
-          presentationStyle="fullScreen"
-        >
-          <StyledSafeAreaView className="flex-1 bg-white">
-            <StyledView className="flex-row justify-between items-center p-4 border-b border-gray-200">
-              <StyledText className="text-lg font-semibold">
-                Your QR Code
-              </StyledText>
-              <StyledTouchableOpacity onPress={handleCloseQRModal}>
-                <StyledText className="text-red-600 font-medium">
-                  Close
-                </StyledText>
-              </StyledTouchableOpacity>
-            </StyledView>
+      {/* QR Code Modal */}
+      <Modal
+        visible={showQRModal}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Your QR Code</Text>
+            <TouchableOpacity onPress={handleCloseQRModal} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
 
-            {userProfile && (
-              <QRDisplay
-                userName={userProfile.name}
-                userEmail={userProfile.email}
-                userUID={userProfile.uid}
-              />
-            )}
-
-            <StyledView className="p-4">
-              <Button
-                title="Simulate Attendance Marked"
-                onPress={simulateAttendanceMarked}
-                variant="outline"
-              />
-              <StyledText className="text-xs text-gray-500 text-center mt-2">
-                (For demo purposes - simulates camp staff scanning your QR)
-              </StyledText>
-            </StyledView>
-          </StyledSafeAreaView>
-        </Modal>
-
-        {/* Donation Form Modal */}
-        <Modal
-          visible={showFormModal}
-          animationType="slide"
-          presentationStyle="fullScreen"
-        >
-          <StyledSafeAreaView className="flex-1 bg-white">
-            <StyledView className="flex-row justify-between items-center p-4 border-b border-gray-200">
-              <StyledText className="text-lg font-semibold">
-                Health Questionnaire
-              </StyledText>
-              <StyledTouchableOpacity onPress={handleFormCancel}>
-                <StyledText className="text-red-600 font-medium">
-                  Cancel
-                </StyledText>
-              </StyledTouchableOpacity>
-            </StyledView>
-
-            <DonationForm
-              onSubmitSuccess={handleFormSuccess}
-              onCancel={handleFormCancel}
+          {userProfile && (
+            <QRDisplay
+              userName={userProfile.name}
+              userEmail={userProfile.email}
+              userUID={userProfile.uid}
             />
-          </StyledSafeAreaView>
-        </Modal>
+          )}
 
-        {/* Appointment Booking Modal */}
-        <Modal
-          visible={showBookingModal}
-          animationType="slide"
-          presentationStyle="fullScreen"
-        >
-          <AppointmentBookingForm
-            onClose={handleBookingModalClose}
-            onBookingSuccess={handleBookingSuccess}
-          />
-        </Modal>
-      </StyledView>
-    </StyledSafeAreaView>
+          <View style={styles.demoTextContainer}>
+            <Button
+              title="Simulate Attendance Marked"
+              onPress={simulateAttendanceMarked}
+              variant="outline"
+            />
+            <Text style={styles.demoText}>
+              (For demo purposes - simulates camp staff scanning your QR)
+            </Text>
+          </View>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Donation Form Modal */}
+      <Modal
+        visible={showFormModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleFormCancel}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Health Questionnaire</Text>
+              <TouchableOpacity onPress={handleFormCancel} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <DonationForm
+                onSubmitSuccess={handleFormSuccess}
+                onCancel={handleFormCancel}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Appointment Booking Modal */}
+      <Modal
+        visible={showBookingModal}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <AppointmentBookingForm
+          onClose={handleBookingModalClose}
+          onBookingSuccess={handleBookingSuccess}
+        />
+      </Modal>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FAFBFC',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#6B7280',
+  },
+  content: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    marginHorizontal: 24,
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  activeTab: {
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  tabContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabText: {
+    marginLeft: 8,
+    textAlign: 'center',
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  activeTabText: {
+    color: '#DC2626',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  qrContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  qrContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qrCard: {
+    backgroundColor: 'white',
+    padding: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  successCard: {
+    backgroundColor: 'white',
+    padding: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  cardSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    maxWidth: 280,
+    lineHeight: 22,
+  },
+  primaryButton: {
+    backgroundColor: '#DC2626',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  primaryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  instructionsCard: {
+    backgroundColor: 'white',
+    padding: 24,
+    borderRadius: 16,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  instructionsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 12,
+  },
+  instructionsText: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    padding: 24,
+  },
+  modalBodyScrollable: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    padding: 24,
+    paddingTop: 0,
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rescheduleButton: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  rescheduleButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
+  },
+  confirmButton: {
+    backgroundColor: '#DC2626',
+  },
+  confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+    textAlign: 'center',
+  },
+  demoTextContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+  },
+  demoText: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  closeButtonText: {
+    color: '#DC2626',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export default DonateScreen;

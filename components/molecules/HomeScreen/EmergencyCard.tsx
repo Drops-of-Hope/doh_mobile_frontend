@@ -12,6 +12,10 @@ export interface Emergency {
   totalSlots: number;
   urgency: UrgencyLevel;
   timeLeft: string;
+  description?: string;
+  contactNumber?: string;
+  address?: string;
+  requirements?: string;
 }
 
 interface EmergencyCardProps {

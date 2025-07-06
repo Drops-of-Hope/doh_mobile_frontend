@@ -12,9 +12,9 @@ export default function ProgressBar({ current, total, urgency = 'Moderate' }: Pr
   const getProgressColor = (level: UrgencyLevel): string => {
     switch(level) {
       case 'Critical': return '#FF4757';
-      case 'Moderate': return '#3B82F6';
+      case 'Moderate': return '#DC2626';
       case 'Low': return '#00D2D3';
-      default: return '#3B82F6';
+      default: return '#DC2626';
     }
   };
 

@@ -79,14 +79,14 @@ export default function ActionButton({
 
 const styles = StyleSheet.create({
   primaryButton: {
-    backgroundColor: '#FF4757',
+    backgroundColor: '#DC2626',
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF4757',
+    shadowColor: '#DC2626',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

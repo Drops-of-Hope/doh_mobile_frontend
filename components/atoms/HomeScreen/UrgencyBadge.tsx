@@ -11,9 +11,9 @@ export default function UrgencyBadge({ urgency }: UrgencyBadgeProps) {
   const getUrgencyColors = (level: UrgencyLevel) => {
     switch(level) {
       case 'Critical': return { text: '#FF4757', bg: '#FFF5F5' };
-      case 'Moderate': return { text: '#3B82F6', bg: '#F0F6FF' };
+      case 'Moderate': return { text: '#DC2626', bg: '#FEF2F2' };
       case 'Low': return { text: '#00D2D3', bg: '#F0FDFA' };
-      default: return { text: '#3B82F6', bg: '#F0F6FF' };
+      default: return { text: '#DC2626', bg: '#FEF2F2' };
     }
   };
 

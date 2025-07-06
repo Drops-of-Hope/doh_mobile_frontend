@@ -52,7 +52,7 @@ export default function UpcomingAppointmentScreen({ navigation }: { navigation?:
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed': return '#10B981';
-      case 'upcoming': return '#3B82F6';
+      case 'upcoming': return '#DC2626';
       case 'completed': return '#6B7280';
       case 'cancelled': return '#EF4444';
       default: return '#6B7280';
@@ -125,13 +125,13 @@ export default function UpcomingAppointmentScreen({ navigation }: { navigation?:
           style={styles.backButton}
           onPress={() => navigation?.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color="#6B7280" />
         </TouchableOpacity>
         
         <Text style={styles.headerTitle}>My Appointments</Text>
         
         <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add" size={24} color="#5F27CD" />
+          <Ionicons name="add" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
@@ -140,7 +140,7 @@ export default function UpcomingAppointmentScreen({ navigation }: { navigation?:
         {upcomingAppointments.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Ionicons name="calendar" size={20} color="#3B82F6" />
+              <Ionicons name="calendar" size={20} color="#DC2626" />
               <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
             </View>
             
@@ -168,7 +168,7 @@ export default function UpcomingAppointmentScreen({ navigation }: { navigation?:
                 
                 <View style={styles.appointmentDetails}>
                   <View style={styles.detailRow}>
-                    <Ionicons name="calendar" size={16} color="#3B82F6" />
+                    <Ionicons name="calendar" size={16} color="#DC2626" />
                     <Text style={styles.detailText}>
                       {new Date(appointment.date).toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -207,7 +207,7 @@ export default function UpcomingAppointmentScreen({ navigation }: { navigation?:
                     style={styles.rescheduleButton}
                     onPress={() => handleReschedule(appointment.id)}
                   >
-                    <Ionicons name="calendar" size={16} color="#3B82F6" />
+                    <Ionicons name="calendar" size={16} color="#DC2626" />
                     <Text style={styles.rescheduleText}>Reschedule</Text>
                   </TouchableOpacity>
                   
@@ -338,10 +338,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    backgroundColor: '#5F27CD',
+    shadowColor: '#5F27CD',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 3,
   },
@@ -456,11 +456,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#3B82F6',
-    backgroundColor: '#EFF6FF',
+    borderColor: '#DC2626',
+    backgroundColor: '#FEF2F2',
   },
   rescheduleText: {
-    color: '#3B82F6',
+    color: '#DC2626',
     fontSize: 14,
     fontWeight: '700',
   },
