@@ -66,31 +66,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshAuthState = async () => {
     try {
       setIsLoading(true);
+      console.log("AuthContext: Starting auth state refresh...");
 
-      // Import the enhanced auth check
-      const { ensureValidAuth, getCurrentUser } = await import(
-        "../services/auth"
-      );
+      // Wrap everything in an additional safety layer
+      try {
+        // Import the enhanced auth check
+        const { ensureValidAuth, getCurrentUser } = await import(
+          "../services/auth"
+        );
 
-      // Use the enhanced validation that handles token refresh
-      const isValid = await ensureValidAuth();
+        // Use the enhanced validation that handles token refresh
+        console.log("AuthContext: Calling ensureValidAuth...");
+        const isValid = await ensureValidAuth();
+        console.log("AuthContext: ensureValidAuth result:", isValid);
 
-      if (isValid) {
-        const currentUser = await getCurrentUser();
-        setIsAuthenticatedState(true);
-        setUser(currentUser);
-        console.log("Auth state valid/refreshed successfully");
-      } else {
+        if (isValid) {
+          console.log("AuthContext: Getting current user...");
+          const currentUser = await getCurrentUser();
+          console.log("AuthContext: Current user:", currentUser);
+          
+          setIsAuthenticatedState(true);
+          setUser(currentUser);
+          console.log("Auth state valid/refreshed successfully");
+        } else {
+          console.log("AuthContext: Auth invalid, clearing state...");
+          setIsAuthenticatedState(false);
+          setUser(null);
+          console.log("Auth state invalid, user needs to re-authenticate");
+        }
+      } catch (authError: any) {
+        console.error("AuthContext: Auth operation failed silently:", authError?.message);
+        // Always clear state on any auth error to prevent undefined behavior
         setIsAuthenticatedState(false);
         setUser(null);
-        console.log("Auth state invalid, user needs to re-authenticate");
       }
-    } catch (error) {
-      console.error("Error refreshing auth state:", error);
+      
+    } catch (error: any) {
+      console.error("AuthContext: Critical error in refresh process:", error);
+      // Absolutely ensure we clear state on any error
       setIsAuthenticatedState(false);
       setUser(null);
     } finally {
       setIsLoading(false);
+      console.log("AuthContext: Auth refresh completed, loading:", false);
     }
   };
 

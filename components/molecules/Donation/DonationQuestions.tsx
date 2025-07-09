@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Switch, TouchableOpacity } from "react-native";
 import { styled } from "nativewind";
 import BooleanQuestion from "../../atoms/Donation/BooleanQuestion";
 import { DonationFormData } from "../../../app/services/donationService";
@@ -93,24 +93,82 @@ const DonationQuestions: React.FC<DonationQuestionsProps> = ({
   ];
 
   return (
-    <StyledView className="bg-gray-50 p-4">
-      <StyledText className="text-xl font-bold text-gray-900 mb-4">
-        {t('donation.questionnaire_title')}
-      </StyledText>
-      <StyledText className="text-sm text-gray-600 mb-6">
-        {t('donation.questionnaire_subtitle')}
-      </StyledText>
+    <View style={{ backgroundColor: '#F9FAFB', padding: 16 }}>
+      <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1F2937', marginBottom: 16 }}>
+        Health Questions
+      </Text>
+      <Text style={{ fontSize: 14, color: '#6B7280', marginBottom: 24 }}>
+        Please answer YES or NO to each question:
+      </Text>
 
       {questions.map((q) => (
-        <BooleanQuestion
+        <View
           key={q.key}
-          question={q.question}
-          description={q.description}
-          value={formData[q.key]}
-          onValueChange={(value) => onUpdateField(q.key, value)}
-        />
+          style={{
+            backgroundColor: 'white',
+            padding: 16,
+            marginBottom: 12,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: '#E5E7EB'
+          }}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flex: 1, marginRight: 16 }}>
+              <Text style={{ fontSize: 16, fontWeight: '500', color: '#1F2937', marginBottom: 4 }}>
+                {q.question}
+              </Text>
+              {q.description && (
+                <Text style={{ fontSize: 14, color: '#6B7280' }}>
+                  {q.description}
+                </Text>
+              )}
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  borderRadius: 20,
+                  backgroundColor: formData[q.key] ? '#DC2626' : '#F3F4F6',
+                  borderWidth: 1,
+                  borderColor: formData[q.key] ? '#DC2626' : '#D1D5DB',
+                }}
+                onPress={() => onUpdateField(q.key, true)}
+              >
+                <Text style={{
+                  color: formData[q.key] ? 'white' : '#6B7280',
+                  fontWeight: '600',
+                  fontSize: 14
+                }}>
+                  YES
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  borderRadius: 20,
+                  backgroundColor: !formData[q.key] ? '#DC2626' : '#F3F4F6',
+                  borderWidth: 1,
+                  borderColor: !formData[q.key] ? '#DC2626' : '#D1D5DB',
+                }}
+                onPress={() => onUpdateField(q.key, false)}
+              >
+                <Text style={{
+                  color: !formData[q.key] ? 'white' : '#6B7280',
+                  fontWeight: '600',
+                  fontSize: 14
+                }}>
+                  NO
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       ))}
-    </StyledView>
+    </View>
   );
 };
 

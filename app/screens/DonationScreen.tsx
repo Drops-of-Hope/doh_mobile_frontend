@@ -241,11 +241,11 @@ const DonateScreen: React.FC = () => {
         animationType="slide"
         presentationStyle="fullScreen"
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Your QR Code</Text>
-            <TouchableOpacity onPress={handleCloseQRModal} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>Close</Text>
+        <SafeAreaView style={styles.qrModalContainer}>
+          <View style={styles.qrModalHeader}>
+            <Text style={styles.qrModalTitle}>🩸 Your Digital Donor Pass</Text>
+            <TouchableOpacity onPress={handleCloseQRModal} style={styles.enhancedCloseButton}>
+              <Ionicons name="close-circle" size={28} color="#dc2626" />
             </TouchableOpacity>
           </View>
 
@@ -257,15 +257,16 @@ const DonateScreen: React.FC = () => {
             />
           )}
 
-          <View style={styles.demoTextContainer}>
-            <Button
-              title="Simulate Attendance Marked"
+          <View style={styles.enhancedDemoContainer}>
+            <TouchableOpacity 
+              style={styles.enhancedDemoButton}
               onPress={simulateAttendanceMarked}
-              variant="outline"
-            />
-            <Text style={styles.demoText}>
-              (For demo purposes - simulates camp staff scanning your QR)
-            </Text>
+            >
+              <Ionicons name="checkmark-circle" size={20} color="white" style={styles.buttonIcon} />
+              <Text style={styles.enhancedDemoButtonText}>
+                Simulate Check-in Scan
+              </Text>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </Modal>
@@ -274,26 +275,23 @@ const DonateScreen: React.FC = () => {
       <Modal
         visible={showFormModal}
         animationType="slide"
-        transparent={true}
-        onRequestClose={handleFormCancel}
+        presentationStyle="fullScreen"
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Health Questionnaire</Text>
-              <TouchableOpacity onPress={handleFormCancel} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <DonationForm
-                onSubmitSuccess={handleFormSuccess}
-                onCancel={handleFormCancel}
-              />
-            </View>
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.qrModalHeader}>
+            <Text style={styles.qrModalTitle}>🩸 Health Questionnaire</Text>
+            <TouchableOpacity onPress={handleFormCancel} style={styles.enhancedCloseButton}>
+              <Ionicons name="close-circle" size={28} color="#dc2626" />
+            </TouchableOpacity>
           </View>
-        </View>
+
+          <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+            <DonationForm
+              onSubmitSuccess={handleFormSuccess}
+              onCancel={handleFormCancel}
+            />
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
 
       {/* Appointment Booking Modal */}
@@ -329,6 +327,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    paddingTop: 60,
     paddingHorizontal: 24,
     paddingVertical: 20,
     borderBottomWidth: 1,
@@ -568,12 +567,79 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f8fafc',
   },
   closeButtonText: {
     color: '#DC2626',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Enhanced QR Modal Styles
+  qrModalContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  qrModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  qrModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1f2937',
+    letterSpacing: 0.5,
+  },
+  enhancedCloseButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#fef2f2',
+  },
+  enhancedDemoContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    alignItems: 'center',
+  },
+  enhancedDemoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#dc2626',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 16,
+    shadowColor: '#dc2626',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    marginBottom: 16,
+  },
+  buttonIcon: {
+    marginRight: 8,
+  },
+  enhancedDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  enhancedDemoText: {
+    fontSize: 13,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 20,
+    fontStyle: 'italic',
   },
 });
 

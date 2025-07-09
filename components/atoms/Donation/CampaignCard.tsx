@@ -60,9 +60,9 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
         <StyledText className="text-sm text-gray-500">
           {participants} participants joined
         </StyledText>
-        <StyledView className="bg-red-600 px-4 py-2 rounded-full">
+        <StyledView className="bg-blue-600 px-4 py-2 rounded-full">
           <StyledText className="text-white font-medium text-sm">
-            Join Campaign
+            View Details
           </StyledText>
         </StyledView>
       </StyledView>

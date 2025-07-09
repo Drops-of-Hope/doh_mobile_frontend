@@ -11,6 +11,7 @@ import {
   Pressable,
   TextInput,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BottomTabBar from "../../components/organisms/BottomTabBar";
@@ -34,11 +35,21 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
   const [showAppointmentModal, setShowAppointmentModal] = useState<boolean>(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
   const [showDonationModal, setShowDonationModal] = useState<boolean>(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState<boolean>(false);
   const [selectedEmergency, setSelectedEmergency] = useState<Emergency | null>(null);
   const [donationForm, setDonationForm] = useState({
     contactNumber: '',
     specialRequests: '',
   });
+  const [rescheduleForm, setRescheduleForm] = useState({
+    preferredDate: '',
+    preferredTime: '',
+    reason: '',
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const { getFirstName, logout } = useAuth();
   const { t } = useLanguage();
 
@@ -103,6 +114,143 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
 
   const handleReschedule = (appointment: Appointment) => {
     console.log(`Reschedule appointment ${appointment.id}`);
+    setShowRescheduleModal(true);
+  };
+
+  const closeRescheduleModal = () => {
+    setShowRescheduleModal(false);
+    setShowDatePicker(false);
+    setShowCalendar(false);
+    setRescheduleForm({
+      preferredDate: '',
+      preferredTime: '',
+      reason: '',
+    });
+  };
+
+  const handleRescheduleSubmit = () => {
+    if (!rescheduleForm.preferredDate || !rescheduleForm.preferredTime) {
+      Alert.alert('Missing Information', 'Please select both a date and time for your new appointment.');
+      return;
+    }
+
+    Alert.alert(
+      'Appointment Rescheduled',
+      `Your appointment has been rescheduled to ${rescheduleForm.preferredDate} at ${rescheduleForm.preferredTime}. You will receive a confirmation shortly.`,
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            closeRescheduleModal();
+            // Optionally refresh the appointments
+            loadUpcomingAppointment();
+          }
+        }
+      ]
+    );
+  };
+
+  const generateAvailableDates = () => {
+    const dates = [];
+    const today = new Date();
+    
+    // Generate next 14 days (excluding weekends)
+    for (let i = 1; i <= 21; i++) {
+      const date = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
+      const dayOfWeek = date.getDay();
+      
+      // Skip weekends (Saturday = 6, Sunday = 0)
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        const dateString = date.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+        dates.push({
+          date: dateString,
+          fullDate: date.toLocaleDateString()
+        });
+      }
+      
+      // Stop when we have 10 available dates
+      if (dates.length >= 10) break;
+    }
+    
+    return dates;
+  };
+
+  const getCalendarDays = (month: number, year: number) => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const days = [];
+    
+    // Add empty slots for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const isPast = date.getTime() < today.getTime();
+      const isToday = date.toDateString() === new Date().toDateString();
+      
+      days.push({
+        day,
+        date,
+        isWeekend,
+        isPast,
+        isToday,
+        isAvailable: !isWeekend && !isPast && !isToday
+      });
+    }
+    
+    return days;
+  };
+
+  const getMonthName = (month: number) => {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[month];
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    if (direction === 'next') {
+      if (selectedMonth === 11) {
+        setSelectedMonth(0);
+        setSelectedYear(selectedYear + 1);
+      } else {
+        setSelectedMonth(selectedMonth + 1);
+      }
+    } else {
+      if (selectedMonth === 0) {
+        setSelectedMonth(11);
+        setSelectedYear(selectedYear - 1);
+      } else {
+        setSelectedMonth(selectedMonth - 1);
+      }
+    }
+  };
+
+  const canNavigatePrevious = () => {
+    const currentDate = new Date();
+    return selectedYear > currentDate.getFullYear() || 
+           (selectedYear === currentDate.getFullYear() && selectedMonth > currentDate.getMonth());
+  };
+
+  const selectCalendarDate = (date: Date) => {
+    const dateString = date.toLocaleDateString();
+    setRescheduleForm({...rescheduleForm, preferredDate: dateString});
+    setShowCalendar(false);
   };
 
   const closeModal = () => {
@@ -550,6 +698,198 @@ export default function HomeScreen({ navigation }: { navigation?: any }) {
         </View>
       </Modal>
 
+      {/* Reschedule Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showRescheduleModal}
+        onRequestClose={closeRescheduleModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Reschedule Appointment</Text>
+              <TouchableOpacity onPress={closeRescheduleModal} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <View style={styles.formContainer}>
+                <Text style={styles.formTitle}>Select New Date & Time</Text>
+                
+                <TouchableOpacity 
+                  style={styles.inputContainer}
+                  activeOpacity={1}
+                  onPress={() => {
+                    if (showCalendar) {
+                      setShowCalendar(false);
+                    }
+                  }}
+                >
+                  <Text style={styles.inputLabel}>Preferred Date *</Text>
+                  <TouchableOpacity 
+                    style={styles.textInput}
+                    onPress={() => setShowCalendar(!showCalendar)}
+                  >
+                    <View style={styles.datePickerContainer}>
+                      <Text style={rescheduleForm.preferredDate ? styles.datePickerText : styles.datePickerPlaceholder}>
+                        {rescheduleForm.preferredDate || 'Select a date'}
+                      </Text>
+                      <Ionicons 
+                        name="calendar" 
+                        size={20} 
+                        color="#6B7280" 
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  
+                  {showCalendar && (
+                    <View style={styles.calendarContainer}>
+                      {/* Calendar Header */}
+                      <View style={styles.calendarHeader}>
+                        <TouchableOpacity 
+                          style={[styles.calendarNavButton, !canNavigatePrevious() && styles.calendarNavButtonDisabled]}
+                          onPress={() => canNavigatePrevious() && navigateMonth('prev')}
+                          disabled={!canNavigatePrevious()}
+                        >
+                          <Ionicons 
+                            name="chevron-back" 
+                            size={20} 
+                            color={canNavigatePrevious() ? "#374151" : "#D1D5DB"} 
+                          />
+                        </TouchableOpacity>
+                        
+                        <Text style={styles.calendarMonthYear}>
+                          {getMonthName(selectedMonth)} {selectedYear}
+                        </Text>
+                        
+                        <TouchableOpacity 
+                          style={styles.calendarNavButton}
+                          onPress={() => navigateMonth('next')}
+                        >
+                          <Ionicons name="chevron-forward" size={20} color="#374151" />
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Days of week header */}
+                      <View style={styles.calendarWeekHeader}>
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                          <Text key={day} style={styles.calendarWeekDay}>{day}</Text>
+                        ))}
+                      </View>
+
+                      {/* Calendar Grid */}
+                      <View style={styles.calendarGrid}>
+                        {getCalendarDays(selectedMonth, selectedYear).map((dayData, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={[
+                              styles.calendarDay,
+                              dayData?.isAvailable && styles.calendarDayAvailable,
+                              dayData?.isPast && styles.calendarDayPast,
+                              dayData?.isWeekend && styles.calendarDayWeekend,
+                              dayData?.isToday && styles.calendarDayToday,
+                              rescheduleForm.preferredDate === dayData?.date?.toLocaleDateString() && styles.calendarDaySelected
+                            ]}
+                            onPress={() => {
+                              if (dayData?.isAvailable && dayData.date) {
+                                selectCalendarDate(dayData.date);
+                              }
+                            }}
+                            disabled={!dayData?.isAvailable}
+                          >
+                            <Text style={[
+                              styles.calendarDayText,
+                              dayData?.isAvailable && styles.calendarDayTextAvailable,
+                              dayData?.isPast && styles.calendarDayTextPast,
+                              dayData?.isWeekend && styles.calendarDayTextWeekend,
+                              dayData?.isToday && styles.calendarDayTextToday,
+                              rescheduleForm.preferredDate === dayData?.date?.toLocaleDateString() && styles.calendarDayTextSelected
+                            ]}>
+                              {dayData?.day || ''}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      {/* Calendar Footer */}
+                      <View style={styles.calendarFooter}>
+                        <Text style={styles.calendarFooterText}>
+                          Available days exclude weekends and past dates
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Preferred Time *</Text>
+                  <View style={styles.timeSlotContainer}>
+                    {['9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM'].map((time) => (
+                      <TouchableOpacity
+                        key={time}
+                        style={[
+                          styles.timeSlot,
+                          rescheduleForm.preferredTime === time && styles.timeSlotSelected
+                        ]}
+                        onPress={() => setRescheduleForm({...rescheduleForm, preferredTime: time})}
+                      >
+                        <Text style={[
+                          styles.timeSlotText,
+                          rescheduleForm.preferredTime === time && styles.timeSlotTextSelected
+                        ]}>
+                          {time}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Reason for Rescheduling</Text>
+                  <TextInput
+                    style={[styles.textInput, styles.textArea]}
+                    value={rescheduleForm.reason}
+                    onChangeText={(text) => setRescheduleForm({...rescheduleForm, reason: text})}
+                    placeholder="Optional: Tell us why you need to reschedule..."
+                    placeholderTextColor="#9CA3AF"
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+
+                <View style={styles.noteContainer}>
+                  <Ionicons name="information-circle" size={16} color="#6B7280" />
+                  <Text style={styles.noteText}>
+                    Your new appointment will be confirmed within 24 hours. You'll receive an SMS and email confirmation.
+                  </Text>
+                </View>
+              </View>
+              
+              {/* Bottom padding for scrolling */}
+              <View style={styles.modalBottomPadding} />
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.rescheduleButton]}
+                onPress={closeRescheduleModal}
+              >
+                <Text style={styles.rescheduleButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.confirmButton]}
+                onPress={handleRescheduleSubmit}
+              >
+                <Text style={styles.confirmButtonText}>Reschedule Appointment</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <BottomTabBar activeTab="home" />
     </SafeAreaView>
   );
@@ -847,5 +1187,201 @@ const styles = StyleSheet.create({
   },
   modalBottomPadding: {
     height: 60,
+  },
+  // Reschedule modal specific styles
+  datePickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  datePickerText: {
+    fontSize: 16,
+    color: '#1F2937',
+  },
+  datePickerPlaceholder: {
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  timeSlotContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  timeSlot: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: 'white',
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  timeSlotSelected: {
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
+  },
+  timeSlotText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  timeSlotTextSelected: {
+    color: 'white',
+  },
+  // Date picker dropdown styles
+  datePickerDropdown: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  datePickerScroll: {
+    maxHeight: 200,
+  },
+  dateOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  dateOptionSelected: {
+    backgroundColor: '#EBF4FF',
+  },
+  dateOptionText: {
+    fontSize: 16,
+    color: '#374151',
+  },
+  dateOptionTextSelected: {
+    color: '#3B82F6',
+    fontWeight: '600',
+  },
+  // Calendar styles
+  calendarContainer: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 12,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  calendarNavButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+  },
+  calendarNavButtonDisabled: {
+    backgroundColor: '#F3F4F6',
+  },
+  calendarMonthYear: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  calendarWeekHeader: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  calendarWeekDay: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  calendarDay: {
+    width: `${100/7}%`,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  calendarDayAvailable: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    margin: 2,
+  },
+  calendarDayPast: {
+    backgroundColor: 'transparent',
+  },
+  calendarDayWeekend: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 8,
+    margin: 2,
+  },
+  calendarDayToday: {
+    backgroundColor: '#DBEAFE',
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+    borderRadius: 8,
+    margin: 2,
+  },
+  calendarDaySelected: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 8,
+    margin: 2,
+  },
+  calendarDayText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+  },
+  calendarDayTextAvailable: {
+    color: '#1F2937',
+    fontWeight: '500',
+  },
+  calendarDayTextPast: {
+    color: '#D1D5DB',
+  },
+  calendarDayTextWeekend: {
+    color: '#DC2626',
+  },
+  calendarDayTextToday: {
+    color: '#3B82F6',
+    fontWeight: '600',
+  },
+  calendarDayTextSelected: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  calendarFooter: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  calendarFooterText: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });

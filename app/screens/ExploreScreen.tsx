@@ -36,6 +36,9 @@ const ExploreScreen: React.FC = () => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filterLocation, setFilterLocation] = useState<string>('');
   const [filterDate, setFilterDate] = useState<string>('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [campaignDetailsVisible, setCampaignDetailsVisible] = useState(false);
 
   useEffect(() => {
     loadCampaigns();
@@ -121,8 +124,35 @@ const ExploreScreen: React.FC = () => {
     }
   };
 
+  const handleViewDetails = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setCampaignDetailsVisible(true);
+  };
+
+  const handleJoinCampaignConfirm = () => {
+    if (!selectedCampaign) return;
+
+    Alert.alert(
+      "Join Campaign",
+      `Are you sure you want to join "${selectedCampaign.title}"?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Join",
+          onPress: () => handleJoinCampaign(selectedCampaign)
+        }
+      ]
+    );
+  };
+
   const handleJoinCampaign = async (campaign: Campaign) => {
     try {
+      // Close the details modal
+      setCampaignDetailsVisible(false);
+      
       // Show loading state
       Alert.alert(
         "Joining Campaign",
@@ -187,8 +217,83 @@ const ExploreScreen: React.FC = () => {
     setFilterLocation('');
     setFilterDate('');
     setSearchText('');
+    setShowDatePicker(false);
     setFilterModalVisible(false);
   };
+
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const generateCalendarGrid = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    
+    // Get first day of the month and last day
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    // Get the day of week for first day (0 = Sunday, 1 = Monday, etc.)
+    const firstDayOfWeek = firstDay.getDay();
+    
+    const calendar = [];
+    
+    // Calculate how many cells we need (always show complete weeks)
+    const totalCells = Math.ceil((daysInMonth + firstDayOfWeek) / 7) * 7;
+    
+    for (let i = 0; i < totalCells; i++) {
+      let currentDate;
+      let isCurrentMonth;
+      
+      if (i < firstDayOfWeek) {
+        // Previous month dates
+        const prevMonthDay = new Date(year, month - 1, 0).getDate() - (firstDayOfWeek - i - 1);
+        currentDate = new Date(year, month - 1, prevMonthDay);
+        isCurrentMonth = false;
+      } else if (i < firstDayOfWeek + daysInMonth) {
+        // Current month dates
+        const currentMonthDay = i - firstDayOfWeek + 1;
+        currentDate = new Date(year, month, currentMonthDay);
+        isCurrentMonth = true;
+      } else {
+        // Next month dates
+        const nextMonthDay = i - firstDayOfWeek - daysInMonth + 1;
+        currentDate = new Date(year, month + 1, nextMonthDay);
+        isCurrentMonth = false;
+      }
+      
+      const today = new Date();
+      const isToday = currentDate.toDateString() === today.toDateString();
+      const isPast = currentDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      calendar.push({
+        date: currentDate,
+        dateString: currentDate.getFullYear() + '-' + 
+          String(currentDate.getMonth() + 1).padStart(2, '0') + '-' + 
+          String(currentDate.getDate()).padStart(2, '0'),
+        day: currentDate.getDate(),
+        isCurrentMonth,
+        isToday,
+        isPast
+      });
+    }
+    
+    return calendar;
+  };
+
+  const navigateMonth = (direction: number) => {
+    setCurrentMonth(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + direction);
+      return newDate;
+    });
+  };
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   if (loading) {
     return (
@@ -263,7 +368,7 @@ const ExploreScreen: React.FC = () => {
           
           <CampaignList
             campaigns={filteredCampaigns}
-            onCampaignPress={handleJoinCampaign}
+            onCampaignPress={handleViewDetails}
           />
         </View>
 
@@ -294,7 +399,7 @@ const ExploreScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
             
-            <View style={styles.modalContent}>
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
               <Text style={styles.filterLabel}>Location</Text>
               <TextInput
                 style={styles.filterInput}
@@ -305,14 +410,139 @@ const ExploreScreen: React.FC = () => {
               />
               
               <Text style={styles.filterLabel}>Date</Text>
-              <TextInput
-                style={styles.filterInput}
-                placeholder="Enter date (e.g., 2025-07-15)"
-                value={filterDate}
-                onChangeText={setFilterDate}
-                placeholderTextColor="#999"
-              />
-            </View>
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity 
+                  style={[styles.filterInput, styles.datePickerButton]}
+                  onPress={() => setShowDatePicker(!showDatePicker)}
+                >
+                  <Text style={filterDate ? styles.datePickerText : styles.datePickerPlaceholder}>
+                    {filterDate ? (() => {
+                      // Parse the date string properly to avoid timezone issues
+                      const [year, month, day] = filterDate.split('-').map(Number);
+                      const date = new Date(year, month - 1, day); // month is 0-indexed
+                      return date.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      });
+                    })() : 'Select a date'}
+                  </Text>
+                  <View style={styles.datePickerControls}>
+                    {filterDate && (
+                      <TouchableOpacity 
+                        onPress={() => {
+                          setFilterDate('');
+                          setShowDatePicker(false);
+                        }}
+                        style={styles.clearDateButton}
+                      >
+                        <Ionicons name="close-circle" size={20} color="#999" />
+                      </TouchableOpacity>
+                    )}
+                    <Ionicons 
+                      name={showDatePicker ? "chevron-up" : "chevron-down"} 
+                      size={20} 
+                      color="#666" 
+                    />
+                  </View>
+                </TouchableOpacity>
+              </View>
+              
+              {showDatePicker && (
+                <View style={styles.calendarContainer}>
+                  <View style={styles.calendarHeaderContainer}>
+                    <TouchableOpacity 
+                      style={styles.monthNavButton}
+                      onPress={() => navigateMonth(-1)}
+                    >
+                      <Ionicons name="chevron-back" size={20} color="#5F27CD" />
+                    </TouchableOpacity>
+                    
+                    <Text style={styles.calendarHeader}>
+                      {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                    </Text>
+                    
+                    <TouchableOpacity 
+                      style={styles.monthNavButton}
+                      onPress={() => navigateMonth(1)}
+                    >
+                      <Ionicons name="chevron-forward" size={20} color="#5F27CD" />
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.calendarGrid}>
+                    {/* Day headers */}
+                    <View style={styles.dayHeaderRow}>
+                      {dayNames.map((day, index) => (
+                        <View key={index} style={styles.dayHeader}>
+                          <Text style={styles.dayHeaderText}>{day}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    
+                    {/* Calendar dates */}
+                    <View style={styles.calendarDatesGrid}>
+                      {generateCalendarGrid().map((dateItem, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={[
+                            styles.calendarGridDate,
+                            !dateItem.isCurrentMonth && styles.inactiveDate,
+                            dateItem.isToday && styles.todayDate,
+                            filterDate === dateItem.dateString && styles.selectedDate,
+                            dateItem.isPast && styles.pastDate
+                          ]}
+                          onPress={() => {
+                            if (!dateItem.isPast) {
+                              setFilterDate(dateItem.dateString);
+                              setShowDatePicker(false);
+                            }
+                          }}
+                          disabled={dateItem.isPast}
+                        >
+                          <Text style={[
+                            styles.calendarGridDateText,
+                            !dateItem.isCurrentMonth && styles.inactiveDateText,
+                            dateItem.isToday && styles.todayDateText,
+                            filterDate === dateItem.dateString && styles.selectedDateText,
+                            dateItem.isPast && styles.pastDateText
+                          ]}>
+                            {dateItem.day}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    
+                    <View style={styles.calendarFooter}>
+                      <TouchableOpacity 
+                        style={styles.todayButton}
+                        onPress={() => {
+                          const today = new Date();
+                          const todayString = today.getFullYear() + '-' + 
+                            String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(today.getDate()).padStart(2, '0');
+                          setFilterDate(todayString);
+                          setShowDatePicker(false);
+                        }}
+                      >
+                        <Text style={styles.todayButtonText}>Today</Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity 
+                        style={styles.clearCalendarButton}
+                        onPress={() => {
+                          setFilterDate('');
+                          setShowDatePicker(false);
+                        }}
+                      >
+                        <Text style={styles.clearCalendarButtonText}>Clear</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
             
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
@@ -320,6 +550,79 @@ const ExploreScreen: React.FC = () => {
               </TouchableOpacity>
               <TouchableOpacity style={styles.applyButton} onPress={applyFilters}>
                 <Text style={styles.applyButtonText}>Apply Filters</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Campaign Details Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={campaignDetailsVisible}
+        onRequestClose={() => setCampaignDetailsVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Campaign Details</Text>
+              <TouchableOpacity onPress={() => setCampaignDetailsVisible(false)}>
+                <Text style={styles.closeButton}>×</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+              {selectedCampaign && (
+                <View>
+                  <Text style={styles.campaignDetailTitle}>{selectedCampaign.title}</Text>
+                  
+                  <View style={styles.campaignDetailSection}>
+                    <Text style={styles.campaignDetailLabel}>Description</Text>
+                    <Text style={styles.campaignDetailText}>{selectedCampaign.description}</Text>
+                  </View>
+
+                  {selectedCampaign.location && (
+                    <View style={styles.campaignDetailSection}>
+                      <Text style={styles.campaignDetailLabel}>Location</Text>
+                      <Text style={styles.campaignDetailText}>{selectedCampaign.location}</Text>
+                    </View>
+                  )}
+
+                  {selectedCampaign.date && (
+                    <View style={styles.campaignDetailSection}>
+                      <Text style={styles.campaignDetailLabel}>Date</Text>
+                      <Text style={styles.campaignDetailText}>{selectedCampaign.date}</Text>
+                    </View>
+                  )}
+
+                  {selectedCampaign.time && (
+                    <View style={styles.campaignDetailSection}>
+                      <Text style={styles.campaignDetailLabel}>Time</Text>
+                      <Text style={styles.campaignDetailText}>{selectedCampaign.time}</Text>
+                    </View>
+                  )}
+
+                  <View style={styles.campaignDetailSection}>
+                    <Text style={styles.campaignDetailLabel}>Participants</Text>
+                    <Text style={styles.campaignDetailText}>{selectedCampaign.participants} people joined</Text>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={() => setCampaignDetailsVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.joinCampaignButton} 
+                onPress={handleJoinCampaignConfirm}
+              >
+                <Text style={styles.joinCampaignButtonText}>Join Campaign</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -471,7 +774,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
-    minHeight: 300,
+    maxHeight: '95%',
+    minHeight: 500,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -486,6 +790,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
+    paddingBottom: 16,
   },
   filterLabel: {
     fontSize: 16,
@@ -537,6 +842,215 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 24,
+  },
+  // Calendar styles
+  dateInputContainer: {
+    marginBottom: 16,
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  datePickerControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  clearDateButton: {
+    padding: 2,
+  },
+  datePickerText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  datePickerPlaceholder: {
+    fontSize: 16,
+    color: '#999',
+  },
+  calendarContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#E1E8ED',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    minHeight: 400,
+  },
+  calendarHeaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8F9FA',
+  },
+  calendarHeader: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2C3E50',
+  },
+  monthNavButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F8F9FA',
+  },
+  calendarGrid: {
+    padding: 16,
+    paddingBottom: 8,
+  },
+  dayHeaderRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  dayHeader: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  dayHeaderText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#7F8C8D',
+  },
+  calendarDatesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  calendarGridDate: {
+    width: '14.28%', // 100% / 7 days
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    marginVertical: 3,
+  },
+  calendarGridDateText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  inactiveDate: {
+    opacity: 0.3,
+  },
+  inactiveDateText: {
+    color: '#BDC3C7',
+  },
+  todayDate: {
+    backgroundColor: '#E8F5E8',
+    borderWidth: 1,
+    borderColor: '#27AE60',
+  },
+  todayDateText: {
+    color: '#27AE60',
+    fontWeight: 'bold',
+  },
+  selectedDate: {
+    backgroundColor: '#5F27CD',
+  },
+  selectedDateText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  pastDate: {
+    opacity: 0.4,
+  },
+  pastDateText: {
+    color: '#BDC3C7',
+  },
+  calendarFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F8F9FA',
+  },
+  todayButton: {
+    backgroundColor: '#5F27CD',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  todayButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  clearCalendarButton: {
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E1E8ED',
+  },
+  clearCalendarButtonText: {
+    color: '#666',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  closeButton: {
+    fontSize: 24,
+    color: '#666',
+    fontWeight: 'bold',
+  },
+  campaignDetailTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  campaignDetailSection: {
+    marginBottom: 20,
+  },
+  campaignDetailLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  campaignDetailText: {
+    fontSize: 16,
+    color: '#6B7280',
+    lineHeight: 24,
+  },
+  joinCampaignButton: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    flex: 1,
+    marginLeft: 8,
+  },
+  joinCampaignButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#E1E8ED',
+    marginRight: 8,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+    textAlign: 'center',
   },
 });
 
