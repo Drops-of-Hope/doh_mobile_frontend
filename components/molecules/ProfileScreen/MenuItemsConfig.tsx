@@ -1,13 +1,13 @@
-import React from 'react';
-import DropIcon from '../../atoms/ProfileScreen/DropIcon';
-import EligibilityIcon from '../../atoms/ProfileScreen/EligibilityIcon';
-import CalendarIcon from '../../atoms/ProfileScreen/CalendarIcon';
-import GlobeIcon from '../../atoms/ProfileScreen/GlobeIcon';
-import BellIcon from '../../atoms/ProfileScreen/BellIcon';
-import QuestionIcon from '../../atoms/ProfileScreen/QuestionIcon';
-import CampOrganizerIcon from '../../atoms/ProfileScreen/CampOrganizerIcon';
-import { useLanguage } from '../../../app/context/LanguageContext';
-import { useAuth, USER_ROLES } from '../../../app/context/AuthContext';
+import React from "react";
+import DropIcon from "../../atoms/ProfileScreen/DropIcon";
+import EligibilityIcon from "../../atoms/ProfileScreen/EligibilityIcon";
+import CalendarIcon from "../../atoms/ProfileScreen/CalendarIcon";
+import GlobeIcon from "../../atoms/ProfileScreen/GlobeIcon";
+import BellIcon from "../../atoms/ProfileScreen/BellIcon";
+import QuestionIcon from "../../atoms/ProfileScreen/QuestionIcon";
+import CampOrganizerIcon from "../../atoms/ProfileScreen/CampOrganizerIcon";
+import { useLanguage } from "../../../app/context/LanguageContext";
+import { useAuth, USER_ROLES } from "../../../app/context/AuthContext";
 
 interface MenuItemsConfigProps {
   onMyDonations?: () => void;
@@ -31,23 +31,41 @@ export function useMenuItemsConfig({
   const { t } = useLanguage();
   const { hasRole } = useAuth();
 
+  // Debug: Log the user's roles to help verify the conditional logic
+  const isCampOrganizer = hasRole(USER_ROLES.CAMP_ORGANIZER);
+  const isDonor = hasRole(USER_ROLES.DONOR);
+  const isSelfSignup = hasRole(USER_ROLES.SELFSIGNUP);
+
+  console.log("MenuItemsConfig: User roles check:", {
+    isCampOrganizer,
+    isDonor,
+    isSelfSignup,
+    campOrganizerRole: USER_ROLES.CAMP_ORGANIZER,
+  });
+
+  console.log("MenuItemsConfig: Conditional logic result:", {
+    showCampaignDashboard: isCampOrganizer,
+    showBecomeOrganizer: !isCampOrganizer && (isDonor || isSelfSignup),
+    showNotifications: !isCampOrganizer && !(isDonor || isSelfSignup),
+  });
+
   const mainMenuItems = [
     {
       id: "donations",
       icon: <DropIcon />,
-      title: t('profile.my_donations'),
+      title: t("profile.my_donations"),
       onPress: onMyDonations,
     },
     {
       id: "eligibility",
       icon: <EligibilityIcon />,
-      title: t('profile.donation_eligibility'),
+      title: t("profile.donation_eligibility"),
       onPress: onDonationEligibility,
     },
     {
       id: "appointment",
       icon: <CalendarIcon />,
-      title: t('profile.upcoming_appointment'),
+      title: t("profile.upcoming_appointment"),
       onPress: onUpcomingAppointment,
     },
   ];
@@ -56,31 +74,36 @@ export function useMenuItemsConfig({
     {
       id: "language",
       icon: <GlobeIcon />,
-      title: t('profile.language'),
+      title: t("profile.language"),
       onPress: onLanguage,
     },
-    // Show "Become Camp Organizer" for donors (including selfsignup), "Notifications" for others
-    ...(hasRole(USER_ROLES.DONOR) || hasRole(USER_ROLES.SELFSIGNUP) ? [
-      {
-        id: "become_organizer",
-        icon: <CampOrganizerIcon />,
-        title: t('profile.become_camp_organizer'),
-        onPress: onBecomeCampOrganizer,
-      }
-    ] : [
-      {
-        id: "notifications",
-        icon: <BellIcon />,
-        title: t('profile.notifications'),
-        onPress: onNotifications,
-      }
-    ]),
     {
-      id: "faqs",
-      icon: <QuestionIcon />,
-      title: t('profile.faqs'),
-      onPress: onFAQs,
+      id: "notifications",
+      icon: <BellIcon />,
+      title: t("profile.notifications"),
+      onPress: onNotifications,
     },
+    // Role-based button: Show Campaign Dashboard for camp organizers,
+    // Show Become Camp Organizer for donors/selfsignup users
+    ...(isCampOrganizer
+      ? [
+          {
+            id: "campaign_dashboard",
+            icon: <CampOrganizerIcon />,
+            title: t("profile.campaign_dashboard"),
+            onPress: onBecomeCampOrganizer, // Reusing the same handler but it will handle dashboard navigation
+          },
+        ]
+      : isDonor || isSelfSignup
+      ? [
+          {
+            id: "become_organizer",
+            icon: <CampOrganizerIcon />,
+            title: t("profile.become_camp_organizer"),
+            onPress: onBecomeCampOrganizer,
+          },
+        ]
+      : []),
   ];
 
   return { mainMenuItems, settingsMenuItems };

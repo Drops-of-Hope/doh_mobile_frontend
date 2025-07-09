@@ -18,6 +18,8 @@
     "@react-navigation/native-stack": "^7.3.14",
     "expo": "~53.0.13",
     "expo-auth-session": "^6.2.0",
+    "expo-barcode-scanner": "^13.0.1",
+    "expo-camera": "^16.1.10",
     "expo-linear-gradient": "~14.1.5",
     "expo-router": "^5.1.2",
     "expo-secure-store": "~14.2.3",
