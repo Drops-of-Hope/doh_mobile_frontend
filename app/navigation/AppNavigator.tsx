@@ -18,6 +18,9 @@ import UpcomingAppointmentScreen from "../screens/UpcomingAppointmentScreen";
 import NotificationsScreen from "../screens/NotificationsScreen";
 import AllEmergenciesScreen from "../screens/AllEmergenciesScreen";
 import AllCampaignsScreen from "../screens/AllCampaignsScreen";
+import CampaignDashboardScreen from "../screens/CampaignDashboardScreen";
+import QRScannerScreen from "../screens/QRScannerScreen";
+import CreateCampaignScreen from "../screens/CreateCampaignScreen";
 
 type RootStackParamList = {
   Splash: undefined;
@@ -33,6 +36,9 @@ type RootStackParamList = {
   Notifications: undefined;
   AllEmergencies: undefined;
   AllCampaigns: undefined;
+  CampaignDashboard: undefined;
+  QRScanner: { campaignId: string };
+  CreateCampaign: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -61,6 +67,9 @@ export default function AppNavigator() {
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="AllEmergencies" component={AllEmergenciesScreen} />
             <Stack.Screen name="AllCampaigns" component={AllCampaignsScreen} />
+            <Stack.Screen name="CampaignDashboard" component={CampaignDashboardScreen} />
+            <Stack.Screen name="QRScanner" component={QRScannerScreen} />
+            <Stack.Screen name="CreateCampaign" component={CreateCampaignScreen} />
           </>
         ) : (
           // Screens for unauthenticated users - simplified flow

@@ -239,7 +239,7 @@ export const USER_ROLES = {
   ADMIN: "admin",
   DONOR: "donor",
   SELFSIGNUP: "Internal/selfsignup",
-  CAMP_ORGANIZER: "camp_organizer",
+  CAMP_ORGANIZER: "Internal/CampaignOrg",
   VOLUNTEER: "volunteer",
   BENEFICIARY: "beneficiary",
   ORGANIZATION: "organization",
