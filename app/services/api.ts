@@ -1,7 +1,8 @@
 // API configuration and base setup
-const API_BASE_URL = "http://localhost:3000/api"; // Replace with your Node.js backend URL
-// For production: 'https://your-backend-domain.com/api'
-// For local development with real device: 'http://YOUR_LOCAL_IP:3000/api'
+// IMPORTANT: Replace 'YOUR_LOCAL_IP' with your laptop's actual local IP address on your network
+const API_BASE_URL = "http://192.168.1.98:5000/api";
+// Example: const API_BASE_URL = "http://192.168.1.10:5000/api";
+// 'localhost' will NOT work on a real device; use your laptop's IP address instead.
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -16,6 +17,11 @@ export const API_ENDPOINTS = {
 
   // Campaign endpoints
   CAMPAIGNS: "/campaigns",
+
+  // Appointment endpoints
+  APPOINTMENTS: "/appointments",
+  MEDICAL_ESTABLISHMENTS: "/medical-establishments",
+  APPOINTMENT_SLOTS: "/appointment-slots",
 } as const;
 
 // Generic API request function

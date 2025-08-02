@@ -60,18 +60,18 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
     ];
 
     // Debug what we're checking
-    console.log("BottomTabBar - Full debug info:", {
-      currentRole,
-      canDonate: canDonate(),
-      canVolunteer: canVolunteer(),
-      canManageCampaigns: canManageCampaigns(),
-      showingAllTabs: true,
-    });
+    // console.log("BottomTabBar - Full debug info:", {
+    //   currentRole,
+    //   canDonate: canDonate(),
+    //   canVolunteer: canVolunteer(),
+    //   canManageCampaigns: canManageCampaigns(),
+    //   showingAllTabs: true,
+    // });
 
-    console.log(
-      "Generated tabs:",
-      allTabs.map((tab) => tab.label)
-    );
+    // console.log(
+    //   "Generated tabs:",
+    //   allTabs.map((tab) => tab.label)
+    // );
     return allTabs;
   };
 
