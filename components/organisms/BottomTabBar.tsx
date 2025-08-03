@@ -28,7 +28,7 @@ interface BottomTabBarProps {
 const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  
+
   const { tabs, roleColors } = useTabsConfig({ activeTab });
 
   const handleNavigation = (route: string) => {

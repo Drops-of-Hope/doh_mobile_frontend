@@ -1,17 +1,32 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import NoticeCard from '../../atoms/DonationScreen/NoticeCard';
-import AppointmentCard, { AppointmentItem } from '../../molecules/DonationScreen/AppointmentCard';
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import NoticeCard from "../../atoms/DonationScreen/NoticeCard";
+import AppointmentCard, {
+  AppointmentItem,
+} from "../../molecules/DonationScreen/AppointmentCard";
 
 interface AppointmentTabProps {
   appointments: AppointmentItem[];
   onBookAppointment: () => void;
 }
 
-export default function AppointmentTab({ appointments, onBookAppointment }: AppointmentTabProps) {
-  const upcomingAppointments = appointments.filter(apt => apt.status === 'upcoming');
-  const completedAppointments = appointments.filter(apt => apt.status === 'completed');
+export default function AppointmentTab({
+  appointments,
+  onBookAppointment,
+}: AppointmentTabProps) {
+  const upcomingAppointments = appointments.filter(
+    (apt) => apt.status === "upcoming",
+  );
+  const completedAppointments = appointments.filter(
+    (apt) => apt.status === "completed",
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -75,11 +90,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     margin: 16,
     padding: 24,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -87,31 +102,31 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
   },
   bookButton: {
-    backgroundColor: '#DC2626',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#DC2626",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
     marginBottom: 24,
   },
   buttonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     marginLeft: 8,
   },
   appointmentsSection: {
@@ -121,19 +136,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
   sectionTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginLeft: 8,
   },
 });

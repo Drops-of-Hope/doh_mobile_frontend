@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface EmptyStateCardProps {
   title?: string;
@@ -8,10 +8,10 @@ interface EmptyStateCardProps {
   icon?: keyof typeof Ionicons.glyphMap;
 }
 
-export default function EmptyStateCard({ 
+export default function EmptyStateCard({
   title = "No donation activities yet",
   subtitle = "Your donation history will appear here",
-  icon = "heart-outline"
+  icon = "heart-outline",
 }: EmptyStateCardProps) {
   return (
     <View style={styles.emptyContainer}>
@@ -27,16 +27,16 @@ export default function EmptyStateCard({
 const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 80,
   },
   emptyCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -44,15 +44,15 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginTop: 20,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    fontWeight: '500',
+    color: "#6B7280",
+    textAlign: "center",
+    fontWeight: "500",
   },
 });

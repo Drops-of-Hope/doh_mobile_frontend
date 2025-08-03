@@ -1,6 +1,6 @@
 // API configuration and base setup
 // IMPORTANT: Replace 'YOUR_LOCAL_IP' with your laptop's actual local IP address on your network
-const API_BASE_URL = "http://192.168.1.98:5000/api";
+const API_BASE_URL = "http://192.168.1.99:5000/api";
 // Example: const API_BASE_URL = "http://192.168.1.10:5000/api";
 // 'localhost' will NOT work on a real device; use your laptop's IP address instead.
 
@@ -21,13 +21,13 @@ export const API_ENDPOINTS = {
   // Appointment endpoints
   APPOINTMENTS: "/appointments",
   MEDICAL_ESTABLISHMENTS: "/medical-establishments",
-  APPOINTMENT_SLOTS: "/appointment-slots",
+  APPOINTMENT_SLOTS: "/slots",
 } as const;
 
 // Generic API request function
 export const apiRequest = async (
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<any> => {
   const url = `${API_BASE_URL}${endpoint}`;
 
@@ -85,7 +85,7 @@ export const clearAuthToken = async () => {
 
 export const apiRequestWithAuth = async (
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<any> => {
   const token = await getAuthToken();
   const headers = {

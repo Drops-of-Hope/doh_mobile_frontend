@@ -46,7 +46,7 @@ export interface AppointmentBookingRequest {
 export const appointmentService = {
   // Get medical establishments by district
   getMedicalEstablishmentsByDistrict: async (
-    district: District
+    district: District,
   ): Promise<MedicalEstablishment[]> => {
     try {
       const response = await apiRequest(
@@ -57,7 +57,7 @@ export const appointmentService = {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
-        }
+        },
       );
       console.log("Medical establishments response:", response);
       return response as MedicalEstablishment[];
@@ -69,91 +69,23 @@ export const appointmentService = {
 
   // Get available appointment slots for a medical establishment on a specific date
   getAvailableSlots: async (
-    medicalEstablishmentId: string,
-    date: string
+    medicalEstablishmentId: string
   ): Promise<AppointmentSlot[]> => {
     try {
       const response = await apiRequest(
-        `${API_ENDPOINTS.APPOINTMENT_SLOTS}?establishment=${medicalEstablishmentId}&date=${date}`,
+        `${API_ENDPOINTS.APPOINTMENT_SLOTS}/getSlots?establishmentId=${medicalEstablishmentId}`,
         {
           method: "GET",
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
-      // Mock available slots
-      const mockSlots: AppointmentSlot[] = [
-        {
-          id: "slot-1",
-          startTime: "09:00",
-          endTime: "09:30",
-          tokenNumber: 1,
-          isAvailable: true,
-          medicalEstablishmentId,
-        },
-        {
-          id: "slot-2",
-          startTime: "09:30",
-          endTime: "10:00",
-          tokenNumber: 2,
-          isAvailable: true,
-          medicalEstablishmentId,
-        },
-        {
-          id: "slot-3",
-          startTime: "10:00",
-          endTime: "10:30",
-          tokenNumber: 3,
-          isAvailable: false, // Already booked
-          medicalEstablishmentId,
-        },
-        {
-          id: "slot-4",
-          startTime: "10:30",
-          endTime: "11:00",
-          tokenNumber: 4,
-          isAvailable: true,
-          medicalEstablishmentId,
-        },
-        {
-          id: "slot-5",
-          startTime: "14:00",
-          endTime: "14:30",
-          tokenNumber: 5,
-          isAvailable: true,
-          medicalEstablishmentId,
-        },
-        {
-          id: "slot-6",
-          startTime: "14:30",
-          endTime: "15:00",
-          tokenNumber: 6,
-          isAvailable: true,
-          medicalEstablishmentId,
-        },
-        {
-          id: "slot-7",
-          startTime: "15:00",
-          endTime: "15:30",
-          tokenNumber: 7,
-          isAvailable: false, // Already booked
-          medicalEstablishmentId,
-        },
-        {
-          id: "slot-8",
-          startTime: "15:30",
-          endTime: "16:00",
-          tokenNumber: 8,
-          isAvailable: true,
-          medicalEstablishmentId,
-        },
-      ];
-
       // Return only available slots
-      return mockSlots.filter((slot) => slot.isAvailable);
+      console.log("AppointmentSlot response:", response);
+      return response as AppointmentSlot[];
     } catch (error) {
       console.error("Error fetching appointment slots:", error);
       throw error;
@@ -162,7 +94,7 @@ export const appointmentService = {
 
   // Book an appointment
   bookAppointment: async (
-    bookingRequest: AppointmentBookingRequest
+    bookingRequest: AppointmentBookingRequest,
   ): Promise<Appointment> => {
     try {
       const response = await apiRequest(API_ENDPOINTS.APPOINTMENTS, {
@@ -193,7 +125,7 @@ export const appointmentService = {
         `${API_ENDPOINTS.APPOINTMENTS}/user/${userId}`,
         {
           method: "GET",
-        }
+        },
       );
 
       // Mock user appointments
@@ -230,7 +162,7 @@ export const appointmentService = {
   rescheduleAppointment: async (
     appointmentId: string,
     newSlotId: string,
-    newDate: string
+    newDate: string,
   ): Promise<Appointment> => {
     try {
       const response = await apiRequest(
@@ -241,7 +173,7 @@ export const appointmentService = {
             appointmentSlotId: newSlotId,
             appointmentDate: newDate,
           }),
-        }
+        },
       );
 
       return response;

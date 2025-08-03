@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import ProfilePicture from "../../atoms/ProfileScreen/ProfilePicture";
 import Button from "../../atoms/ProfileScreen/Button";
 
@@ -30,29 +30,39 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 }) => {
   const getBadgeColor = (badge: string): [string, string] => {
     switch (badge) {
-      case 'HERO': return ['#8B5CF6', '#7C3AED'];
-      case 'GOLD': return ['#F59E0B', '#D97706'];
-      case 'SILVER': return ['#9CA3AF', '#6B7280'];
-      default: return ['#3B82F6', '#2563EB'];
+      case "HERO":
+        return ["#8B5CF6", "#7C3AED"];
+      case "GOLD":
+        return ["#F59E0B", "#D97706"];
+      case "SILVER":
+        return ["#9CA3AF", "#6B7280"];
+      default:
+        return ["#3B82F6", "#2563EB"];
     }
   };
 
   const getBadgeIcon = (badge: string) => {
     switch (badge) {
-      case 'HERO': return 'trophy';
-      case 'GOLD': return 'medal';
-      case 'SILVER': return 'ribbon';
-      default: return 'person';
+      case "HERO":
+        return "trophy";
+      case "GOLD":
+        return "medal";
+      case "SILVER":
+        return "ribbon";
+      default:
+        return "person";
     }
   };
 
-  const badgeColors: readonly [string, string] = donationBadge ? getBadgeColor(donationBadge) : ['#3B82F6', '#2563EB'];
+  const badgeColors: readonly [string, string] = donationBadge
+    ? getBadgeColor(donationBadge)
+    : ["#3B82F6", "#2563EB"];
 
   return (
     <View style={styles.container}>
       {/* Background Gradient Card */}
       <LinearGradient
-        colors={['#FFFFFF', '#F8FAFC', '#F1F5F9']}
+        colors={["#FFFFFF", "#F8FAFC", "#F1F5F9"]}
         style={styles.cardBackground}
       >
         {/* Main Profile Info */}
@@ -70,8 +80,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 colors={badgeColors}
                 style={styles.badgeContainer}
               >
-                <Ionicons 
-                  name={getBadgeIcon(donationBadge) as keyof typeof Ionicons.glyphMap}
+                <Ionicons
+                  name={
+                    getBadgeIcon(
+                      donationBadge,
+                    ) as keyof typeof Ionicons.glyphMap
+                  }
                   size={16}
                   color="white"
                   style={styles.badgeIcon}
@@ -82,17 +96,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
           {/* User Info */}
           <View style={styles.userInfo}>
-            <Text style={styles.userName} numberOfLines={2} ellipsizeMode="tail">
+            <Text
+              style={styles.userName}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
               {name}
             </Text>
-            <Text style={styles.userEmail} numberOfLines={1} ellipsizeMode="tail">
+            <Text
+              style={styles.userEmail}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {email}
             </Text>
-            
+
             {/* Membership Badge */}
             {membershipType && (
               <LinearGradient
-                colors={['#EF4444', '#DC2626']}
+                colors={["#EF4444", "#DC2626"]}
                 style={styles.membershipBadge}
               >
                 <Text style={styles.membershipText} numberOfLines={1}>
@@ -107,53 +129,81 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <View style={styles.infoCardsContainer}>
           {bloodType && (
             <LinearGradient
-              colors={['#FFFFFF', '#FEF2F2']}
+              colors={["#FFFFFF", "#FEF2F2"]}
               style={styles.infoCard}
             >
               <View style={styles.infoCardHeader}>
-                <Ionicons name="water" size={20} color="#EF4444" style={styles.infoCardIcon} />
-                <Text style={styles.infoCardLabel} numberOfLines={1}>Blood Type</Text>
+                <Ionicons
+                  name="water"
+                  size={20}
+                  color="#EF4444"
+                  style={styles.infoCardIcon}
+                />
+                <Text style={styles.infoCardLabel} numberOfLines={1}>
+                  Blood Type
+                </Text>
               </View>
               <Text style={styles.infoCardValue} numberOfLines={1}>
                 {bloodType}
               </Text>
             </LinearGradient>
           )}
-          
+
           {mobileNumber && (
             <LinearGradient
-              colors={['#FFFFFF', '#F0F9FF']}
+              colors={["#FFFFFF", "#F0F9FF"]}
               style={styles.infoCard}
             >
               <View style={styles.infoCardHeader}>
-                <Ionicons name="phone-portrait" size={20} color="#3B82F6" style={styles.infoCardIcon} />
-                <Text style={styles.infoCardLabel} numberOfLines={1}>Mobile</Text>
+                <Ionicons
+                  name="phone-portrait"
+                  size={20}
+                  color="#3B82F6"
+                  style={styles.infoCardIcon}
+                />
+                <Text style={styles.infoCardLabel} numberOfLines={1}>
+                  Mobile
+                </Text>
               </View>
-              <Text style={[styles.infoCardValue, { fontSize: mobileNumber && mobileNumber.length > 10 ? 14 : 16 }]} numberOfLines={1} adjustsFontSizeToFit>
+              <Text
+                style={[
+                  styles.infoCardValue,
+                  {
+                    fontSize:
+                      mobileNumber && mobileNumber.length > 10 ? 14 : 16,
+                  },
+                ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
                 {mobileNumber}
               </Text>
             </LinearGradient>
           )}
-          
+
           {/* Donation Count Card */}
           <LinearGradient
-            colors={['#FFFFFF', '#F0FDF4']}
+            colors={["#FFFFFF", "#F0FDF4"]}
             style={styles.infoCard}
           >
             <View style={styles.infoCardHeader}>
-              <Ionicons name="heart" size={20} color="#10B981" style={styles.infoCardIcon} />
-              <Text style={styles.infoCardLabel} numberOfLines={1}>Donations</Text>
+              <Ionicons
+                name="heart"
+                size={20}
+                color="#10B981"
+                style={styles.infoCardIcon}
+              />
+              <Text style={styles.infoCardLabel} numberOfLines={1}>
+                Donations
+              </Text>
             </View>
             <Text style={styles.infoCardValue}>12</Text>
           </LinearGradient>
         </View>
 
         {/* Donation Badge Display */}
-        {donationBadge && donationBadge !== 'MEMBER' && (
-          <LinearGradient
-            colors={badgeColors}
-            style={styles.donationBadge}
-          >
+        {donationBadge && donationBadge !== "MEMBER" && (
+          <LinearGradient colors={badgeColors} style={styles.donationBadge}>
             <Text style={styles.donationBadgeText} numberOfLines={1}>
               {getBadgeIcon(donationBadge)} {donationBadge} DONOR
             </Text>
@@ -182,46 +232,46 @@ const styles = StyleSheet.create({
   cardBackground: {
     borderRadius: 28,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.15,
     shadowRadius: 32,
     elevation: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: "rgba(255, 255, 255, 0.8)",
   },
   profileSection: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226, 232, 240, 0.5)',
+    borderBottomColor: "rgba(226, 232, 240, 0.5)",
   },
   profilePictureContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 16,
     flexShrink: 0,
   },
   badgeContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: -8,
     right: -8,
     width: 36,
     height: 36,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 3,
-    borderColor: '#FFFFFF',
-    shadowColor: '#000',
+    borderColor: "#FFFFFF",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   badgeIcon: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   userInfo: {
     flex: 1,
@@ -229,34 +279,34 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#1F2937',
+    fontWeight: "800",
+    color: "#1F2937",
     marginBottom: 6,
     letterSpacing: -0.5,
     lineHeight: 26,
   },
   userEmail: {
     fontSize: 15,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: "#6B7280",
+    fontWeight: "500",
     marginBottom: 14,
     lineHeight: 20,
   },
   membershipBadge: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 16,
-    maxWidth: '100%',
+    maxWidth: "100%",
   },
   membershipText: {
-    color: 'white',
+    color: "white",
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
   infoCardsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 18,
     marginTop: 4,
@@ -265,18 +315,18 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 18,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: "rgba(255, 255, 255, 0.5)",
     minHeight: 80,
   },
   infoCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   infoCardIcon: {
@@ -284,16 +334,16 @@ const styles = StyleSheet.create({
   },
   infoCardLabel: {
     fontSize: 11,
-    color: '#6B7280',
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    color: "#6B7280",
+    fontWeight: "600",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
     flex: 1,
   },
   infoCardValue: {
     fontSize: 16,
-    fontWeight: '800',
-    color: '#1F2937',
+    fontWeight: "800",
+    color: "#1F2937",
     letterSpacing: -0.3,
     lineHeight: 20,
   },
@@ -302,21 +352,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     marginBottom: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 4,
   },
   donationBadgeText: {
-    color: 'white',
+    color: "white",
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.5,
   },
   buttonContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
 });
 

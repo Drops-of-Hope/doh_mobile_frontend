@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import ComponentInfoCard from '../../atoms/HomeScreen/ComponentInfoCard';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import ComponentInfoCard from "../../atoms/HomeScreen/ComponentInfoCard";
 
 interface ComponentRowProps {
   bloodType: string;
   lastDonationDays: number;
 }
 
-export default function ComponentRow({ bloodType, lastDonationDays }: ComponentRowProps) {
+export default function ComponentRow({
+  bloodType,
+  lastDonationDays,
+}: ComponentRowProps) {
   return (
     <View style={styles.componentRow}>
       <ComponentInfoCard

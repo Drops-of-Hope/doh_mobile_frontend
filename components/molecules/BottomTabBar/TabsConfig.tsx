@@ -1,6 +1,12 @@
-import React from 'react';
-import { DropIcon, SearchIcon, HomeIcon, HeartIcon, PersonIcon } from '../../atoms/BottomTabBar/TabIcons';
-import { useRoleBasedAccess } from '../../../app/hooks/useRoleBasedAccess';
+import React from "react";
+import {
+  DropIcon,
+  SearchIcon,
+  HomeIcon,
+  HeartIcon,
+  PersonIcon,
+} from "../../atoms/BottomTabBar/TabIcons";
+import { useRoleBasedAccess } from "../../../app/hooks/useRoleBasedAccess";
 
 interface TabsConfigProps {
   activeTab: string;
@@ -31,31 +37,56 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
         id: "Home",
         label: "Home",
         isActive: activeTab === "home",
-        icon: <HomeIcon isActive={activeTab === "home"} color={roleColors.primary} />,
+        icon: (
+          <HomeIcon
+            isActive={activeTab === "home"}
+            color={roleColors.primary}
+          />
+        ),
       },
       {
         id: "Donate",
         label: "Donate",
         isActive: activeTab === "donate",
-        icon: <DropIcon isActive={activeTab === "donate"} color={roleColors.primary} />,
+        icon: (
+          <DropIcon
+            isActive={activeTab === "donate"}
+            color={roleColors.primary}
+          />
+        ),
       },
       {
         id: "Explore",
         label: "Explore",
         isActive: activeTab === "explore",
-        icon: <SearchIcon isActive={activeTab === "explore"} color={roleColors.primary} />,
+        icon: (
+          <SearchIcon
+            isActive={activeTab === "explore"}
+            color={roleColors.primary}
+          />
+        ),
       },
       {
         id: "Activities",
         label: "Activities",
         isActive: activeTab === "activities",
-        icon: <HeartIcon isActive={activeTab === "activities"} color={roleColors.primary} />,
+        icon: (
+          <HeartIcon
+            isActive={activeTab === "activities"}
+            color={roleColors.primary}
+          />
+        ),
       },
       {
         id: "Profile",
         label: "Account",
         isActive: activeTab === "account",
-        icon: <PersonIcon isActive={activeTab === "account"} color={roleColors.primary} />,
+        icon: (
+          <PersonIcon
+            isActive={activeTab === "account"}
+            color={roleColors.primary}
+          />
+        ),
       },
     ];
 

@@ -1,4 +1,9 @@
-export type NotificationType = 'emergency' | 'campaign' | 'appointment' | 'reminder' | 'achievement';
+export type NotificationType =
+  | "emergency"
+  | "campaign"
+  | "appointment"
+  | "reminder"
+  | "achievement";
 
 export interface Notification {
   id: number;
@@ -7,6 +12,6 @@ export interface Notification {
   message: string;
   timestamp: string;
   isRead: boolean;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
   actionRequired?: boolean;
 }

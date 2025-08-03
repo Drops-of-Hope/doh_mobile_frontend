@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import AppointmentCard, { Appointment } from '../../molecules/HomeScreen/AppointmentCard';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import AppointmentCard, {
+  Appointment,
+} from "../../molecules/HomeScreen/AppointmentCard";
 
 interface AppointmentSectionProps {
   appointment: Appointment | null;
@@ -9,11 +11,11 @@ interface AppointmentSectionProps {
   onReschedule?: (appointment: Appointment) => void;
 }
 
-export default function AppointmentSection({ 
-  appointment, 
+export default function AppointmentSection({
+  appointment,
   title,
   onViewDetails,
-  onReschedule 
+  onReschedule,
 }: AppointmentSectionProps) {
   if (!appointment) {
     return null;

@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import UrgencyBadge, { UrgencyLevel } from '../../atoms/HomeScreen/UrgencyBadge';
-import ProgressBar from '../../atoms/HomeScreen/ProgressBar';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import UrgencyBadge, {
+  UrgencyLevel,
+} from "../../atoms/HomeScreen/UrgencyBadge";
+import ProgressBar from "../../atoms/HomeScreen/ProgressBar";
 
 export interface Campaign {
   id: number;
@@ -22,43 +24,49 @@ interface CampaignCardProps {
   onJoin?: (campaign: Campaign) => void;
 }
 
-export default function CampaignCard({ campaign, onPress, showActions = false, onDetails, onJoin }: CampaignCardProps) {
+export default function CampaignCard({
+  campaign,
+  onPress,
+  showActions = false,
+  onDetails,
+  onJoin,
+}: CampaignCardProps) {
   return (
     <View style={styles.campaignCard}>
       <View style={styles.campaignHeader}>
         <UrgencyBadge urgency={campaign.urgency} />
         <Text style={styles.campaignDate}>{campaign.date}</Text>
       </View>
-      
+
       <Text style={styles.campaignTitle}>{campaign.title}</Text>
-      
+
       <View style={styles.locationRow}>
         <Ionicons name="location-outline" size={16} color="#8E8E93" />
         <Text style={styles.locationText}>{campaign.location}</Text>
       </View>
-      
+
       <View style={styles.slotsContainer}>
         <Text style={styles.slotsText}>
           {campaign.slotsUsed}/{campaign.totalSlots} slots filled
         </Text>
       </View>
-      
-      <ProgressBar 
-        current={campaign.slotsUsed} 
-        total={campaign.totalSlots} 
+
+      <ProgressBar
+        current={campaign.slotsUsed}
+        total={campaign.totalSlots}
         urgency={campaign.urgency}
       />
-      
+
       {showActions && (
         <View style={styles.actionButtons}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.detailsButton}
             onPress={() => onDetails?.(campaign)}
           >
             <Ionicons name="information-circle" size={16} color="#6B7280" />
             <Text style={styles.detailsButtonText}>Details</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.joinButton}
             onPress={() => onJoin?.(campaign)}
           >
@@ -73,88 +81,88 @@ export default function CampaignCard({ campaign, onPress, showActions = false, o
 
 const styles = StyleSheet.create({
   campaignCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
     elevation: 3,
   },
   campaignHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   campaignDate: {
     fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: "#6B7280",
+    fontWeight: "500",
   },
   campaignTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginBottom: 8,
   },
   locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
   locationText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     marginLeft: 8,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   slotsContainer: {
     marginBottom: 12,
   },
   slotsText: {
     fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: "#6B7280",
+    fontWeight: "500",
   },
   actionButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 16,
     gap: 12,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F1F3F5',
+    borderTopColor: "#F1F3F5",
   },
   detailsButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     gap: 6,
   },
   detailsButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    fontWeight: "600",
+    color: "#374151",
   },
   joinButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: '#DC2626',
+    backgroundColor: "#DC2626",
     gap: 6,
-    shadowColor: '#DC2626',
+    shadowColor: "#DC2626",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -162,7 +170,7 @@ const styles = StyleSheet.create({
   },
   joinButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: 'white',
+    fontWeight: "600",
+    color: "white",
   },
 });

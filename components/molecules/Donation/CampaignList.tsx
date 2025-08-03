@@ -25,10 +25,7 @@ const CampaignList: React.FC<CampaignListProps> = ({
 }) => {
   return (
     <StyledView className="flex-1">
-      <StyledScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-      >
+      <StyledScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {campaigns.map((campaign) => (
           <CampaignCard
             key={campaign.id}

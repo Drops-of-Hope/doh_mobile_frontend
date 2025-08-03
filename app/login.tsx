@@ -25,7 +25,7 @@ export default function Login() {
       scopes: authConfig.scopes,
       responseType: AuthSession.ResponseType.Code,
     },
-    discovery
+    discovery,
   );
 
   React.useEffect(() => {

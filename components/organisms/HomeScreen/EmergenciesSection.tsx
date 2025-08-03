@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import SectionHeader from '../../molecules/HomeScreen/SectionHeader';
-import EmergencyCard, { Emergency } from '../../molecules/HomeScreen/EmergencyCard';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import SectionHeader from "../../molecules/HomeScreen/SectionHeader";
+import EmergencyCard, {
+  Emergency,
+} from "../../molecules/HomeScreen/EmergencyCard";
 
 interface EmergenciesSectionProps {
   emergencies: Emergency[];
@@ -10,19 +12,16 @@ interface EmergenciesSectionProps {
   onViewAll?: () => void;
 }
 
-export default function EmergenciesSection({ 
-  emergencies, 
-  onDonate, 
-  onViewDetails, 
-  onViewAll 
+export default function EmergenciesSection({
+  emergencies,
+  onDonate,
+  onViewDetails,
+  onViewAll,
 }: EmergenciesSectionProps) {
   return (
     <View style={styles.section}>
-      <SectionHeader 
-        title="Emergency" 
-        onViewAll={onViewAll}
-      />
-      
+      <SectionHeader title="Emergency" onViewAll={onViewAll} />
+
       <View style={styles.emergenciesContainer}>
         {emergencies.map((emergency) => (
           <EmergencyCard

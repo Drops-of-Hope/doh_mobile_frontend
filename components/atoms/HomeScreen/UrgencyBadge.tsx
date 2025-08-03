@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 
-export type UrgencyLevel = 'Critical' | 'Moderate' | 'Low';
+export type UrgencyLevel = "Critical" | "Moderate" | "Low";
 
 interface UrgencyBadgeProps {
   urgency: UrgencyLevel;
@@ -9,11 +9,15 @@ interface UrgencyBadgeProps {
 
 export default function UrgencyBadge({ urgency }: UrgencyBadgeProps) {
   const getUrgencyColors = (level: UrgencyLevel) => {
-    switch(level) {
-      case 'Critical': return { text: '#FF4757', bg: '#FFF5F5' };
-      case 'Moderate': return { text: '#DC2626', bg: '#FEF2F2' };
-      case 'Low': return { text: '#00D2D3', bg: '#F0FDFA' };
-      default: return { text: '#DC2626', bg: '#FEF2F2' };
+    switch (level) {
+      case "Critical":
+        return { text: "#FF4757", bg: "#FFF5F5" };
+      case "Moderate":
+        return { text: "#DC2626", bg: "#FEF2F2" };
+      case "Low":
+        return { text: "#00D2D3", bg: "#F0FDFA" };
+      default:
+        return { text: "#DC2626", bg: "#FEF2F2" };
     }
   };
 
@@ -36,6 +40,6 @@ const styles = StyleSheet.create({
   },
   urgencyText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 
 interface StatsNumberProps {
   number: number;
@@ -7,7 +7,11 @@ interface StatsNumberProps {
   secondaryLabel?: string;
 }
 
-export default function StatsNumber({ number, label, secondaryLabel }: StatsNumberProps) {
+export default function StatsNumber({
+  number,
+  label,
+  secondaryLabel,
+}: StatsNumberProps) {
   return (
     <View style={styles.statsCenter}>
       <Text style={styles.statsNumber}>{number}</Text>
@@ -23,28 +27,28 @@ export default function StatsNumber({ number, label, secondaryLabel }: StatsNumb
 
 const styles = StyleSheet.create({
   statsCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
     marginBottom: 24,
-    width: '100%',
+    width: "100%",
   },
   statsNumber: {
     fontSize: 64,
-    fontWeight: '900',
-    color: '#3B82F6',
+    fontWeight: "900",
+    color: "#3B82F6",
     marginRight: 20,
     lineHeight: 70,
   },
   statsLabelContainer: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    flexDirection: "column",
+    alignItems: "flex-start",
     flex: 1,
   },
   statsLabel: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     lineHeight: 24,
   },
 });

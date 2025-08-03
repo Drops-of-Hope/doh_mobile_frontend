@@ -1,6 +1,6 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { TouchableOpacity, Text, StyleSheet, ViewStyle } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface TabButtonProps {
   title: string;
@@ -10,22 +10,23 @@ interface TabButtonProps {
   style?: ViewStyle;
 }
 
-export default function TabButton({ title, icon, isActive, onPress, style }: TabButtonProps) {
+export default function TabButton({
+  title,
+  icon,
+  isActive,
+  onPress,
+  style,
+}: TabButtonProps) {
   return (
     <TouchableOpacity
       style={[
         styles.tabButton,
         { backgroundColor: isActive ? "#dc2626" : "white" },
-        style
+        style,
       ]}
       onPress={onPress}
     >
-      <Text
-        style={[
-          styles.tabText,
-          { color: isActive ? "white" : "#dc2626" }
-        ]}
-      >
+      <Text style={[styles.tabText, { color: isActive ? "white" : "#dc2626" }]}>
         <Ionicons
           name={icon}
           size={18}
@@ -42,10 +43,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 16,
     paddingHorizontal: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   tabText: {
-    fontWeight: '700',
+    fontWeight: "700",
     fontSize: 16,
   },
 });

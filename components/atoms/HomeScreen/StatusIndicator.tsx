@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface StatusIndicatorProps {
   title: string;
@@ -10,12 +10,12 @@ interface StatusIndicatorProps {
   backgroundColor?: string;
 }
 
-export default function StatusIndicator({ 
-  title, 
-  subtitle, 
-  icon, 
-  iconColor = '#00D2D3',
-  backgroundColor = '#00D2D3'
+export default function StatusIndicator({
+  title,
+  subtitle,
+  icon,
+  iconColor = "#00D2D3",
+  backgroundColor = "#00D2D3",
 }: StatusIndicatorProps) {
   return (
     <View style={styles.statusRow}>
@@ -32,8 +32,8 @@ export default function StatusIndicator({
 
 const styles = StyleSheet.create({
   statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     borderRadius: 16,
   },
@@ -41,8 +41,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 16,
   },
   statusContent: {
@@ -50,12 +50,12 @@ const styles = StyleSheet.create({
   },
   statusTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
   },
   statusSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: "#6B7280",
+    fontWeight: "500",
   },
 });

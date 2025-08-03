@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Button from '../../atoms/Button';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Button from "../../atoms/Button";
 
 interface QRSectionProps {
   onShowQR: () => void;
@@ -27,18 +27,18 @@ export default function QRSection({ onShowQR }: QRSectionProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 32,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FECACA',
-    alignItems: 'center',
+    borderColor: "#FECACA",
+    alignItems: "center",
     marginBottom: 32,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -49,14 +49,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
-    textAlign: 'center',
+    fontWeight: "700",
+    color: "#1F2937",
+    textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
     marginBottom: 24,
     maxWidth: 280,
     lineHeight: 20,

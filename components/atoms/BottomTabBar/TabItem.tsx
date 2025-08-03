@@ -1,6 +1,6 @@
-import React from 'react';
-import { TouchableOpacity, Text, View } from 'react-native';
-import { styled } from 'nativewind';
+import React from "react";
+import { TouchableOpacity, Text, View } from "react-native";
+import { styled } from "nativewind";
 
 const StyledTouchableOpacity = styled(TouchableOpacity);
 const StyledView = styled(View);
@@ -15,7 +15,14 @@ interface TabItemProps {
   onPress: (id: string) => void;
 }
 
-export default function TabItem({ id, label, isActive, icon, primaryColor, onPress }: TabItemProps) {
+export default function TabItem({
+  id,
+  label,
+  isActive,
+  icon,
+  primaryColor,
+  onPress,
+}: TabItemProps) {
   return (
     <StyledTouchableOpacity
       key={id}
