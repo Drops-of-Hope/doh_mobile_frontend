@@ -46,7 +46,7 @@ export interface AppointmentBookingRequest {
 export const appointmentService = {
   // Get medical establishments by district
   getMedicalEstablishmentsByDistrict: async (
-    district: District,
+    district: District
   ): Promise<MedicalEstablishment[]> => {
     try {
       const response = await apiRequest(
@@ -57,7 +57,7 @@ export const appointmentService = {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
-        },
+        }
       );
       console.log("Medical establishments response:", response);
       return response as MedicalEstablishment[];
@@ -80,7 +80,7 @@ export const appointmentService = {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
-        },
+        }
       );
 
       // Return only available slots
@@ -94,24 +94,18 @@ export const appointmentService = {
 
   // Book an appointment
   bookAppointment: async (
-    bookingRequest: AppointmentBookingRequest,
+    bookingRequest: AppointmentBookingRequest
   ): Promise<Appointment> => {
     try {
-      const response = await apiRequest(API_ENDPOINTS.APPOINTMENTS, {
-        method: "POST",
-        body: JSON.stringify(bookingRequest),
-      });
+      const response = await apiRequest(
+        `${API_ENDPOINTS.APPOINTMENTS}/createAppointments`,
+        {
+          method: "POST",
+          body: JSON.stringify(bookingRequest),
+        }
+      );
 
-      // Mock response
-      const mockAppointment: Appointment = {
-        id: `apt-${Date.now()}`,
-        donorId: bookingRequest.donorId,
-        bdfId: `bdf-${Date.now()}`,
-        scheduled: "PENDING",
-        appointmentDateTime: `${bookingRequest.appointmentDate}T${bookingRequest.appointmentSlotId}:00.000Z`,
-      };
-
-      return mockAppointment;
+      return response as Appointment;
     } catch (error) {
       console.error("Error booking appointment:", error);
       throw error;
@@ -125,7 +119,7 @@ export const appointmentService = {
         `${API_ENDPOINTS.APPOINTMENTS}/user/${userId}`,
         {
           method: "GET",
-        },
+        }
       );
 
       // Mock user appointments
@@ -162,7 +156,7 @@ export const appointmentService = {
   rescheduleAppointment: async (
     appointmentId: string,
     newSlotId: string,
-    newDate: string,
+    newDate: string
   ): Promise<Appointment> => {
     try {
       const response = await apiRequest(
@@ -173,7 +167,7 @@ export const appointmentService = {
             appointmentSlotId: newSlotId,
             appointmentDate: newDate,
           }),
-        },
+        }
       );
 
       return response;

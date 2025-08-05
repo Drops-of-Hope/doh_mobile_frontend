@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
+  Text,
   StyleSheet,
   SafeAreaView,
   StatusBar,
@@ -31,6 +32,10 @@ import {
 // Import context
 import { useAuth, USER_ROLES } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { useAuthUser } from "../../hooks/useAuthUser";
+
+// Import the profile completion screen
+import ProfileCompletionScreen from "../ProfileCompletionScreen";
 
 interface ProfileScreenProps {
   navigation?: any;
@@ -40,6 +45,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // Auth and Language
   const { user, userRole, logout, hasRole, getFullName } = useAuth();
   const { t } = useLanguage();
+    // Initialize auth user hook
+  const { getStoredUserData, processAuthUser } = useAuthUser();
 
   // State management
   const [userData, setUserData] = useState<UserData>({
@@ -56,13 +63,100 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showFAQModal, setShowFAQModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   useEffect(() => {
     loadUserData();
   }, [user]);
 
+  // New effect to handle auth user processing
+  useEffect(() => {
+    const handleAuthUserProcessing = async () => {
+      if (user && !isLoadingProfile) {
+        try {
+          // Check if we have stored user data
+          const storedUserData = await getStoredUserData();
+          
+          if (!storedUserData) {
+            // User is authenticated but not in our database
+            // Process the auth user (create or login)
+            console.log("🔄 Processing auth user for database creation...");
+            console.log("👤 User data from AuthContext:", user);
+            
+            // Transform user data to the format expected by processAuthUser
+            const authData = {
+              sub: user.sub,
+              email: user.email,
+              birthdate: user.birthdate || '',
+              family_name: user.family_name || user.name.split(' ').slice(-1)[0] || '',
+              given_name: user.given_name || user.name.split(' ')[0] || '',
+              roles: user.roles || [],
+              updated_at: user.updated_at || Date.now(),
+              username: user.username || user.email,
+            };
+            
+            console.log("📡 Sending auth data to backend:", authData);
+            
+            try {
+              const result = await processAuthUser(authData);
+              console.log("✅ Backend response:", result);
+              
+              // After processing, reload user data which will trigger profile completion if needed
+              await loadUserData();
+            } catch (error) {
+              console.error("❌ Backend API call failed:", error);
+              console.error("🔍 This likely means the backend endpoints don't exist yet");
+            }
+          }
+        } catch (error) {
+          console.error("Error processing auth user:", error);
+        }
+      }
+    };
+
+    handleAuthUserProcessing();
+  }, [user, isLoadingProfile]);
+
   const loadUserData = async () => {
     try {
+      setIsLoadingProfile(true);
+      
+      if (user) {
+        // First, get stored user data from auth service
+        const storedUserData = await getStoredUserData();
+        
+        if (storedUserData) {
+          // Check if profile needs completion
+          const needsCompletion = !storedUserData.isProfileComplete;
+          
+          if (needsCompletion) {
+            setShowProfileCompletion(true);
+            return;
+          }
+
+          // Update userData with real data
+          setUserData({
+            name: storedUserData.name,
+            email: storedUserData.email,
+            bloodType: storedUserData.bloodGroup || "Unknown",
+            mobileNumber: "Not provided", // We don't have this in auth data
+            donationBadge: storedUserData.donationBadge as any,
+            imageUri: "https://example.com/profile-image.jpg",
+            membershipType: getRoleMembershipType(userRole),
+          });
+        } else {
+          // Fallback to mock data if no stored data
+          const mockData = getMockUserData(user, getFullName);
+          setUserData({
+            ...mockData,
+            membershipType: getRoleMembershipType(userRole),
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
+      // Fallback to mock data on error
       if (user) {
         const mockData = getMockUserData(user, getFullName);
         setUserData({
@@ -70,8 +164,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           membershipType: getRoleMembershipType(userRole),
         });
       }
-    } catch (error) {
-      console.error("Error loading user data:", error);
+    } finally {
+      setIsLoadingProfile(false);
     }
   };
 
@@ -173,26 +267,47 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <ProfileHeader userData={userData} onEditProfile={handleEditProfile} />
+      {showProfileCompletion ? (
+        <ProfileCompletionScreen
+          userId={user?.sub || ''}
+          onComplete={(userInfo) => {
+            console.log("🎉 Profile completion successful:", userInfo);
+            setShowProfileCompletion(false);
+            loadUserData(); // Reload data after profile completion
+          }}
+          onSkip={() => {
+            console.log("⏭️ Profile completion skipped");
+            setShowProfileCompletion(false);
+          }}
+        />
+      ) : isLoadingProfile ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text>Loading profile...</Text>
+        </View>
+      ) : (
+        <>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            <ProfileHeader userData={userData} onEditProfile={handleEditProfile} />
 
-        <MenuSection menuItems={menuItems} onItemPress={handleMenuItemPress} />
+            <MenuSection menuItems={menuItems} onItemPress={handleMenuItemPress} />
 
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+            <View style={styles.bottomPadding} />
+          </ScrollView>
 
-      {/* Modals */}
-      <LanguageModal visible={showLanguageModal} onClose={closeLanguageModal} />
+          {/* Modals */}
+          <LanguageModal visible={showLanguageModal} onClose={closeLanguageModal} />
 
-      <FAQModal visible={showFAQModal} onClose={closeFAQModal} />
+          <FAQModal visible={showFAQModal} onClose={closeFAQModal} />
 
-      <EditProfileModal
-        visible={showEditProfileModal}
-        onClose={closeEditProfileModal}
-      />
+          <EditProfileModal
+            visible={showEditProfileModal}
+            onClose={closeEditProfileModal}
+          />
+        </>
+      )}
 
       <BottomTabBar activeTab="profile" />
     </SafeAreaView>

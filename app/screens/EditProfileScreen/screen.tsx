@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -7,6 +7,7 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import { useAuthUser } from "../../hooks/useAuthUser";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import FormSection from "../CreateCampaignScreen/molecules/FormSection";
 import InputField from "../CreateCampaignScreen/atoms/InputField";
@@ -33,19 +34,67 @@ export default function EditProfileScreen({
   onBack,
 }: EditProfileScreenProps) {
   const { user } = useAuth();
+  const { getStoredUserData } = useAuthUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<ProfileFormData>({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    phoneNumber: user?.phoneNumber || "",
-    bloodType: user?.bloodType || "",
-    address: user?.address || "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    bloodType: "",
+    address: "",
     emergencyContact: "",
     emergencyPhone: "",
   });
 
   const [errors, setErrors] = useState<Partial<ProfileFormData>>({});
+
+  // Load user data from auth service
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        setIsLoading(true);
+        const storedUserData = await getStoredUserData();
+        
+        if (storedUserData) {
+          // Split name into first and last
+          const nameParts = storedUserData.name.split(' ');
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+          
+          setFormData({
+            firstName,
+            lastName,
+            email: storedUserData.email,
+            phoneNumber: "", // We don't have phone in stored data
+            bloodType: storedUserData.bloodGroup || "",
+            address: "", // We don't have address in stored data
+            emergencyContact: "",
+            emergencyPhone: "",
+          });
+        } else if (user) {
+          // Fallback to AuthContext user data
+          const nameParts = user.name.split(' ');
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+          
+          setFormData(prev => ({
+            ...prev,
+            firstName,
+            lastName,
+            email: user.email,
+          }));
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [user]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ProfileFormData> = {};
@@ -113,8 +162,20 @@ export default function EditProfileScreen({
         onAdd={() => {}}
       />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <FormSection title="Personal Information">
+      {isLoading ? (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <FormSection title="Loading Profile Data...">
+            <InputField
+              label="Loading..."
+              value=""
+              onChangeText={() => {}}
+              placeholder="Loading profile data..."
+            />
+          </FormSection>
+        </ScrollView>
+      ) : (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <FormSection title="Personal Information">
           <InputField
             label="First Name"
             value={formData.firstName}
@@ -193,7 +254,8 @@ export default function EditProfileScreen({
           isSubmitting={isSubmitting}
           title="Update Profile"
         />
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

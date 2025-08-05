@@ -7,7 +7,7 @@ const authConfig = {
     process.env.EXPO_PUBLIC_ASGARDEO_ISSUER ||
     "https://api.asgardeo.io/t/dropsofhope",
   clientId: process.env.EXPO_PUBLIC_ASGARDEO_CLIENT_ID || "",
-  scopes: ["openid", "profile", "email", "roles"],
+  scopes: ["openid", "NIC", "profile", "email", "roles"],
 };
 
 // Create proper redirect URI for Expo

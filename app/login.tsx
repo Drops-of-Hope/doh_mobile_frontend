@@ -7,7 +7,7 @@ const authConfig = {
   issuer: "https://api.asgardeo.io/t/dropsofhope",
   clientId: "cvkLW1k579ozp8tp7tRx7vGqvssa",
   redirectUri: AuthSession.makeRedirectUri(),
-  scopes: ["openid", "profile", "email", "roles"],
+  scopes: ["openid", "NIC", "profile", "email", "roles"],
 };
 
 const discovery = {
