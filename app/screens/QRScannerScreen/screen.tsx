@@ -4,9 +4,16 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+// Define the param list for the stack navigator
+type QRScannerStackParamList = {
+  QRScannerScreen: { campaignId: string };
+  // Add other screens if needed
+};
 
 interface QRScannerScreenProps {
-  navigation?: any;
+  navigation?: NativeStackNavigationProp<QRScannerStackParamList, 'QRScannerScreen'>;
   route?: {
     params: {
       campaignId: string;
