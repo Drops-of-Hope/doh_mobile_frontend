@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log("AuthContext: Getting current user...");
           const currentUser = await getCurrentUser();
           console.log("AuthContext: Current user:", currentUser);
-          
+
           setIsAuthenticatedState(true);
           setUser(currentUser);
           console.log("Auth state valid/refreshed successfully");
@@ -95,12 +95,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log("Auth state invalid, user needs to re-authenticate");
         }
       } catch (authError: any) {
-        console.error("AuthContext: Auth operation failed silently:", authError?.message);
+        console.error(
+          "AuthContext: Auth operation failed silently:",
+          authError?.message,
+        );
         // Always clear state on any auth error to prevent undefined behavior
         setIsAuthenticatedState(false);
         setUser(null);
       }
-      
     } catch (error: any) {
       console.error("AuthContext: Critical error in refresh process:", error);
       // Absolutely ensure we clear state on any error
@@ -147,11 +149,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       user?.roles && user.roles.length > 0
         ? user.roles[0]
         : user?.userType || null;
-    console.log("AuthContext getUserRole:", {
-      userRoles: user?.roles,
-      userType: user?.userType,
-      returnedRole: role,
-    });
+    // console.log("AuthContext getUserRole:", {
+    //   userRoles: user?.roles,
+    //   userType: user?.userType,
+    //   returnedRole: role,
+    // });
     return role;
   };
 
@@ -160,21 +162,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const hasRole = (role: string): boolean => {
-    console.log("hasRole check:", {
-      role,
-      userRoles: user?.roles,
-      userType: user?.userType,
-      user,
-    });
+    // console.log("hasRole check:", {
+    //   role,
+    //   userRoles: user?.roles,
+    //   userType: user?.userType,
+    //   user,
+    // });
 
     if (user?.roles) {
       const hasRoleResult = user.roles.includes(role);
-      console.log("hasRole result (from roles array):", hasRoleResult);
+      //console.log("hasRole result (from roles array):", hasRoleResult);
       return hasRoleResult;
     }
 
     const userTypeMatch = getUserType() === role;
-    console.log("hasRole result (from userType):", userTypeMatch);
+    //console.log("hasRole result (from userType):", userTypeMatch);
     return userTypeMatch;
   };
 

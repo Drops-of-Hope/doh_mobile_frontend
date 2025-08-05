@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, TextInput, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface SearchBarProps {
   value: string;
@@ -8,10 +8,19 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export default function SearchBar({ value, onChangeText, placeholder = "Search campaigns, hospitals..." }: SearchBarProps) {
+export default function SearchBar({
+  value,
+  onChangeText,
+  placeholder = "Search campaigns, hospitals...",
+}: SearchBarProps) {
   return (
     <View style={styles.searchContainer}>
-      <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+      <Ionicons
+        name="search"
+        size={20}
+        color="#9CA3AF"
+        style={styles.searchIcon}
+      />
       <TextInput
         style={styles.searchInput}
         placeholder={placeholder}
@@ -25,28 +34,28 @@ export default function SearchBar({ value, onChangeText, placeholder = "Search c
 
 const styles = StyleSheet.create({
   searchContainer: {
-    position: 'relative',
+    position: "relative",
     marginBottom: 20,
   },
   searchIcon: {
-    position: 'absolute',
+    position: "absolute",
     left: 20,
     top: 18,
     zIndex: 1,
   },
   searchInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     paddingLeft: 52,
     paddingRight: 20,
     paddingVertical: 18,
     fontSize: 16,
-    color: '#1F2937',
-    shadowColor: '#000',
+    color: "#1F2937",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 2,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

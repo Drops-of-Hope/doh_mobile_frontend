@@ -66,8 +66,8 @@ const TitlePage: React.FC<TitlePageProps> = ({
           alignment === "center"
             ? "text-center"
             : alignment === "left"
-            ? "text-left"
-            : "text-right"
+              ? "text-left"
+              : "text-right"
         }`}
       >
         Drops of Hope
@@ -81,8 +81,8 @@ const TitlePage: React.FC<TitlePageProps> = ({
           alignment === "center"
             ? "text-center"
             : alignment === "left"
-            ? "text-left"
-            : "text-right"
+              ? "text-left"
+              : "text-right"
         }`}
       >
         Connecting lifelines one drop at a time
@@ -96,8 +96,8 @@ const TitlePage: React.FC<TitlePageProps> = ({
               alignment === "center"
                 ? "text-center"
                 : alignment === "left"
-                ? "text-left"
-                : "text-right"
+                  ? "text-left"
+                  : "text-right"
             }`}
           >
             Your contribution makes a difference.

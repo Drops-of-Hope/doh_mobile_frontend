@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { UrgencyLevel } from './UrgencyBadge';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { UrgencyLevel } from "./UrgencyBadge";
 
 interface ProgressBarProps {
   current: number;
@@ -8,13 +8,21 @@ interface ProgressBarProps {
   urgency?: UrgencyLevel;
 }
 
-export default function ProgressBar({ current, total, urgency = 'Moderate' }: ProgressBarProps) {
+export default function ProgressBar({
+  current,
+  total,
+  urgency = "Moderate",
+}: ProgressBarProps) {
   const getProgressColor = (level: UrgencyLevel): string => {
-    switch(level) {
-      case 'Critical': return '#FF4757';
-      case 'Moderate': return '#DC2626';
-      case 'Low': return '#00D2D3';
-      default: return '#DC2626';
+    switch (level) {
+      case "Critical":
+        return "#FF4757";
+      case "Moderate":
+        return "#DC2626";
+      case "Low":
+        return "#00D2D3";
+      default:
+        return "#DC2626";
     }
   };
 
@@ -24,14 +32,14 @@ export default function ProgressBar({ current, total, urgency = 'Moderate' }: Pr
   return (
     <View style={styles.progressContainer}>
       <View style={styles.progressBar}>
-        <View 
+        <View
           style={[
-            styles.progressFill, 
-            { 
+            styles.progressFill,
+            {
               width: `${progressWidth}%`,
-              backgroundColor: progressColor
-            }
-          ]} 
+              backgroundColor: progressColor,
+            },
+          ]}
         />
       </View>
     </View>
@@ -45,12 +53,12 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 4,
   },
 });

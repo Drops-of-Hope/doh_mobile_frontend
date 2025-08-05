@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface ComponentInfoCardProps {
   title: string;
@@ -10,12 +10,12 @@ interface ComponentInfoCardProps {
   iconColor?: string;
 }
 
-export default function ComponentInfoCard({ 
-  title, 
-  subtitle, 
-  value, 
-  icon, 
-  iconColor = '#FF4757' 
+export default function ComponentInfoCard({
+  title,
+  subtitle,
+  value,
+  icon,
+  iconColor = "#FF4757",
 }: ComponentInfoCardProps) {
   return (
     <View style={styles.componentCard}>
@@ -33,13 +33,13 @@ export default function ComponentInfoCard({
 
 const styles = StyleSheet.create({
   componentCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 16,
   },
   componentContent: {
@@ -58,18 +58,18 @@ const styles = StyleSheet.create({
   },
   componentTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginBottom: 2,
   },
   componentSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: "#6B7280",
+    fontWeight: "500",
   },
   componentValue: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#1F2937',
+    fontWeight: "800",
+    color: "#1F2937",
   },
 });

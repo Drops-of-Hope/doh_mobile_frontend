@@ -7,7 +7,7 @@ const authConfig = {
     process.env.EXPO_PUBLIC_ASGARDEO_ISSUER ||
     "https://api.asgardeo.io/t/dropsofhope",
   clientId: process.env.EXPO_PUBLIC_ASGARDEO_CLIENT_ID || "",
-  scopes: ["openid", "profile", "email", "roles"],
+  scopes: ["openid", "NIC", "profile", "email", "roles"],
 };
 
 // Create proper redirect URI for Expo
@@ -88,7 +88,7 @@ const clearAuthState = async () => {
 
 // Unified login and signup logic
 export const authenticate = async (
-  isSignup = false
+  isSignup = false,
 ): Promise<AuthState | null> => {
   try {
     console.log("Starting authentication with redirect URI:", redirectUri);
@@ -117,7 +117,7 @@ export const authenticate = async (
     if (result.type === "success") {
       console.log(
         `${isSignup ? "Signup" : "Login"} successful:`,
-        result.params
+        result.params,
       );
 
       // Exchange authorization code for tokens with PKCE
@@ -131,7 +131,7 @@ export const authenticate = async (
               code_verifier: authRequest.codeVerifier, // PKCE code verifier
             },
           },
-          discovery
+          discovery,
         );
 
         // Create AuthState object
@@ -155,7 +155,7 @@ export const authenticate = async (
     } else if (result.type === "error") {
       console.error("Auth error:", result.error);
       throw new Error(
-        `Authentication error: ${result.error?.message || "Unknown error"}`
+        `Authentication error: ${result.error?.message || "Unknown error"}`,
       );
     } else {
       console.log("Authentication cancelled");
@@ -194,7 +194,7 @@ export const refreshToken = async (refreshToken: string) => {
         clientId: authConfig.clientId,
         refreshToken,
       },
-      { tokenEndpoint: `${authConfig.issuer}/oauth2/token` }
+      { tokenEndpoint: `${authConfig.issuer}/oauth2/token` },
     );
     await saveAuthState(tokenResult);
     return tokenResult;
@@ -262,7 +262,7 @@ export const logout = async () => {
           // Open logout URL in a browser session to clear server-side session
           const result = await WebBrowser.openAuthSessionAsync(
             fullLogoutUrl,
-            redirectUri
+            redirectUri,
           );
 
           console.log("Logout session result:", result);
@@ -277,7 +277,7 @@ export const logout = async () => {
     // Step 4: Always clear local auth state
     await clearAuthState();
     console.log(
-      "Logged out successfully - all tokens revoked and session cleared"
+      "Logged out successfully - all tokens revoked and session cleared",
     );
   } catch (error) {
     console.error("Logout failed:", error);
@@ -356,7 +356,7 @@ export const ensureValidAuth = async (): Promise<boolean> => {
             clientId: authConfig.clientId,
             refreshToken: authState.refreshToken,
           },
-          { tokenEndpoint: `${authConfig.issuer}/oauth2/token` }
+          { tokenEndpoint: `${authConfig.issuer}/oauth2/token` },
         );
 
         // Update auth state with new tokens
@@ -441,7 +441,7 @@ export const handleAuthError = async (error: any): Promise<boolean> => {
 // Wrapper for API calls that automatically handles auth errors
 export const apiCallWithAuth = async <T>(
   apiCall: () => Promise<T>,
-  maxRetries = 1
+  maxRetries = 1,
 ): Promise<T> => {
   let attempts = 0;
 

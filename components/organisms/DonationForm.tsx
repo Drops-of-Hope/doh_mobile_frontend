@@ -23,7 +23,9 @@ const DonationForm: React.FC<DonationFormProps> = ({
   onCancel,
 }) => {
   const { t, currentLanguage, setLanguage } = useLanguage();
-  const [formLanguage, setFormLanguage] = useState<'en' | 'si' | 'ta'>(currentLanguage);
+  const [formLanguage, setFormLanguage] = useState<"en" | "si" | "ta">(
+    currentLanguage,
+  );
   const [formData, setFormData] = useState<DonationFormData>({
     anyDifficulty: false,
     medicalAdvice: false,
@@ -43,7 +45,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLanguageChange = async (language: 'en' | 'si' | 'ta') => {
+  const handleLanguageChange = async (language: "en" | "si" | "ta") => {
     setFormLanguage(language);
     await setLanguage(language);
   };
@@ -74,14 +76,14 @@ const DonationForm: React.FC<DonationFormProps> = ({
     ];
 
     const hasDisqualifyingCondition = disqualifyingConditions.some(
-      (condition) => formData[condition as keyof DonationFormData]
+      (condition) => formData[condition as keyof DonationFormData],
     );
 
     if (hasDisqualifyingCondition || !formData.feelingWell) {
       Alert.alert(
-        t('donation.validation_error'),
+        t("donation.validation_error"),
         "Based on your responses, you may not be eligible to donate blood at this time. Please consult with medical staff for further evaluation.",
-        [{ text: t('common.ok') }]
+        [{ text: t("common.ok") }],
       );
       return false;
     }
@@ -101,25 +103,27 @@ const DonationForm: React.FC<DonationFormProps> = ({
         await donationService.submitDonationForm(formData);
       } catch (apiError) {
         // Simulate offline submission - in a real app, you'd queue this for later sync
-        console.log('API submission failed, simulating offline submission for demo purposes');
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+        console.log(
+          "API submission failed, simulating offline submission for demo purposes",
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
       }
-      
+
       Alert.alert(
-        t('donation.submit_success'),
+        t("donation.submit_success"),
         "Your donation form has been submitted. You are eligible to donate blood!",
         [
           {
-            text: t('common.ok'),
+            text: t("common.ok"),
             onPress: onSubmitSuccess,
           },
-        ]
+        ],
       );
     } catch (error) {
       Alert.alert(
-        t('donation.submit_error'),
+        t("donation.submit_error"),
         "Failed to submit your donation form. Please try again.",
-        [{ text: t('common.ok') }]
+        [{ text: t("common.ok") }],
       );
     } finally {
       setIsSubmitting(false);
@@ -131,14 +135,14 @@ const DonationForm: React.FC<DonationFormProps> = ({
       <StyledScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <StyledView className="p-4">
           <Text className="text-2xl font-bold text-gray-900 mb-2">
-            {t('donation.form_title')}
+            {t("donation.form_title")}
           </Text>
           <Text className="text-gray-600 mb-4">
-            {t('donation.form_subtitle')}
+            {t("donation.form_subtitle")}
           </Text>
-          
+
           {/* Language Tabs */}
-          <LanguageTabs 
+          <LanguageTabs
             currentLanguage={formLanguage}
             onLanguageChange={handleLanguageChange}
           />
@@ -151,14 +155,18 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
         <StyledView className="p-4 pb-8">
           <Button
-            title={isSubmitting ? t('common.loading') : t('common.submit')}
+            title={isSubmitting ? t("common.loading") : t("common.submit")}
             onPress={handleSubmit}
             disabled={isSubmitting}
           />
 
           {onCancel && (
             <StyledView className="mt-3">
-              <Button title={t('common.cancel')} onPress={onCancel} variant="outline" />
+              <Button
+                title={t("common.cancel")}
+                onPress={onCancel}
+                variant="outline"
+              />
             </StyledView>
           )}
         </StyledView>

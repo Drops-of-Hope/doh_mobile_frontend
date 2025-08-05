@@ -1,21 +1,56 @@
 // API configuration and base setup
-const API_BASE_URL = "http://localhost:3000/api"; // Replace with your Node.js backend URL
-// For production: 'https://your-backend-domain.com/api'
-// For local development with real device: 'http://YOUR_LOCAL_IP:3000/api'
+// IMPORTANT: Replace 'YOUR_LOCAL_IP' with your laptop's actual local IP address on your network
+export const API_BASE_URL = "http://192.168.1.102:5000/api";
+// Example: const API_BASE_URL = "http://192.168.1.10:5000/api";
+// 'localhost' will NOT work on a real device; use your laptop's IP address instead.
 
 // API endpoints
 export const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: "/auth/login",
   REGISTER: "/auth/register",
+  AUTH_CALLBACK: "/auth/callback", // Handle auth provider callback
+  CREATE_OR_LOGIN_USER: "/users/create-or-login", // Create user if not exists, login if exists
+  COMPLETE_PROFILE: "/users/complete-profile", // Complete user profile after initial auth
+
+  // User endpoints
+  USER_PROFILE: "/users/profile",
+  USER_STATS: "/users/stats",
+  USER_ACTIVITIES: "/users/activities",
+  USER_NOTIFICATIONS: "/users/notifications",
+  UPDATE_PROFILE: "/users/profile",
 
   // Donation endpoints
   DONATION_FORM: "/donations/form",
-  JOIN_CAMPAIGN: "/donations/join-campaign",
-  USER_PROFILE: "/users/profile",
+  DONATION_HISTORY: "/donations/history",
 
   // Campaign endpoints
   CAMPAIGNS: "/campaigns",
+  CAMPAIGN_DETAILS: "/campaigns/:id",
+  JOIN_CAMPAIGN: "/campaigns/:id/join",
+  CAMPAIGN_PARTICIPANTS: "/campaigns/:id/participants",
+  MY_CAMPAIGNS: "/campaigns/my-campaigns",
+  UPCOMING_CAMPAIGNS: "/campaigns/upcoming",
+
+  // Emergency endpoints
+  EMERGENCIES: "/emergencies",
+  EMERGENCY_DETAILS: "/emergencies/:id",
+  RESPOND_EMERGENCY: "/emergencies/:id/respond",
+
+  // QR Code endpoints
+  QR_SCAN: "/qr/scan",
+  MARK_ATTENDANCE: "/qr/mark-attendance",
+  GENERATE_QR: "/qr/generate",
+
+  // Appointment endpoints
+  APPOINTMENTS: "/appointments",
+  MEDICAL_ESTABLISHMENTS: "/medical-establishments",
+  APPOINTMENT_SLOTS: "/slots",
+  UPCOMING_APPOINTMENTS: "/appointments/upcoming",
+
+  // Home screen data
+  HOME_DATA: "/home/dashboard",
+  EXPLORE_DATA: "/explore/data",
 } as const;
 
 // Generic API request function

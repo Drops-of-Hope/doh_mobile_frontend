@@ -49,7 +49,7 @@ export const TAB_CONFIG = {
 export const createTabItem = (
   tabConfig: (typeof TAB_CONFIG)[keyof typeof TAB_CONFIG],
   onPress?: () => void,
-  isActive = false
+  isActive = false,
 ): TabItem => ({
   id: tabConfig.id,
   icon: tabConfig.getIcon(isActive),

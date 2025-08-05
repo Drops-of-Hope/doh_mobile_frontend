@@ -1,15 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import StatItem from '../../atoms/ActivitiesScreen/StatItem';
-import { DonationActivity } from './ActivityCard';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import StatItem from "../../atoms/ActivitiesScreen/StatItem";
+import { DonationActivity } from "./ActivityCard";
 
 interface SummaryCardProps {
   activities: DonationActivity[];
 }
 
 export default function SummaryCard({ activities }: SummaryCardProps) {
-  const donationCount = activities.filter(a => a.type === 'donation').length;
-  const checkupCount = activities.filter(a => a.type === 'checkup').length;
+  const donationCount = activities.filter((a) => a.type === "donation").length;
+  const checkupCount = activities.filter((a) => a.type === "checkup").length;
 
   return (
     <View style={styles.summaryCard}>
@@ -27,37 +27,37 @@ export default function SummaryCard({ activities }: SummaryCardProps) {
 
 const styles = StyleSheet.create({
   summaryCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 4,
   },
   summaryContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   summaryNumber: {
     fontSize: 48,
-    fontWeight: '900',
-    color: '#3B82F6',
+    fontWeight: "900",
+    color: "#3B82F6",
     marginRight: 16,
   },
   summaryLabel: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
   },
   summaryStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: "#E5E7EB",
   },
 });

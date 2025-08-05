@@ -1,1 +1,1 @@
-declare module '@react-native-masked-view/masked-view';
+declare module "@react-native-masked-view/masked-view";

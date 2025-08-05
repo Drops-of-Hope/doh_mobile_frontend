@@ -95,15 +95,15 @@ export function useMenuItemsConfig({
           },
         ]
       : isDonor || isSelfSignup
-      ? [
-          {
-            id: "become_organizer",
-            icon: <CampOrganizerIcon />,
-            title: t("profile.become_camp_organizer"),
-            onPress: onBecomeCampOrganizer,
-          },
-        ]
-      : []),
+        ? [
+            {
+              id: "become_organizer",
+              icon: <CampOrganizerIcon />,
+              title: t("profile.become_camp_organizer"),
+              onPress: onBecomeCampOrganizer,
+            },
+          ]
+        : []),
   ];
 
   return { mainMenuItems, settingsMenuItems };

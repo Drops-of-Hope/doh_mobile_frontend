@@ -45,12 +45,17 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
   onLogOut,
 }) => {
   const { t } = useLanguage();
-  
+
   // Default navigation handlers if not provided
-  const handleMyDonations = onMyDonations || (() => navigation?.navigate('MyDonations'));
-  const handleDonationEligibility = onDonationEligibility || (() => navigation?.navigate('DonationEligibility'));
-  const handleUpcomingAppointment = onUpcomingAppointment || (() => navigation?.navigate('UpcomingAppointment'));
-  
+  const handleMyDonations =
+    onMyDonations || (() => navigation?.navigate("MyDonations"));
+  const handleDonationEligibility =
+    onDonationEligibility ||
+    (() => navigation?.navigate("DonationEligibility"));
+  const handleUpcomingAppointment =
+    onUpcomingAppointment ||
+    (() => navigation?.navigate("UpcomingAppointment"));
+
   const { mainMenuItems, settingsMenuItems } = useMenuItemsConfig({
     onMyDonations: handleMyDonations,
     onDonationEligibility: handleDonationEligibility,
@@ -84,7 +89,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
 
       <View className="px-6 py-8">
         <Button
-          title={t('profile.log_out')}
+          title={t("profile.log_out")}
           variant="outline"
           size="lg"
           onPress={onLogOut}

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 interface SectionHeaderProps {
   title: string;
@@ -7,7 +7,11 @@ interface SectionHeaderProps {
   onViewAll?: () => void;
 }
 
-export default function SectionHeader({ title, showViewAll = true, onViewAll }: SectionHeaderProps) {
+export default function SectionHeader({
+  title,
+  showViewAll = true,
+  onViewAll,
+}: SectionHeaderProps) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -22,19 +26,19 @@ export default function SectionHeader({ title, showViewAll = true, onViewAll }: 
 
 const styles = StyleSheet.create({
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#1F2937',
+    fontWeight: "800",
+    color: "#1F2937",
   },
   viewAllButton: {
-    color: '#5F27CD',
-    fontWeight: '700',
+    color: "#5F27CD",
+    fontWeight: "700",
     fontSize: 14,
   },
 });

@@ -84,7 +84,11 @@ export const donationService = {
     });
   },
 
-  rescheduleAppointment: async (appointmentId: string, newDate: string, newTime: string): Promise<any> => {
+  rescheduleAppointment: async (
+    appointmentId: string,
+    newDate: string,
+    newTime: string,
+  ): Promise<any> => {
     return apiRequestWithAuth(`/api/appointments/${appointmentId}`, {
       method: "PATCH",
       body: JSON.stringify({ date: newDate, time: newTime }),

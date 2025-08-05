@@ -62,14 +62,32 @@ export default function AppNavigator() {
             <Stack.Screen name="Explore" component={ExploreScreen} />
             <Stack.Screen name="Activities" component={ActivitiesScreen} />
             <Stack.Screen name="MyDonations" component={MyDonationsScreen} />
-            <Stack.Screen name="DonationEligibility" component={DonationEligibilityScreen} />
-            <Stack.Screen name="UpcomingAppointment" component={UpcomingAppointmentScreen} />
-            <Stack.Screen name="Notifications" component={NotificationsScreen} />
-            <Stack.Screen name="AllEmergencies" component={AllEmergenciesScreen} />
+            <Stack.Screen
+              name="DonationEligibility"
+              component={DonationEligibilityScreen}
+            />
+            <Stack.Screen
+              name="UpcomingAppointment"
+              component={UpcomingAppointmentScreen}
+            />
+            <Stack.Screen
+              name="Notifications"
+              component={NotificationsScreen}
+            />
+            <Stack.Screen
+              name="AllEmergencies"
+              component={AllEmergenciesScreen}
+            />
             <Stack.Screen name="AllCampaigns" component={AllCampaignsScreen} />
-            <Stack.Screen name="CampaignDashboard" component={CampaignDashboardScreen} />
+            <Stack.Screen
+              name="CampaignDashboard"
+              component={CampaignDashboardScreen}
+            />
             <Stack.Screen name="QRScanner" component={QRScannerScreen} />
-            <Stack.Screen name="CreateCampaign" component={CreateCampaignScreen} />
+            <Stack.Screen
+              name="CreateCampaign"
+              component={CreateCampaignScreen}
+            />
           </>
         ) : (
           // Screens for unauthenticated users - simplified flow

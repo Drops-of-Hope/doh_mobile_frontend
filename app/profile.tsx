@@ -3,7 +3,7 @@ import { Button, View, Text } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
 export default function Profile() {
-  const [authState, setAuthState] = useState(null);
+  const [authState, setAuthState] = useState<any>(null);
 
   useEffect(() => {
     const fetchAuthState = async () => {
@@ -26,7 +26,7 @@ export default function Profile() {
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       {authState ? (
         <>
-          <Text>Welcome, {authState.id_token}</Text>
+          <Text>Welcome, {authState?.id_token || "User"}</Text>
           <Button title="Logout" onPress={handleLogout} />
         </>
       ) : (
