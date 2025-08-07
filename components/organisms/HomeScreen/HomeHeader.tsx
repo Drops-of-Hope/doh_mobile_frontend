@@ -25,7 +25,6 @@ export default function HomeHeader({
         donorLevel={donorLevel}
         onLogout={onLogout}
       />
-      <SearchBar value={searchText} onChangeText={onSearchTextChange} />
     </View>
   );
 }

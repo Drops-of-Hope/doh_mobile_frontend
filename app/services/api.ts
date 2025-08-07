@@ -1,6 +1,6 @@
 // API configuration and base setup
 // IMPORTANT: Replace 'YOUR_LOCAL_IP' with your laptop's actual local IP address on your network
-export const API_BASE_URL = "http://192.168.1.102:5000/api";
+export const API_BASE_URL = "http://192.168.1.104:5000/api";
 // Example: const API_BASE_URL = "http://192.168.1.10:5000/api";
 // 'localhost' will NOT work on a real device; use your laptop's IP address instead.
 
@@ -59,7 +59,8 @@ export const apiRequest = async (
   options: RequestInit = {}
 ): Promise<any> => {
   const url = `${API_BASE_URL}${endpoint}`;
-
+  console.log("API Request:", { url, options });
+  
   const defaultHeaders = {
     "Content-Type": "application/json",
   };
@@ -97,7 +98,19 @@ export const setAuthToken = async (token: string) => {
 
 export const getAuthToken = async (): Promise<string | null> => {
   try {
-    return await SecureStore.getItemAsync("accessToken");
+    // First try to get from accessToken (legacy)
+    let token = await SecureStore.getItemAsync("accessToken");
+    
+    if (!token) {
+      // If not found, get from authState (current auth system)
+      const authState = await SecureStore.getItemAsync("authState");
+      if (authState) {
+        const parsedAuthState = JSON.parse(authState);
+        token = parsedAuthState.accessToken;
+      }
+    }
+    
+    return token;
   } catch (error) {
     console.error("Failed to retrieve auth token:", error);
     return null;

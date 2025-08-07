@@ -8,6 +8,11 @@ import React, {
 
 // Import auth functions individually to avoid circular dependencies
 import * as SecureStore from "expo-secure-store";
+import {
+  clearAllUserData,
+  debugUserIds,
+  validateUserDataConsistency,
+} from "../utils/userDataUtils";
 
 interface UserInfo {
   sub: string;
@@ -84,6 +89,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log("AuthContext: Getting current user...");
           const currentUser = await getCurrentUser();
           console.log("AuthContext: Current user:", currentUser);
+          console.log("AuthContext: Current user sub (ID):", currentUser?.sub);
+
+          // Debug current user data consistency
+          await debugUserIds();
+          const isConsistent = await validateUserDataConsistency();
+
+          if (!isConsistent) {
+            console.log(
+              "AuthContext: User data inconsistency detected, clearing all data"
+            );
+            await clearAllUserData();
+          }
+
+          // Clear any stored user data from previous sessions if the user ID has changed
+          if (user && currentUser && user.sub !== currentUser.sub) {
+            console.log(
+              "AuthContext: User ID changed, clearing stored user data"
+            );
+            console.log("AuthContext: Previous user ID:", user.sub);
+            console.log("AuthContext: New user ID:", currentUser.sub);
+
+            await clearAllUserData();
+          }
 
           setIsAuthenticatedState(true);
           setUser(currentUser);
@@ -92,22 +120,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log("AuthContext: Auth invalid, clearing state...");
           setIsAuthenticatedState(false);
           setUser(null);
+
+          // Also clear stored user data when auth is invalid
+          await clearAllUserData();
+
           console.log("Auth state invalid, user needs to re-authenticate");
         }
       } catch (authError: any) {
         console.error(
           "AuthContext: Auth operation failed silently:",
-          authError?.message,
+          authError?.message
         );
         // Always clear state on any auth error to prevent undefined behavior
         setIsAuthenticatedState(false);
         setUser(null);
+        await clearAllUserData();
       }
     } catch (error: any) {
       console.error("AuthContext: Critical error in refresh process:", error);
       // Absolutely ensure we clear state on any error
       setIsAuthenticatedState(false);
       setUser(null);
+      await clearAllUserData();
     } finally {
       setIsLoading(false);
       console.log("AuthContext: Auth refresh completed, loading:", false);
@@ -130,6 +164,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Call the enhanced logout that handles Asgardeo session termination
       await authLogout();
 
+      // Clear stored user data
+      await clearAllUserData();
+
       // Update local state
       setUser(null);
       setIsAuthenticatedState(false);
@@ -141,6 +178,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Even if logout fails, clear local state to ensure user is logged out locally
       setUser(null);
       setIsAuthenticatedState(false);
+
+      // Also clear stored data on logout error
+      await clearAllUserData();
     }
   };
 

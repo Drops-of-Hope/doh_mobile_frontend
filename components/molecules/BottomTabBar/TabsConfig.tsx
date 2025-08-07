@@ -79,7 +79,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
       },
       {
         id: "Profile",
-        label: "Account",
+        label: "Profile",
         isActive: activeTab === "account",
         icon: (
           <PersonIcon

@@ -26,20 +26,17 @@ export interface AppointmentSlot {
 export interface Appointment {
   id: string;
   donorId: string;
-  bdfId: string;
+  bdfId?: string;
   scheduled: "CANCELLED" | "COMPLETED" | "PENDING";
-  appointmentDateTime: string;
-  medicalEstablishment?: MedicalEstablishment;
-  appointmentSlot?: AppointmentSlot;
+  appointmentDate: Date;
+  slotId: string;
 }
 
 // Appointment booking request interface
 export interface AppointmentBookingRequest {
-  district: District;
-  medicalEstablishmentId: string;
-  appointmentDate: string;
-  appointmentSlotId: string;
   donorId: string;
+  slotId: string;
+  appointmentDate: string;
 }
 
 // Appointment service
@@ -92,11 +89,12 @@ export const appointmentService = {
     }
   },
 
-  // Book an appointment
-  bookAppointment: async (
+  // Create an appointment
+  createAppointment: async (
     bookingRequest: AppointmentBookingRequest
   ): Promise<Appointment> => {
     try {
+      console.log("Booking request:", bookingRequest);
       const response = await apiRequest(
         `${API_ENDPOINTS.APPOINTMENTS}/createAppointments`,
         {
@@ -129,7 +127,8 @@ export const appointmentService = {
           donorId: userId,
           bdfId: "bdf-001",
           scheduled: "PENDING",
-          appointmentDateTime: "2025-08-15T09:00:00.000Z",
+          slotId: "slot-001",
+          appointmentDate: new Date("2025-08-15"),
         },
       ];
 
@@ -164,7 +163,7 @@ export const appointmentService = {
         {
           method: "PUT",
           body: JSON.stringify({
-            appointmentSlotId: newSlotId,
+            slotId: newSlotId,
             appointmentDate: newDate,
           }),
         }

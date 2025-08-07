@@ -33,6 +33,11 @@ import {
 import { useAuth, USER_ROLES } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuthUser } from "../../hooks/useAuthUser";
+import {
+  debugUserIds,
+  validateUserDataConsistency,
+  clearAllUserData,
+} from "../../utils/userDataUtils";
 
 // Import the profile completion screen
 import ProfileCompletionScreen from "../ProfileCompletionScreen";
@@ -45,7 +50,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // Auth and Language
   const { user, userRole, logout, hasRole, getFullName } = useAuth();
   const { t } = useLanguage();
-    // Initialize auth user hook
+  // Initialize auth user hook
   const { getStoredUserData, processAuthUser } = useAuthUser();
 
   // State management
@@ -77,36 +82,39 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         try {
           // Check if we have stored user data
           const storedUserData = await getStoredUserData();
-          
+
           if (!storedUserData) {
             // User is authenticated but not in our database
             // Process the auth user (create or login)
             console.log("🔄 Processing auth user for database creation...");
             console.log("👤 User data from AuthContext:", user);
-            
+
             // Transform user data to the format expected by processAuthUser
             const authData = {
               sub: user.sub,
               email: user.email,
-              birthdate: user.birthdate || '',
-              family_name: user.family_name || user.name.split(' ').slice(-1)[0] || '',
-              given_name: user.given_name || user.name.split(' ')[0] || '',
+              birthdate: user.birthdate || "",
+              family_name:
+                user.family_name || user.name.split(" ").slice(-1)[0] || "",
+              given_name: user.given_name || user.name.split(" ")[0] || "",
               roles: user.roles || [],
               updated_at: user.updated_at || Date.now(),
               username: user.username || user.email,
             };
-            
+
             console.log("📡 Sending auth data to backend:", authData);
-            
+
             try {
               const result = await processAuthUser(authData);
               console.log("✅ Backend response:", result);
-              
+
               // After processing, reload user data which will trigger profile completion if needed
               await loadUserData();
             } catch (error) {
               console.error("❌ Backend API call failed:", error);
-              console.error("🔍 This likely means the backend endpoints don't exist yet");
+              console.error(
+                "🔍 This likely means the backend endpoints don't exist yet"
+              );
             }
           }
         } catch (error) {
@@ -121,31 +129,82 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const loadUserData = async () => {
     try {
       setIsLoadingProfile(true);
-      
+
       if (user) {
+        console.log("ProfileScreen: Loading user data for user ID:", user.sub);
+        console.log("ProfileScreen: Current user from AuthContext:", user);
+
+        // Debug user data consistency
+        await debugUserIds();
+        const isConsistent = await validateUserDataConsistency();
+
+        if (!isConsistent) {
+          console.log(
+            "ProfileScreen: User data inconsistency detected, clearing all data"
+          );
+          await clearAllUserData();
+
+          // Use mock data after clearing
+          const mockData = getMockUserData(user, getFullName);
+          setUserData({
+            ...mockData,
+            membershipType: getRoleMembershipType(userRole),
+          });
+          return;
+        }
+
         // First, get stored user data from auth service
         const storedUserData = await getStoredUserData();
-        
+        console.log("ProfileScreen: Stored user data:", storedUserData);
+
         if (storedUserData) {
+          console.log(
+            "ProfileScreen: Using stored user data for user ID:",
+            storedUserData.id
+          );
+
+          // Verify the stored data matches the current authenticated user
+          if (storedUserData.id !== user.sub) {
+            console.warn("ProfileScreen: Stored user data ID mismatch!");
+            console.warn("ProfileScreen: Expected user ID:", user.sub);
+            console.warn("ProfileScreen: Stored user ID:", storedUserData.id);
+            console.warn("ProfileScreen: Clearing mismatched stored data...");
+
+            // Clear the mismatched data
+            await clearAllUserData();
+
+            // Fallback to mock data with correct user info
+            const mockData = getMockUserData(user, getFullName);
+            setUserData({
+              ...mockData,
+              membershipType: getRoleMembershipType(userRole),
+            });
+
+            return;
+          }
+
           // Check if profile needs completion
           const needsCompletion = !storedUserData.isProfileComplete;
-          
+
           if (needsCompletion) {
+            console.log("ProfileScreen: Profile needs completion");
             setShowProfileCompletion(true);
             return;
           }
 
           // Update userData with real data
+          console.log("ProfileScreen: Setting user data from stored data");
           setUserData({
             name: storedUserData.name,
             email: storedUserData.email,
             bloodType: storedUserData.bloodGroup || "Unknown",
             mobileNumber: "Not provided", // We don't have this in auth data
             donationBadge: storedUserData.donationBadge as any,
-            imageUri: "https://example.com/profile-image.jpg",
+            imageUri: "https://preview.redd.it/i-love-this-girl-please-give-me-all-your-lupa-screenshots-v0-pi1gbw98vv6f1.png?width=1080&format=png&auto=webp&s=c9027c37af9690e627905354c3183f94a17ff5e8",
             membershipType: getRoleMembershipType(userRole),
           });
         } else {
+          console.log("ProfileScreen: No stored user data, using auth data");
           // Fallback to mock data if no stored data
           const mockData = getMockUserData(user, getFullName);
           setUserData({
@@ -155,9 +214,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         }
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
+      console.error("ProfileScreen: Error loading user data:", error);
       // Fallback to mock data on error
       if (user) {
+        console.log("ProfileScreen: Using fallback mock data due to error");
         const mockData = getMockUserData(user, getFullName);
         setUserData({
           ...mockData,
@@ -269,7 +329,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
       {showProfileCompletion ? (
         <ProfileCompletionScreen
-          userId={user?.sub || ''}
+          userId={user?.sub || ""}
           onComplete={(userInfo) => {
             console.log("🎉 Profile completion successful:", userInfo);
             setShowProfileCompletion(false);
@@ -281,7 +341,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           }}
         />
       ) : isLoadingProfile ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <Text>Loading profile...</Text>
         </View>
       ) : (
@@ -290,15 +352,24 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
           >
-            <ProfileHeader userData={userData} onEditProfile={handleEditProfile} />
+            <ProfileHeader
+              userData={userData}
+              onEditProfile={handleEditProfile}
+            />
 
-            <MenuSection menuItems={menuItems} onItemPress={handleMenuItemPress} />
+            <MenuSection
+              menuItems={menuItems}
+              onItemPress={handleMenuItemPress}
+            />
 
             <View style={styles.bottomPadding} />
           </ScrollView>
 
           {/* Modals */}
-          <LanguageModal visible={showLanguageModal} onClose={closeLanguageModal} />
+          <LanguageModal
+            visible={showLanguageModal}
+            onClose={closeLanguageModal}
+          />
 
           <FAQModal visible={showFAQModal} onClose={closeFAQModal} />
 

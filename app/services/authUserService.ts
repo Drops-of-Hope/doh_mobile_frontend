@@ -138,21 +138,19 @@ class AuthUserService {
 
   /**
    * Get user profile by ID
+   * Note: This method is for getting specific user profiles by ID.
+   * For getting the current authenticated user's profile, use userService.getUserProfile() instead.
    */
   async getUserProfile(userId: string): Promise<any> {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      // Import the API function to use proper authentication
+      const { apiRequestWithAuth } = await import('./api');
+      
+      const response = await apiRequestWithAuth(`/users/${userId}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to get user profile: ${response.statusText}`);
-      }
-
-      return await response.json();
+      return response;
     } catch (error) {
       console.error('Error getting user profile:', error);
       throw error;
