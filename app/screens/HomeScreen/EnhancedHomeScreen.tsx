@@ -12,7 +12,6 @@ import {
 
 // Import existing components
 import BottomTabBar from "../../../components/organisms/BottomTabBar";
-import HomeHeader from "../../../components/organisms/HomeScreen/HomeHeader";
 import StatsCard from "../../../components/molecules/HomeScreen/StatsCard";
 import ComponentRow from "../../../components/molecules/HomeScreen/ComponentRow";
 import EmergenciesSection from "../../../components/organisms/HomeScreen/EmergenciesSection";
@@ -218,14 +217,6 @@ export default function EnhancedHomeScreen({ navigation }: EnhancedHomeScreenPro
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <HomeHeader
-          firstName={getFirstName()}
-          searchText={searchText}
-          onSearchTextChange={setSearchText}
-          onLogout={logout}
-        />
-
         {/* Stats Section */}
         {homeData?.userStats && (
           <StatsCard

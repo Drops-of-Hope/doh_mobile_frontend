@@ -22,6 +22,8 @@ import {
   formatDistrictName,
 } from "../../../constants";
 import { getAppointmentService } from "../../../app/services/appointmentConfig";
+import { useContext } from "react";
+import { useAuth } from "../../../app/context/AuthContext";
 
 interface AppointmentBookingFormProps {
   onClose: () => void;
@@ -36,13 +38,13 @@ export default function AppointmentBookingForm({
     "district" | "establishment" | "date" | "time" | "summary"
   >("district");
   const [selectedDistrict, setSelectedDistrict] = useState<District | null>(
-    null,
+    null
   );
   const [selectedEstablishment, setSelectedEstablishment] =
     useState<MedicalEstablishment | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(
-    null,
+    null
   );
 
   const [medicalEstablishments, setMedicalEstablishments] = useState<
@@ -95,13 +97,14 @@ export default function AppointmentBookingForm({
     setLoading(true);
     try {
       const service = getAppointmentService();
-      const establishments =
-        await service.getMedicalEstablishmentsByDistrict(selectedDistrict);
+      const establishments = await service.getMedicalEstablishmentsByDistrict(
+        selectedDistrict
+      );
       setMedicalEstablishments(establishments);
     } catch (error) {
       Alert.alert(
         "Error",
-        "Failed to load medical establishments. Please try again.",
+        "Failed to load medical establishments. Please try again."
       );
       console.error("Error loading medical establishments:", error);
     } finally {
@@ -117,13 +120,13 @@ export default function AppointmentBookingForm({
       const service = getAppointmentService();
       const slots = await service.getAvailableSlots(
         selectedEstablishment.id,
-        selectedDate,
+        selectedDate
       );
       setAvailableSlots(slots);
     } catch (error) {
       Alert.alert(
         "Error",
-        "Failed to load available time slots. Please try again.",
+        "Failed to load available time slots. Please try again."
       );
       console.error("Error loading slots:", error);
     } finally {
@@ -157,6 +160,7 @@ export default function AppointmentBookingForm({
     setCurrentStep("summary");
   };
 
+  const { user } = useAuth();
   const handleBookAppointment = async () => {
     if (
       !selectedDistrict ||
@@ -170,21 +174,22 @@ export default function AppointmentBookingForm({
 
     setLoading(true);
     try {
+      // Get donorId from AuthProvider
+      // (Assumes you have AuthProvider set up and provides a user object with a 'sub' property)
+
       const bookingRequest: AppointmentBookingRequest = {
-        district: selectedDistrict,
-        medicalEstablishmentId: selectedEstablishment.id,
         appointmentDate: selectedDate,
-        appointmentSlotId: selectedSlot.id,
-        donorId: "user-123", // This should come from auth context
+        slotId: selectedSlot.id,
+        donorId: user?.sub ?? "N/A",
       };
 
       const service = getAppointmentService();
-      await service.bookAppointment(bookingRequest);
+      await service.createAppointment(bookingRequest);
 
       Alert.alert(
         "Appointment Booked!",
         `Your appointment has been scheduled for ${selectedDate} at ${selectedSlot.startTime}-${selectedSlot.endTime} at ${selectedEstablishment.name}.\n\nYou will receive a confirmation shortly.`,
-        [{ text: "OK", onPress: onBookingSuccess }],
+        [{ text: "OK", onPress: onBookingSuccess }]
       );
     } catch (error) {
       Alert.alert("Error", "Failed to book appointment. Please try again.");

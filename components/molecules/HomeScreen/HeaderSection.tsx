@@ -10,7 +10,7 @@ interface HeaderSectionProps {
 
 export default function HeaderSection({
   firstName,
-  donorLevel = "Silver Donor",
+  donorLevel = "Bronze Donor",
   onLogout,
 }: HeaderSectionProps) {
   return (
