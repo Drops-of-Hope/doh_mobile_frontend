@@ -26,13 +26,48 @@ export interface DonationFormData {
   feverLymphNode: boolean;
 }
 
+// Enhanced interfaces for donation flow
+export interface AttendanceResponse {
+  success: boolean;
+  campaignTitle?: string;
+  message: string;
+}
+
+export interface DonationStatusResponse {
+  attendanceMarked: boolean;
+  formStatus: 'not_filled' | 'filled' | 'submitted';
+  screeningStatus: 'pending' | 'in_progress' | 'approved' | 'rejected';
+  eligibleForDonation: boolean;
+  campaignTitle?: string;
+}
+
+export interface DonationFormSubmissionData {
+  userId: string;
+  formData: DonationFormData;
+}
+
 // Donation service functions
 export const donationService = {
-  // Submit donation form
-  submitDonationForm: async (formData: DonationFormData): Promise<any> => {
+  // Mark attendance when QR is scanned
+  markAttendance: async (userId: string, scannedBy: 'hospital' | 'campaign'): Promise<AttendanceResponse> => {
+    return apiRequestWithAuth(API_ENDPOINTS.MARK_ATTENDANCE, {
+      method: "POST",
+      body: JSON.stringify({ userId, scannedBy }),
+    });
+  },
+
+  // Get current donation status for user
+  getDonationStatus: async (userId: string): Promise<DonationStatusResponse> => {
+    return apiRequestWithAuth(`${API_ENDPOINTS.DONATION_FORM}/status/${userId}`, {
+      method: "GET",
+    });
+  },
+
+  // Submit donation form with user ID
+  submitDonationForm: async (userId: string, formData: DonationFormData): Promise<any> => {
     return apiRequestWithAuth(API_ENDPOINTS.DONATION_FORM, {
       method: "POST",
-      body: JSON.stringify(formData),
+      body: JSON.stringify({ userId, formData }),
     });
   },
 

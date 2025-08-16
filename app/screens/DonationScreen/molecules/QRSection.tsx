@@ -2,11 +2,15 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ActionButton from "../atoms/ActionButton";
+import StepCards from "./StepCards";
 import { UserProfile } from "../types";
+import { DonationStatusResponse } from "../../../services/donationService";
 
 interface QRSectionProps {
   userProfile: UserProfile | null;
   attendanceMarked: boolean;
+  qrScanned: boolean;
+  donationStatus: DonationStatusResponse | null;
   onShowQR: () => void;
   onShowForm: () => void;
   onMarkAttendance: () => void;
@@ -15,6 +19,8 @@ interface QRSectionProps {
 export default function QRSection({
   userProfile,
   attendanceMarked,
+  qrScanned,
+  donationStatus,
   onShowQR,
   onShowForm,
   onMarkAttendance,
@@ -34,11 +40,21 @@ export default function QRSection({
       <View style={styles.qrActions}>
         {!attendanceMarked ? (
           <>
-            <ActionButton
-              title="Show QR Code"
-              icon="qr-code"
-              onPress={onShowQR}
-            />
+            {/* Only show QR code button if not yet scanned, or show "Show QR" button if already scanned once */}
+            {!qrScanned ? (
+              <ActionButton
+                title="Show QR Code"
+                icon="qr-code"
+                onPress={onShowQR}
+              />
+            ) : (
+              <ActionButton
+                title="Show QR"
+                icon="qr-code"
+                onPress={onShowQR}
+                variant="secondary"
+              />
+            )}
 
             <ActionButton
               title="Simulate QR Scan"
@@ -48,11 +64,24 @@ export default function QRSection({
             />
           </>
         ) : (
-          <ActionButton
-            title="Fill Donation Form"
-            icon="document-text"
-            onPress={onShowForm}
-          />
+          <>
+            {/* Show QR button after attendance is marked */}
+            <ActionButton
+              title="Show QR"
+              icon="qr-code"
+              onPress={onShowQR}
+              variant="secondary"
+            />
+            
+            {/* Show form button only if eligible */}
+            {donationStatus?.eligibleForDonation && (
+              <ActionButton
+                title="Fill Donation Form"
+                icon="document-text"
+                onPress={onShowForm}
+              />
+            )}
+          </>
         )}
       </View>
 
@@ -79,6 +108,12 @@ export default function QRSection({
           </Text>
         </View>
       )}
+
+      {/* Show step cards after attendance is marked */}
+      <StepCards 
+        donationStatus={donationStatus} 
+        isVisible={attendanceMarked} 
+      />
     </View>
   );
 }

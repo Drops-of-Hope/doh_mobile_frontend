@@ -16,11 +16,13 @@ const StyledScrollView = styled(ScrollView);
 interface DonationFormProps {
   onSubmitSuccess?: () => void;
   onCancel?: () => void;
+  userId?: string;
 }
 
 const DonationForm: React.FC<DonationFormProps> = ({
   onSubmitSuccess,
   onCancel,
+  userId,
 }) => {
   const { t, currentLanguage, setLanguage } = useLanguage();
   const [formLanguage, setFormLanguage] = useState<"en" | "si" | "ta">(
@@ -96,11 +98,20 @@ const DonationForm: React.FC<DonationFormProps> = ({
       return;
     }
 
+    if (!userId) {
+      Alert.alert(
+        t("donation.submit_error"),
+        "User ID is required to submit the donation form.",
+        [{ text: t("common.ok") }],
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Try to submit to API, but fallback to offline mode for demo
+      // Try to submit to API with userId
       try {
-        await donationService.submitDonationForm(formData);
+        await donationService.submitDonationForm(userId, formData);
       } catch (apiError) {
         // Simulate offline submission - in a real app, you'd queue this for later sync
         console.log(

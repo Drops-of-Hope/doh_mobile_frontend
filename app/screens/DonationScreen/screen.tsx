@@ -24,7 +24,7 @@ import BottomTabBar from "../../../components/organisms/BottomTabBar";
 // Import types and utilities
 import { TabType, UserProfile, Appointment } from "./types";
 import { getMockAppointments, getMockUserProfile } from "./utils";
-import { donationService } from "../../services/donationService";
+import { donationService, DonationStatusResponse } from "../../services/donationService";
 
 interface DonationScreenProps {
   navigation?: any;
@@ -39,9 +39,11 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [attendanceMarked, setAttendanceMarked] = useState(false);
+  const [qrScanned, setQrScanned] = useState(false);
+  const [donationStatus, setDonationStatus] = useState<DonationStatusResponse | null>(null);
   const [appointments] = useState<Appointment[]>(getMockAppointments());
 
-  // Load user profile
+  // Load user profile and donation status
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
@@ -49,6 +51,11 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
         // Use mock profile for now since service profile structure is different
         const profile = getMockUserProfile();
         setUserProfile(profile);
+        
+        // Load donation status if we have a user ID
+        if (profile.id) {
+          await loadDonationStatus(profile.id);
+        }
       } catch (error) {
         console.error("Error loading profile:", error);
         setUserProfile(getMockUserProfile());
@@ -59,6 +66,24 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
 
     loadUserProfile();
   }, []);
+
+  // Load donation status
+  const loadDonationStatus = async (userId: string) => {
+    try {
+      const status = await donationService.getDonationStatus(userId);
+      setDonationStatus(status);
+      setAttendanceMarked(status.attendanceMarked);
+    } catch (error) {
+      console.error("Failed to load donation status:", error);
+      // Set default status on error
+      setDonationStatus({
+        attendanceMarked: false,
+        formStatus: 'not_filled',
+        screeningStatus: 'pending',
+        eligibleForDonation: userProfile?.eligibleForDonation || false,
+      });
+    }
+  };
 
   // Modal handlers
   const handleShowQR = () => {
@@ -81,8 +106,8 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
     setShowBookingModal(true);
   };
 
-  const handleMarkAttendance = () => {
-    if (attendanceMarked) return;
+  const handleMarkAttendance = async () => {
+    if (attendanceMarked || !userProfile) return;
 
     // Simulate QR scan process
     Alert.alert(
@@ -91,12 +116,36 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
       [
         {
           text: "Mark Attendance",
-          onPress: () => {
-            setAttendanceMarked(true);
-            Alert.alert(
-              "Success",
-              "Your attendance has been marked! You can now fill the donation form."
-            );
+          onPress: async () => {
+            try {
+              // Call API to mark attendance
+              const response = await donationService.markAttendance(userProfile.id, 'hospital');
+              
+              if (response.success) {
+                setAttendanceMarked(true);
+                setQrScanned(true);
+                
+                // Reload donation status
+                await loadDonationStatus(userProfile.id);
+                
+                const message = response.campaignTitle 
+                  ? `Your attendance at ${response.campaignTitle} has been recorded.`
+                  : "Attendance recorded at hospital.";
+                
+                Alert.alert("Success", message);
+              } else {
+                Alert.alert("Error", response.message || "Failed to mark attendance");
+              }
+            } catch (error) {
+              console.error("Failed to mark attendance:", error);
+              // Fallback to simulate for demo
+              setAttendanceMarked(true);
+              setQrScanned(true);
+              Alert.alert(
+                "Success",
+                "Your attendance has been marked! You can now fill the donation form."
+              );
+            }
           },
         },
         {
@@ -120,17 +169,39 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
     );
   };
 
-  const handleFormSubmit = () => {
-    Alert.alert(
-      "Form Submitted",
-      "Your donation form has been submitted successfully. Thank you for your contribution!",
-      [
-        {
-          text: "OK",
-          onPress: () => setShowFormModal(false),
-        },
-      ]
-    );
+  const handleFormSubmit = async () => {
+    if (!userProfile) {
+      Alert.alert("Error", "User profile not found");
+      return;
+    }
+
+    try {
+      // This will be called from the DonationForm component, but we need to update the status
+      await loadDonationStatus(userProfile.id);
+      
+      Alert.alert(
+        "Form Submitted",
+        "Application submitted successfully. Please proceed to medical screening.",
+        [
+          {
+            text: "OK",
+            onPress: () => setShowFormModal(false),
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Form submission error:", error);
+      Alert.alert(
+        "Form Submitted",
+        "Your donation form has been submitted successfully. Thank you for your contribution!",
+        [
+          {
+            text: "OK",
+            onPress: () => setShowFormModal(false),
+          },
+        ]
+      );
+    }
   };
 
   if (loading) {
@@ -157,6 +228,8 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
           <QRSection
             userProfile={userProfile}
             attendanceMarked={attendanceMarked}
+            qrScanned={qrScanned}
+            donationStatus={donationStatus}
             onShowQR={handleShowQR}
             onShowForm={handleShowForm}
             onMarkAttendance={handleMarkAttendance}
@@ -182,6 +255,7 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
         visible={showFormModal}
         onClose={() => setShowFormModal(false)}
         onSubmit={handleFormSubmit}
+        userId={userProfile?.id}
       />
 
       <AppointmentBookingModal
