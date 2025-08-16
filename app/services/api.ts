@@ -1,6 +1,6 @@
 // API configuration and base setup
 // IMPORTANT: Replace 'YOUR_LOCAL_IP' with your laptop's actual local IP address on your network
-export const API_BASE_URL = "http://192.168.1.104:5000/api";
+export const API_BASE_URL = "http://192.168.1.121:5000/api";
 // Example: const API_BASE_URL = "http://192.168.1.10:5000/api";
 // 'localhost' will NOT work on a real device; use your laptop's IP address instead.
 

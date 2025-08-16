@@ -23,7 +23,8 @@ import BottomTabBar from "../../../components/organisms/BottomTabBar";
 
 // Import types and utilities
 import { TabType, UserProfile, Appointment } from "./types";
-import { getMockAppointments, getMockUserProfile } from "./utils";
+import { getMockAppointments } from "./utils";
+import { useAuth } from "../../context/AuthContext";
 import { donationService } from "../../services/donationService";
 
 interface DonationScreenProps {
@@ -38,27 +39,55 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user, isAuthenticated, refreshAuthState, getFullName } = useAuth();
   const [attendanceMarked, setAttendanceMarked] = useState(false);
   const [appointments] = useState<Appointment[]>(getMockAppointments());
 
   // Load user profile
+  // Refresh auth state once on mount. Calling this repeatedly when `user`
+  // changes caused a feedback loop (refresh -> setUser -> effect -> refresh).
   useEffect(() => {
-    const loadUserProfile = async () => {
+    (async () => {
       try {
-        setLoading(true);
-        // Use mock profile for now since service profile structure is different
-        const profile = getMockUserProfile();
-        setUserProfile(profile);
+        await refreshAuthState();
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
+
+  // Map the auth user to the local UserProfile whenever the auth user changes.
+  useEffect(() => {
+    const mapAuthUserToProfile = () => {
+      setLoading(true);
+      try {
+        if (!user) {
+          setUserProfile(null);
+          return;
+        }
+
+        // Map fields from AuthContext user to screen UserProfile
+        const mapped: UserProfile = {
+          id: user.sub || user.id || "",
+          name: user.name || getFullName(),
+          email: user.email || user.username || "",
+          bloodType: user.blood_group || user.bloodGroup || "O+",
+          lastDonationDate: user.last_donation_date || undefined,
+          totalDonations: (user as any).totalDonations || 0,
+          eligibleForDonation: (user as any).eligibleForDonation ?? true,
+        };
+
+        setUserProfile(mapped);
       } catch (error) {
-        console.error("Error loading profile:", error);
-        setUserProfile(getMockUserProfile());
+        console.error("Error mapping auth user to profile:", error);
+        setUserProfile(null);
       } finally {
         setLoading(false);
       }
     };
 
-    loadUserProfile();
-  }, []);
+    mapAuthUserToProfile();
+  }, [user, isAuthenticated]);
 
   // Modal handlers
   const handleShowQR = () => {
