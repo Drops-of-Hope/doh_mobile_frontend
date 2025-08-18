@@ -1,4 +1,5 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
+import { getCurrentUser } from "./auth";
 
 // User profile interface aligned with Prisma `User` model
 export interface UserProfile {
@@ -147,8 +148,20 @@ export const donationService = {
       userId: formData.userId,
     };
 
-    // Ensure we include the userId so backend can associate the submission
-    let userIdToSend = transformedPayload.userId;
+    // Ensure we include the userId so backend can associate the submission.
+    // Prefer the authenticated user's `sub` from the local auth state (faster, avoids network).
+    let userIdToSend = transformedPayload.userId || transformedPayload.donorId;
+
+    if (!userIdToSend) {
+      try {
+        const currentUser = await getCurrentUser();
+        if (currentUser && currentUser.sub) {
+          userIdToSend = currentUser.sub;
+        }
+      } catch (err) {
+        // ignore - will try profile fetch next
+      }
+    }
 
     if (!userIdToSend) {
       try {
@@ -158,8 +171,6 @@ export const donationService = {
 
         if (profile && (profile.id || profile.sub)) {
           userIdToSend = profile.id || profile.sub;
-          transformedPayload.userId = userIdToSend;
-          transformedPayload.donorId = userIdToSend;
         }
       } catch (err) {
         // If fetching profile fails, log and continue; payload will be sent without userId
@@ -169,6 +180,13 @@ export const donationService = {
         );
       }
     }
+
+    if (userIdToSend) {
+      transformedPayload.userId = userIdToSend;
+      transformedPayload.donorId = userIdToSend;
+    }
+
+    console.log("Submitting donation form with payload:", transformedPayload);
 
     return apiRequestWithAuth(API_ENDPOINTS.DONATION_FORM, {
       method: "POST",
