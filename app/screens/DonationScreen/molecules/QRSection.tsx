@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import ActionButton from "../atoms/ActionButton";
 import { UserProfile } from "../types";
+import { useLanguage } from "../../../context/LanguageContext";
 
 interface QRSectionProps {
   userProfile: UserProfile | null;
@@ -19,6 +21,8 @@ export default function QRSection({
   onShowForm,
   onMarkAttendance,
 }: QRSectionProps) {
+  const { t } = useLanguage();
+
   return (
     <View style={styles.qrSection}>
       <View style={styles.qrHeader}>
@@ -57,26 +61,55 @@ export default function QRSection({
       </View>
 
       {userProfile && (
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileTitle}>Your Profile</Text>
-          <Text style={styles.profileDetail}>Name: {userProfile.name}</Text>
-          <Text style={styles.profileDetail}>
-            Blood Type: {userProfile.bloodType}
-          </Text>
-          <Text style={styles.profileDetail}>
-            Total Donations: {userProfile.totalDonations}
-          </Text>
-          <Text
-            style={[
-              styles.profileDetail,
-              {
-                color: userProfile.eligibleForDonation ? "#10B981" : "#EF4444",
-              },
-            ]}
+        <View style={styles.profileCardContainer}>
+          <LinearGradient
+            colors={['#EF4444', '#DC2626', '#B91C1C']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
           >
-            Status:{" "}
-            {userProfile.eligibleForDonation ? "Eligible" : "Not Eligible"}
-          </Text>
+            <View style={styles.profileInfo}>
+              <View style={styles.profileHeader}>
+                <Ionicons name="person-circle" size={24} color="#DC2626" />
+                <Text style={styles.profileTitle}>{t("donation.donor_eligibility")}</Text>
+              </View>
+              
+              <View style={styles.profileContent}>
+                <View style={styles.profileRow}>
+                  <Text style={styles.profileLabel}>{t("common.name")}:</Text>
+                  <Text style={styles.profileValue}>{userProfile.name}</Text>
+                </View>
+                
+                <View style={styles.profileRow}>
+                  <Text style={styles.profileLabel}>{t("home.blood_type")}:</Text>
+                  <Text style={styles.profileValue}>{userProfile.bloodType}</Text>
+                </View>
+                
+                <View style={styles.profileRow}>
+                  <Text style={styles.profileLabel}>{t("home.total_donations")}:</Text>
+                  <Text style={styles.profileValue}>{userProfile.totalDonations}</Text>
+                </View>
+                
+                <View style={styles.statusContainer}>
+                  <Ionicons 
+                    name={userProfile.eligibleForDonation ? "checkmark-circle" : "close-circle"} 
+                    size={16} 
+                    color={userProfile.eligibleForDonation ? "#10B981" : "#EF4444"} 
+                  />
+                  <Text
+                    style={[
+                      styles.statusText,
+                      {
+                        color: userProfile.eligibleForDonation ? "#10B981" : "#EF4444",
+                      },
+                    ]}
+                  >
+                    {userProfile.eligibleForDonation ? t("donation.eligible") : t("donation.not_eligible")}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
         </View>
       )}
     </View>
@@ -111,17 +144,72 @@ const styles = StyleSheet.create({
     gap: 16, // Increased gap between buttons
     marginTop: 20, // Added margin above buttons
   },
+  profileCardContainer: {
+    marginTop: 32,
+  },
+  gradientBorder: {
+    borderRadius: 16,
+    padding: 2, // This creates the border effect
+  },
   profileInfo: {
-    backgroundColor: "#F9FAFB",
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 32, // Increased margin
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
   },
   profileTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#1F2937",
-    marginBottom: 12,
+    marginLeft: 8,
+  },
+  profileContent: {
+    gap: 12,
+  },
+  profileRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 4,
+  },
+  profileLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#6B7280",
+    flex: 1,
+  },
+  profileValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F2937",
+    flex: 1,
+    textAlign: "right",
+  },
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+  },
+  statusText: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 6,
   },
   profileDetail: {
     fontSize: 14,

@@ -28,16 +28,9 @@ export const getMockAppointments = (): Appointment[] => [
   },
 ];
 
-// Mock user profile
-export const getMockUserProfile = (): UserProfile => ({
-  id: "12345",
-  name: "John Doe",
-  email: "john.doe@example.com",
-  bloodType: "O+",
-  lastDonationDate: "2023-12-20",
-  totalDonations: 8,
-  eligibleForDonation: true,
-});
+// NOTE: Removed mock user profile helper. The donation screen now uses the
+// authenticated user from AuthContext. If you need a test user while
+// developing, use the app's `TestingPanel` or inject a test auth state.
 
 // Generate QR code data
 export const generateQRData = (userProfile: UserProfile | null): string => {

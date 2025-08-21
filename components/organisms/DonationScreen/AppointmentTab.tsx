@@ -11,6 +11,7 @@ import NoticeCard from "../../atoms/DonationScreen/NoticeCard";
 import AppointmentCard, {
   AppointmentItem,
 } from "../../molecules/DonationScreen/AppointmentCard";
+import { useLanguage } from "../../../app/context/LanguageContext";
 
 interface AppointmentTabProps {
   appointments: AppointmentItem[];
@@ -21,6 +22,8 @@ export default function AppointmentTab({
   appointments,
   onBookAppointment,
 }: AppointmentTabProps) {
+  const { t } = useLanguage();
+  
   const upcomingAppointments = appointments.filter(
     (apt) => apt.status === "upcoming",
   );
@@ -31,9 +34,9 @@ export default function AppointmentTab({
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Make an Appointment</Text>
+        <Text style={styles.title}>{t("donation.appointment_tab_title")}</Text>
         <Text style={styles.subtitle}>
-          Schedule your blood donation appointment at a hospital or blood bank
+          {t("donation.appointment_tab_description")}
         </Text>
 
         <NoticeCard
@@ -44,7 +47,7 @@ export default function AppointmentTab({
 
         <TouchableOpacity style={styles.bookButton} onPress={onBookAppointment}>
           <Ionicons name="calendar" size={24} color="white" />
-          <Text style={styles.buttonText}>Book Appointment</Text>
+          <Text style={styles.buttonText}>{t("donation.book_appointment")}</Text>
         </TouchableOpacity>
 
         {appointments.length > 0 && (

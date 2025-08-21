@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   outline: {
-    backgroundColor: "transparent",
+    backgroundColor: "#FFFFFF",
     borderWidth: 2,
     borderColor: "#DC2626",
   },

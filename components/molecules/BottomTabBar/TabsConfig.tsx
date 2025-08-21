@@ -7,6 +7,7 @@ import {
   PersonIcon,
 } from "../../atoms/BottomTabBar/TabIcons";
 import { useRoleBasedAccess } from "../../../app/hooks/useRoleBasedAccess";
+import { useLanguage } from "../../../app/context/LanguageContext";
 
 interface TabsConfigProps {
   activeTab: string;
@@ -20,6 +21,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
     canManageCampaigns,
     currentRole,
   } = useRoleBasedAccess();
+  const { t } = useLanguage();
   const roleColors = getRoleColors();
 
   // Debug logging to understand role-based access
@@ -35,7 +37,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
     const allTabs = [
       {
         id: "Home",
-        label: "Home",
+        label: t("navigation.home"),
         isActive: activeTab === "home",
         icon: (
           <HomeIcon
@@ -46,7 +48,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
       },
       {
         id: "Donate",
-        label: "Donate",
+        label: t("navigation.donate"),
         isActive: activeTab === "donate",
         icon: (
           <DropIcon
@@ -57,7 +59,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
       },
       {
         id: "Explore",
-        label: "Explore",
+        label: t("navigation.explore"),
         isActive: activeTab === "explore",
         icon: (
           <SearchIcon
@@ -68,7 +70,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
       },
       {
         id: "Activities",
-        label: "Activities",
+        label: t("navigation.activities"),
         isActive: activeTab === "activities",
         icon: (
           <HeartIcon
@@ -79,7 +81,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
       },
       {
         id: "Profile",
-        label: "Profile",
+        label: t("navigation.profile"),
         isActive: activeTab === "account",
         icon: (
           <PersonIcon

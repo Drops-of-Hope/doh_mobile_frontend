@@ -3,6 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import StatsNumber from "../../atoms/HomeScreen/StatsNumber";
 import StatusIndicator from "../../atoms/HomeScreen/StatusIndicator";
+import { useLanguage } from "../../../app/context/LanguageContext";
 
 interface StatsCardProps {
   totalDonations: number;
@@ -17,12 +18,14 @@ export default function StatsCard({
   statusSubtitle = "You are eligible to donate",
   statusIcon = "checkmark-circle",
 }: StatsCardProps) {
+  const { t } = useLanguage();
+
   return (
     <View style={styles.statsCard}>
       <StatsNumber
         number={totalDonations}
-        label="Total"
-        secondaryLabel="Donations"
+        label={t("home.total_donations")}
+        secondaryLabel=""
       />
       <StatusIndicator
         title={statusTitle}

@@ -6,6 +6,7 @@ import {
   HeartIcon,
   PersonIcon,
 } from "./tabIcons";
+import { useLanguage } from "../app/context/LanguageContext";
 
 export interface TabItem {
   id: string;
@@ -20,27 +21,27 @@ export interface TabItem {
 export const TAB_CONFIG = {
   DONATE: {
     id: "donate",
-    label: "Donate",
+    getLabel: (t: (key: string) => string) => t("navigation.donate"),
     getIcon: (isActive = false) => <DropIcon isActive={isActive} />,
   },
   EXPLORE: {
     id: "explore",
-    label: "Explore",
+    getLabel: (t: (key: string) => string) => t("navigation.explore"),
     getIcon: (isActive = false) => <SearchIcon isActive={isActive} />,
   },
   HOME: {
     id: "home",
-    label: "Home",
+    getLabel: (t: (key: string) => string) => t("navigation.home"),
     getIcon: (isActive = false) => <HomeIcon isActive={isActive} />,
   },
   ACTIVITIES: {
     id: "activities",
-    label: "Activities",
+    getLabel: (t: (key: string) => string) => t("navigation.activities"),
     getIcon: (isActive = false) => <HeartIcon isActive={isActive} />,
   },
   ACCOUNT: {
     id: "account",
-    label: "Account",
+    getLabel: (t: (key: string) => string) => t("navigation.profile"),
     getIcon: (isActive = false) => <PersonIcon isActive={isActive} />,
   },
 } as const;
@@ -48,41 +49,48 @@ export const TAB_CONFIG = {
 // Helper function to create tab items with onPress handlers
 export const createTabItem = (
   tabConfig: (typeof TAB_CONFIG)[keyof typeof TAB_CONFIG],
+  t: (key: string) => string,
   onPress?: () => void,
   isActive = false,
 ): TabItem => ({
   id: tabConfig.id,
   icon: tabConfig.getIcon(isActive),
-  label: tabConfig.label,
+  label: tabConfig.getLabel(t),
   isActive,
   onPress,
 });
 
 // Common tab combinations for different screens
-export const createProfileScreenTabs = (handlers: {
-  onDonate?: () => void;
-  onExplore?: () => void;
-  onHome?: () => void;
-  onActivities?: () => void;
-  onAccount?: () => void;
-}): TabItem[] => [
-  createTabItem(TAB_CONFIG.DONATE, handlers.onDonate),
-  createTabItem(TAB_CONFIG.EXPLORE, handlers.onExplore),
-  createTabItem(TAB_CONFIG.HOME, handlers.onHome),
-  createTabItem(TAB_CONFIG.ACTIVITIES, handlers.onActivities),
-  createTabItem(TAB_CONFIG.ACCOUNT, handlers.onAccount, true), // Active for profile screen
+export const createProfileScreenTabs = (
+  t: (key: string) => string,
+  handlers: {
+    onDonate?: () => void;
+    onExplore?: () => void;
+    onHome?: () => void;
+    onActivities?: () => void;
+    onAccount?: () => void;
+  }
+): TabItem[] => [
+  createTabItem(TAB_CONFIG.DONATE, t, handlers.onDonate),
+  createTabItem(TAB_CONFIG.EXPLORE, t, handlers.onExplore),
+  createTabItem(TAB_CONFIG.HOME, t, handlers.onHome),
+  createTabItem(TAB_CONFIG.ACTIVITIES, t, handlers.onActivities),
+  createTabItem(TAB_CONFIG.ACCOUNT, t, handlers.onAccount, true), // Active for profile screen
 ];
 
-export const createHomeScreenTabs = (handlers: {
-  onDonate?: () => void;
-  onExplore?: () => void;
-  onHome?: () => void;
-  onActivities?: () => void;
-  onAccount?: () => void;
-}): TabItem[] => [
-  createTabItem(TAB_CONFIG.DONATE, handlers.onDonate),
-  createTabItem(TAB_CONFIG.EXPLORE, handlers.onExplore),
-  createTabItem(TAB_CONFIG.HOME, handlers.onHome, true), // Active for home screen
-  createTabItem(TAB_CONFIG.ACTIVITIES, handlers.onActivities),
-  createTabItem(TAB_CONFIG.ACCOUNT, handlers.onAccount),
+export const createHomeScreenTabs = (
+  t: (key: string) => string,
+  handlers: {
+    onDonate?: () => void;
+    onExplore?: () => void;
+    onHome?: () => void;
+    onActivities?: () => void;
+    onAccount?: () => void;
+  }
+): TabItem[] => [
+  createTabItem(TAB_CONFIG.DONATE, t, handlers.onDonate),
+  createTabItem(TAB_CONFIG.EXPLORE, t, handlers.onExplore),
+  createTabItem(TAB_CONFIG.HOME, t, handlers.onHome, true), // Active for home screen
+  createTabItem(TAB_CONFIG.ACTIVITIES, t, handlers.onActivities),
+  createTabItem(TAB_CONFIG.ACCOUNT, t, handlers.onAccount),
 ];
