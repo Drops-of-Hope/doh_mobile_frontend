@@ -170,32 +170,35 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   // Form submission handlers
   const handleDonationSubmit = () => {
     if (!donationForm.contactNumber) {
-      Alert.alert("Missing Information", "Please provide your contact number.");
+      Alert.alert(t("home.missing_information"), t("home.contact_number_required"));
       return;
     }
 
     Alert.alert(
-      "Emergency Response Submitted",
-      "Thank you for responding to this emergency. We will contact you immediately with donation instructions.",
-      [{ text: "OK", onPress: closeDonationModal }],
+      t("home.emergency_response_submitted"),
+      t("home.emergency_response_message"),
+      [{ text: t("common.ok"), onPress: closeDonationModal }],
     );
   };
 
   const handleRescheduleSubmit = () => {
     if (!rescheduleForm.preferredDate || !rescheduleForm.preferredTime) {
       Alert.alert(
-        "Missing Information",
-        "Please select both a date and time for your new appointment.",
+        t("home.missing_information"),
+        t("home.reschedule_missing_info"),
       );
       return;
     }
 
     Alert.alert(
-      "Appointment Rescheduled",
-      `Your appointment has been rescheduled to ${rescheduleForm.preferredDate} at ${rescheduleForm.preferredTime}. You will receive a confirmation shortly.`,
+      t("home.appointment_rescheduled"),
+      t("home.appointment_reschedule_message", {
+        date: rescheduleForm.preferredDate,
+        time: rescheduleForm.preferredTime
+      }),
       [
         {
-          text: "OK",
+          text: t("common.ok"),
           onPress: () => {
             closeRescheduleModal();
             loadUpcomingAppointment();
@@ -257,7 +260,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <View style={styles.contentContainer}>
           <HomeHeader
             firstName={getFirstName()}
-            donorLevel="Silver Donor"
+            donorLevel={t("home.silver_donor")}
             searchText={searchText}
             onSearchTextChange={setSearchText}
             onLogout={handleLogout}
@@ -271,7 +274,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <AppointmentSection
             appointment={upcomingAppointment}
-            title="Blood Donation"
+            title={t("home.blood_donation")}
             onViewDetails={handleAppointmentDetails}
             onReschedule={handleReschedule}
           />

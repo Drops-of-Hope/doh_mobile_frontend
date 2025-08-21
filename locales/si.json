@@ -10,7 +10,8 @@
     "close": "වසන්න",
     "save": "සුරකින්න",
     "submit": "ඉදිරිපත් කරන්න",
-    "retry": "නැවත උත්සාහ කරන්න"
+    "retry": "නැවත උත්සාහ කරන්න",
+    "name": "නම"
   },
   "navigation": {
     "explore": "ගවේෂණය",
@@ -18,6 +19,21 @@
     "home": "මුල් පිටුව",
     "activities": "ක්‍රියාකාරකම්",
     "profile": "පැතිකඩ"
+  },
+  "home": {
+    "blood_donation": "ලේ දන්දීම",
+    "silver_donor": "රිදී දන්දීම්කරු",
+    "missing_information": "තොරතුරු අඩුයි",
+    "contact_number_required": "කරුණාකර ඔබේ සම්බන්ධතා අංකය ලබා දෙන්න.",
+    "emergency_response_submitted": "හදිසි ප්‍රතිචාරය ඉදිරිපත් කරන ලදී",
+    "emergency_response_message": "මෙම හදිසි අවස්ථාවට ප්‍රතිචාර දැක්වීම ගැන ස්තූතියි. දන්දීමේ උපදේශන සමඟ අපි ඔබට වහාම සම්බන්ධ වෙන්නෙමු.",
+    "appointment_rescheduled": "හමුවීම නැවත සකසන ලදී",
+    "appointment_reschedule_message": "ඔබේ හමුවීම {date} දින {time} ට නැවත සකසා ඇත. ඔබට ඉක්මනින් තහවුරු කිරීමක් ලැබෙනු ඇත.",
+    "reschedule_missing_info": "කරුණාකර ඔබේ නව හමුවීම සඳහා දිනයක් සහ වේලාවක් තෝරන්න.",
+    "total_donations": "මුළු දන්දීම්",
+    "blood_type": "ලේ වර්ගය",
+    "last_donation": "අවසන් දන්දීම",
+    "days_ago": "දින {days}කට පෙර"
   },
   "explore": {
     "title": "ලේ දන්දීමේ ව්‍යාපාර",
@@ -43,6 +59,12 @@
     "uid_label": "හඳුනාගැනීමේ අංකය",
     "questionnaire_title": "දන්දීම් සුදුසුකම් ප්‍රශ්නාවලිය",
     "questionnaire_subtitle": "කරුණාකර සියලුම ප්‍රශ්න අවංකව පිළිතුරු දෙන්න. මෙම තොරතුරු දන්දී කරන්නන් සහ ලබන්නන් දෙදෙනාගේම ආරක්ෂාව සහතික කිරීමට උපකාරී වේ.",
+    "appointment_tab_title": "හමුවීමක් කරන්න",
+    "appointment_tab_description": "ඔබ ආසන්නයේ ඇති රෝහලක හෝ ලේ බැංකුවක ඔබේ ලේ දන්දීමේ හමුවීම සකසන්න",
+    "donor_eligibility": "දන්දී සුදුසුකම",
+    "eligible": "සුදුසුයි",
+    "not_eligible": "සුදුසු නැත",
+    "book_appointment": "හමුවීම වෙන්කරවන්න",
     "questions": {
       "hasDonatedBefore": "ඔබ මීට පෙර ලේ දන්දීමක් කර තිබේද?",
       "donationCount": "ඔබ කී වතාවක් ලේ දන්දීම් කර තිබේද?",
@@ -186,13 +208,17 @@
     "log_out": "ඉවත් වන්න",
     "logout_confirm_title": "ඉවත් වීම",
     "logout_confirm_message": "ඔබට ඉවත් වීමට අවශ්‍ය බව විශ්වාසද?",
+    "logout_confirmation": "ඉවත් වීම",
+    "logout_message": "ඔබට ඉවත් වීමට අවශ්‍ය බව විශ්වාසද?",
+    "logout": "ඉවත් වන්න",
     "language_selection": "භාෂා තේරීම",
     "select_language": "ඔබේ කැමති භාෂාව තෝරන්න",
     "camp_organizer_application": "කදවුරු සංවිධායක අයදුම්පත",
     "camp_organizer_message": "ඔබට කදවුරු සංවිධායකයෙකු වීමට අයදුම් කිරීමට අවශ්‍යද? මෙමගින් ඔබට ලේ දන්දීමේ කදවුරු සෑදීමට සහ කළමනාකරණය කිරීමට හැකි වේ.",
     "application_submitted": "අයදුම්පත ඉදිරිපත් කරන ලදී",
     "application_success_message": "කදවුරු සංවිධායකයෙකු වීමට ඔබේ අයදුම්පත ඉදිරිපත් කර ඇත. අපි එය සමාලෝචනය කර ඔබට ඉක්මනින් පිළිතුරු දෙන්නෙමු.",
-    "apply": "අයදුම් කරන්න"
+    "apply": "අයදුම් කරන්න",
+    "logout_error": "ඉවත් වීමට අසමත් විය. කරුණාකර නැවත උත්සාහ කරන්න."
   },
   "faqs": {
     "title": "නිතර අසන ප්‍රශ්න",

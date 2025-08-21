@@ -37,6 +37,7 @@ export interface AppointmentBookingRequest {
   donorId: string;
   slotId: string;
   appointmentDate: string;
+  medicalEstablishmentId: string;
 }
 
 // Appointment service
@@ -94,11 +95,24 @@ export const appointmentService = {
     bookingRequest: AppointmentBookingRequest
   ): Promise<Appointment> => {
     try {
+      // fail fast if medicalEstablishmentId is not provided
+      if (!bookingRequest.medicalEstablishmentId) {
+        console.warn(
+          "Booking request missing medicalEstablishmentId:",
+          bookingRequest
+        );
+        throw new Error("medicalEstablishmentId is required in bookingRequest");
+      }
+
       console.log("Booking request:", bookingRequest);
       const response = await apiRequest(
         `${API_ENDPOINTS.APPOINTMENTS}/createAppointments`,
         {
           method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify(bookingRequest),
         }
       );

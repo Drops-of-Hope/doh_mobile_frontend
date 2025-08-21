@@ -16,7 +16,8 @@ export default function FloatingButton({
   return (
     <TouchableOpacity style={styles.floatingButton} onPress={onPress}>
       <Ionicons name={iconName} size={24} color="white" />
-      {hasNotification && <View style={styles.notificationBadge} />}
+      {/* Temporarily disabled notification badge */}
+      {/* {hasNotification && <View style={styles.notificationBadge} />} */}
     </TouchableOpacity>
   );
 }

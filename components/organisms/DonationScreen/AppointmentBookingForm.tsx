@@ -181,6 +181,7 @@ export default function AppointmentBookingForm({
         appointmentDate: selectedDate,
         slotId: selectedSlot.id,
         donorId: user?.sub ?? "N/A",
+        medicalEstablishmentId: selectedSlot.medicalEstablishmentId,
       };
 
       const service = getAppointmentService();

@@ -10,7 +10,8 @@
     "close": "Close",
     "save": "Save",
     "submit": "Submit",
-    "retry": "Retry"
+    "retry": "Retry",
+    "name": "Name"
   },
   "navigation": {
     "explore": "Explore",
@@ -18,6 +19,21 @@
     "home": "Home",
     "activities": "Activities",
     "profile": "Profile"
+  },
+  "home": {
+    "blood_donation": "Blood Donation",
+    "silver_donor": "Silver Donor",
+    "missing_information": "Missing Information",
+    "contact_number_required": "Please provide your contact number.",
+    "emergency_response_submitted": "Emergency Response Submitted",
+    "emergency_response_message": "Thank you for responding to this emergency. We will contact you immediately with donation instructions.",
+    "appointment_rescheduled": "Appointment Rescheduled",
+    "appointment_reschedule_message": "Your appointment has been rescheduled to {date} at {time}. You will receive a confirmation shortly.",
+    "reschedule_missing_info": "Please select both a date and time for your new appointment.",
+    "total_donations": "Total Donations",
+    "blood_type": "Blood Type",
+    "last_donation": "Last Donation",
+    "days_ago": "{days} days ago"
   },
   "explore": {
     "title": "Blood Donation Campaigns",
@@ -43,6 +59,12 @@
     "uid_label": "UID",
     "questionnaire_title": "Donation Eligibility Questionnaire",
     "questionnaire_subtitle": "Please answer all questions honestly. This information helps ensure the safety of both donors and recipients.",
+    "appointment_tab_title": "Make an Appointment",
+    "appointment_tab_description": "Schedule your blood donation appointment at a hospital or blood bank near you",
+    "donor_eligibility": "Donor Eligibility",
+    "eligible": "Eligible",
+    "not_eligible": "Not Eligible",
+    "book_appointment": "Book Appointment",
     "questions": {
       "hasDonatedBefore": "Have you donated blood before?",
       "donationCount": "How many times have you donated blood?",
@@ -183,13 +205,17 @@
     "log_out": "Log Out",
     "logout_confirm_title": "Logout",
     "logout_confirm_message": "Are you sure you want to logout?",
+    "logout_confirmation": "Logout",
+    "logout_message": "Are you sure you want to logout?",
+    "logout": "Logout",
     "language_selection": "Language Selection",
     "select_language": "Select your preferred language",
     "camp_organizer_application": "Camp Organizer Application",
     "camp_organizer_message": "Would you like to apply to become a camp organizer? This will allow you to create and manage blood donation camps.",
     "application_submitted": "Application Submitted",
     "application_success_message": "Your application to become a camp organizer has been submitted. We will review it and get back to you soon.",
-    "apply": "Apply"
+    "apply": "Apply",
+    "logout_error": "Failed to logout. Please try again."
   },
   "faqs": {
     "title": "Frequently Asked Questions",

@@ -62,6 +62,7 @@ export const getBadgeIcon = (badge: UserData["donationBadge"]): string => {
 export const createMenuItems = (
   userRole: string | null,
   hasRole: (role: string) => boolean,
+  t: (key: string) => string,
   handlers: {
     onEditProfile: () => void;
     onMyDonations: () => void;
@@ -75,19 +76,19 @@ export const createMenuItems = (
   const baseItems: MenuItem[] = [
     {
       id: "edit-profile",
-      title: "Edit Profile",
+      title: t("profile.edit_profile"),
       icon: "person-outline",
       onPress: handlers.onEditProfile,
     },
     {
       id: "my-donations",
-      title: "My Donations",
+      title: t("profile.my_donations"),
       icon: "heart-outline",
       onPress: handlers.onMyDonations,
     },
     {
       id: "activities",
-      title: "Activities",
+      title: t("activities.title"),
       icon: "list-outline",
       onPress: handlers.onActivities,
     },
@@ -97,7 +98,7 @@ export const createMenuItems = (
   if (hasRole(USER_ROLES.CAMP_ORGANIZER) || hasRole(USER_ROLES.ADMIN)) {
     baseItems.push({
       id: "campaign-dashboard",
-      title: "Campaign Dashboard",
+      title: t("profile.campaign_dashboard"),
       icon: "analytics-outline",
       onPress: handlers.onCampaignDashboard,
     });
@@ -107,19 +108,19 @@ export const createMenuItems = (
   baseItems.push(
     {
       id: "language",
-      title: "Language Settings",
+      title: t("profile.language"),
       icon: "language-outline",
       onPress: handlers.onLanguageSettings,
     },
     {
       id: "faq",
-      title: "Help & FAQs",
+      title: t("profile.faqs"),
       icon: "help-circle-outline",
       onPress: handlers.onFAQs,
     },
     {
       id: "logout",
-      title: "Logout",
+      title: t("profile.log_out"),
       icon: "log-out-outline",
       onPress: handlers.onLogout,
       showArrow: false,

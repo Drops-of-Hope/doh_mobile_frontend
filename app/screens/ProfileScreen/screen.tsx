@@ -293,7 +293,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             await logout();
           } catch (error) {
             console.error("Logout failed:", error);
-            Alert.alert("Error", "Failed to logout. Please try again.");
+            Alert.alert(t("common.error"), t("profile.logout_error"));
           }
         },
       },
@@ -301,7 +301,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   };
 
   // Menu item handlers
-  const menuItems = createMenuItems(userRole, hasRole, {
+  const menuItems = createMenuItems(userRole, hasRole, t, {
     onEditProfile: handleEditProfile,
     onMyDonations: handleMyDonations,
     onActivities: handleActivities,
