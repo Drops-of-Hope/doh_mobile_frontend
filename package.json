@@ -8,7 +8,10 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "clean:android": "cd android && ./gradlew clean && cd ..",
-    "clean:ios": "cd ios && xcodebuild clean && cd .."
+    "clean:ios": "cd ios && xcodebuild clean && cd ..",
+    "lint": "npm run lint:tsc",
+    "lint:tsc": "tsc --noEmit",
+    "lint:eslint": "npx eslint --ext .js,.jsx,.ts,.tsx . --max-warnings=0"
   },
   "dependencies": {
     "@asgardeo/auth-react": "^5.4.0",
