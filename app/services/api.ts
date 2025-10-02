@@ -1,8 +1,19 @@
 // API configuration and base setup
-// IMPORTANT: Replace 'YOUR_LOCAL_IP' with your laptop's actual local IP address on your network
-export const API_BASE_URL = "http://192.168.1.131:5000/api";
-// Example: const API_BASE_URL = "http://192.168.1.10:5000/api";
-// 'localhost' will NOT work on a real device; use your laptop's IP address instead.
+// Choose the correct host depending on platform/emulator and allow override.
+import { Platform } from "react-native";
+
+const ANDROID_EMULATOR_HOST = "http://192.168.1.166:5000/api";
+const DEFAULT_LOCALHOST = "http://localhost:5000/api";
+
+// Allow an environment or runtime override (set EXPO_PUBLIC_API_URL in your .env or app config)
+const ENV_API_URL = process.env.EXPO_PUBLIC_API_URL || (global as any)?.EXPO_PUBLIC_API_URL;
+
+export const API_BASE_URL =
+  ENV_API_URL || (Platform.OS === "android" ? ANDROID_EMULATOR_HOST : DEFAULT_LOCALHOST);
+
+// NOTE: If you're testing on a physical device, set EXPO_PUBLIC_API_URL to
+// `http://<YOUR_MACHINE_IP>:5000/api` and ensure your backend listens on 0.0.0.0
+// and that firewall allows incoming connections on port 5000.
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -19,10 +30,14 @@ export const API_ENDPOINTS = {
   USER_ACTIVITIES: "/users/activities",
   USER_NOTIFICATIONS: "/users/notifications",
   UPDATE_PROFILE: "/users/profile",
+  USER_DONATION_HISTORY: "/users/donation-history",
+  USER_ELIGIBILITY: "/users/eligibility",
 
   // Donation endpoints
   DONATION_FORM: "/donations/form",
   DONATION_HISTORY: "/donations/history",
+  DONATION_COUNT: "/donations/count",
+  LAST_DONATION: "/donations/last",
 
   // Campaign endpoints
   CAMPAIGNS: "/campaigns",
@@ -47,9 +62,12 @@ export const API_ENDPOINTS = {
   MEDICAL_ESTABLISHMENTS: "/medical-establishments",
   APPOINTMENT_SLOTS: "/slots",
   UPCOMING_APPOINTMENTS: "/appointments/upcoming",
+  CREATE_APPOINTMENT: "/appointments/create",
+  USER_APPOINTMENTS: "/appointments/user",
 
   // Home screen data
   HOME_DATA: "/home/dashboard",
+  HOME_STATS: "/home/stats",
   EXPLORE_DATA: "/explore/data",
 } as const;
 

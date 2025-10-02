@@ -25,6 +25,15 @@ export interface UserHomeStats {
   lastUpdated: string;
 }
 
+export interface UserDonationData {
+  totalDonations: number;
+  lastDonationDate?: string;
+  daysSinceLastDonation?: number;
+  eligibleToDonate: boolean;
+  nextEligibleDate?: string;
+  bloodGroup: string;
+}
+
 export interface Appointment {
   id: string;
   donorId: string;
@@ -100,7 +109,12 @@ export interface Campaign {
     address: string;
     district: string;
   };
-  participationStatus?: "NOT_JOINED" | "REGISTERED" | "CONFIRMED" | "ATTENDED" | "COMPLETED";
+  participationStatus?:
+    | "NOT_JOINED"
+    | "REGISTERED"
+    | "CONFIRMED"
+    | "ATTENDED"
+    | "COMPLETED";
 }
 
 export interface Notification {
@@ -123,7 +137,59 @@ export interface DonationEligibility {
 
 // Home service functions
 export const homeService = {
-  // Get complete home screen data
+  // Get user donation statistics and data
+  async getUserDonationData(): Promise<UserDonationData> {
+    try {
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.USER_DONATION_HISTORY
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch user donation data:", error);
+      throw error;
+    }
+  },
+
+  // Get user eligibility status
+  async getUserEligibility(): Promise<DonationEligibility> {
+    try {
+      const response = await apiRequestWithAuth(API_ENDPOINTS.USER_ELIGIBILITY);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch user eligibility:", error);
+      throw error;
+    }
+  },
+
+  // Get user's upcoming appointment
+  async getUpcomingAppointment(): Promise<Appointment | null> {
+    try {
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.USER_APPOINTMENTS + "?status=upcoming&limit=1"
+      );
+      return response.data.length > 0 ? response.data[0] : null;
+    } catch (error) {
+      console.error("Failed to fetch upcoming appointment:", error);
+      throw error;
+    }
+  },
+
+  // Get user profile with blood type
+  async getUserProfile(): Promise<{
+    bloodGroup: string;
+    name: string;
+    email: string;
+  }> {
+    try {
+      const response = await apiRequestWithAuth(API_ENDPOINTS.USER_PROFILE);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
+      throw error;
+    }
+  },
+
+  // Get complete home screen data in one call
   async getHomeData(): Promise<HomeScreenData> {
     try {
       const response = await apiRequestWithAuth(API_ENDPOINTS.HOME_DATA);
@@ -137,7 +203,7 @@ export const homeService = {
   // Get user stats only
   async getUserStats(): Promise<UserHomeStats> {
     try {
-      const response = await apiRequestWithAuth(API_ENDPOINTS.USER_STATS);
+      const response = await apiRequestWithAuth(API_ENDPOINTS.HOME_STATS);
       return response.data;
     } catch (error) {
       console.error("Failed to fetch user stats:", error);
@@ -148,7 +214,9 @@ export const homeService = {
   // Get upcoming appointments
   async getUpcomingAppointments(): Promise<Appointment[]> {
     try {
-      const response = await apiRequestWithAuth(API_ENDPOINTS.UPCOMING_APPOINTMENTS);
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.UPCOMING_APPOINTMENTS
+      );
       return response.data;
     } catch (error) {
       console.error("Failed to fetch upcoming appointments:", error);
@@ -195,40 +263,51 @@ export const homeService = {
     }
   },
 
-  // Get unread notifications
-  async getUnreadNotifications(limit: number = 5): Promise<Notification[]> {
+  // Get user notifications
+  async getUserNotifications(limit: number = 10): Promise<Notification[]> {
     try {
       const response = await apiRequestWithAuth(
-        `${API_ENDPOINTS.USER_NOTIFICATIONS}?isRead=false&limit=${limit}`
+        `${API_ENDPOINTS.USER_NOTIFICATIONS}?limit=${limit}`
       );
       return response.data.notifications;
     } catch (error) {
-      console.error("Failed to fetch unread notifications:", error);
+      console.error("Failed to fetch user notifications:", error);
       throw error;
     }
   },
 
-  // Check donation eligibility
-  async checkDonationEligibility(): Promise<DonationEligibility> {
-    try {
-      const response = await apiRequestWithAuth("/donations/eligibility");
-      return response.data;
-    } catch (error) {
-      console.error("Failed to check donation eligibility:", error);
-      throw error;
-    }
+  // Calculate days since last donation
+  calculateDaysSinceLastDonation(lastDonationDate: string): number {
+    const lastDate = new Date(lastDonationDate);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - lastDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   },
 
-  // Refresh home data
-  async refreshHomeData(): Promise<HomeScreenData> {
-    try {
-      const response = await apiRequestWithAuth(`${API_ENDPOINTS.HOME_DATA}?refresh=true`);
-      return response.data;
-    } catch (error) {
-      console.error("Failed to refresh home data:", error);
-      throw error;
-    }
+  // Format appointment for display
+  formatAppointmentForDisplay(appointment: Appointment): {
+    id: string;
+    date: string;
+    time: string;
+    location: string;
+    hospital: string;
+    status: string;
+  } {
+    const appointmentDate = new Date(appointment.appointmentDateTime);
+    return {
+      id: appointment.id,
+      date: appointmentDate.toLocaleDateString(),
+      time: appointmentDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      location:
+        appointment.medicalEstablishment?.name ||
+        appointment.location ||
+        "Unknown Location",
+      hospital: appointment.medicalEstablishment?.name || "Unknown Hospital",
+      status: appointment.scheduled,
+    };
   },
 };
-
-export default homeService;

@@ -6,10 +6,16 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  Text,
+  TouchableOpacity,
 } from "react-native";
 import BottomTabBar from "../../../components/organisms/BottomTabBar";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
+
+// Import services
+import { homeService, UserDonationData } from "../../services/homeService";
+import { appointmentService } from "../../services/appointmentService";
 
 // Import existing HomeScreen components
 import HomeHeader from "../../../components/organisms/HomeScreen/HomeHeader";
@@ -52,6 +58,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [upcomingAppointment, setUpcomingAppointment] =
     useState<Appointment | null>(null);
 
+  // Backend data state
+  const [userDonationData, setUserDonationData] =
+    useState<UserDonationData | null>(null);
+  const [userProfile, setUserProfile] = useState<{
+    bloodGroup: string;
+    name: string;
+    email: string;
+  } | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+
   // Modal states
   const [showAppointmentModal, setShowAppointmentModal] =
     useState<boolean>(false);
@@ -62,7 +79,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   // Selection states
   const [selectedEmergency, setSelectedEmergency] = useState<Emergency | null>(
-    null,
+    null
   );
 
   // Form states
@@ -87,23 +104,73 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { t } = useLanguage();
 
   useEffect(() => {
-    loadUpcomingAppointment();
+    loadHomeScreenData();
   }, []);
 
-  const loadUpcomingAppointment = async () => {
+  const loadHomeScreenData = async () => {
     try {
-      const mockAppointment: Appointment = {
-        id: "1",
-        date: "July 15, 2025",
-        time: "10:00 AM",
-        location: "Colombo Blood Bank",
-        hospital: "Colombo General Hospital",
-        status: "upcoming",
-      };
-      setUpcomingAppointment(mockAppointment);
+      setLoading(true);
+      setDataError(null);
+
+      // Load data from backend
+      const [donationData, profile, appointment] = await Promise.all([
+        homeService.getUserDonationData(),
+        homeService.getUserProfile(),
+        homeService.getUpcomingAppointment(),
+      ]);
+
+      setUserDonationData(donationData);
+      setUserProfile(profile);
+
+      if (appointment) {
+        const formattedAppointment =
+          homeService.formatAppointmentForDisplay(appointment);
+        setUpcomingAppointment({
+          ...formattedAppointment,
+          status: formattedAppointment.status as
+            | "upcoming"
+            | "completed"
+            | "cancelled",
+        });
+      } else {
+        setUpcomingAppointment(null);
+      }
     } catch (error) {
-      console.error("Failed to load appointment:", error);
+      console.error("Failed to load home screen data:", error);
+      setDataError("Failed to load data. Please try again.");
+
+      // Fallback to mock data for demo purposes
+      loadMockData();
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const loadMockData = () => {
+    // Fallback mock data when backend is not available
+    setUserDonationData({
+      totalDonations: 12,
+      lastDonationDate: "2023-06-15",
+      daysSinceLastDonation: 473,
+      eligibleToDonate: true,
+      bloodGroup: "O+",
+    });
+
+    setUserProfile({
+      bloodGroup: "O+",
+      name: "John Doe",
+      email: "john@example.com",
+    });
+
+    const mockAppointment: Appointment = {
+      id: "1",
+      date: "July 15, 2025",
+      time: "10:00 AM",
+      location: "Colombo Blood Bank",
+      hospital: "Colombo General Hospital",
+      status: "upcoming",
+    };
+    setUpcomingAppointment(mockAppointment);
   };
 
   // Navigation handlers
@@ -170,14 +237,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   // Form submission handlers
   const handleDonationSubmit = () => {
     if (!donationForm.contactNumber) {
-      Alert.alert(t("home.missing_information"), t("home.contact_number_required"));
+      Alert.alert(
+        t("home.missing_information"),
+        t("home.contact_number_required")
+      );
       return;
     }
 
     Alert.alert(
       t("home.emergency_response_submitted"),
       t("home.emergency_response_message"),
-      [{ text: t("common.ok"), onPress: closeDonationModal }],
+      [{ text: t("common.ok"), onPress: closeDonationModal }]
     );
   };
 
@@ -185,7 +255,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     if (!rescheduleForm.preferredDate || !rescheduleForm.preferredTime) {
       Alert.alert(
         t("home.missing_information"),
-        t("home.reschedule_missing_info"),
+        t("home.reschedule_missing_info")
       );
       return;
     }
@@ -194,17 +264,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       t("home.appointment_rescheduled"),
       t("home.appointment_reschedule_message", {
         date: rescheduleForm.preferredDate,
-        time: rescheduleForm.preferredTime
+        time: rescheduleForm.preferredTime,
       }),
       [
         {
           text: t("common.ok"),
           onPress: () => {
             closeRescheduleModal();
-            loadUpcomingAppointment();
+            loadHomeScreenData();
           },
         },
-      ],
+      ]
     );
   };
 
@@ -259,17 +329,48 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       >
         <View style={styles.contentContainer}>
           <HomeHeader
-            firstName={getFirstName()}
+            firstName={userProfile?.name || getFirstName()}
             donorLevel={t("home.silver_donor")}
             searchText={searchText}
             onSearchTextChange={setSearchText}
             onLogout={handleLogout}
           />
 
-          <StatsCard totalDonations={12} />
+          {dataError && (
+            <View
+              style={{
+                padding: 16,
+                backgroundColor: "#ffe6e6",
+                margin: 10,
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ color: "#d32f2f", textAlign: "center" }}>
+                {dataError}
+              </Text>
+              <TouchableOpacity
+                style={{
+                  marginTop: 8,
+                  padding: 8,
+                  backgroundColor: "#f44336",
+                  borderRadius: 4,
+                }}
+                onPress={loadHomeScreenData}
+              >
+                <Text style={{ color: "white", textAlign: "center" }}>
+                  Retry
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <StatsCard totalDonations={userDonationData?.totalDonations || 0} />
 
           <View style={styles.section}>
-            <ComponentRow bloodType="O+" lastDonationDays={473} />
+            <ComponentRow
+              bloodType={userProfile?.bloodGroup || "Unknown"}
+              lastDonationDays={userDonationData?.daysSinceLastDonation || 0}
+            />
           </View>
 
           <AppointmentSection
