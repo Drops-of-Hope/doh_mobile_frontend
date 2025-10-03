@@ -1,4 +1,6 @@
 // Campaign service for handling campaign-related API calls
+import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
+
 interface Campaign {
   id: string;
   title: string;
@@ -13,7 +15,7 @@ interface Campaign {
   totalAttendance: number;
   screenedPassed: number;
   walkInsScreened: number;
-  status: "active" | "pending_approval" | "completed" | "cancelled";
+  status: "upcoming" | "active" | "completed" | "cancelled";
   organizerId: string;
   contactPerson: string;
   contactPhone: string;
@@ -21,6 +23,10 @@ interface Campaign {
   requirements?: string;
   additionalNotes?: string;
   createdAt: string;
+  updatedAt: string;
+  canEdit: boolean; // Computed field from backend
+  canDelete: boolean; // Computed field from backend
+  hasLinkedDonations: boolean; // Computed field from backend
   approvalStatus?: {
     status: "approved" | "rejected" | "pending";
     comment?: string;
@@ -31,18 +37,30 @@ interface Campaign {
 
 interface CampaignForm {
   title: string;
-  description: string;
+  type: "MOBILE" | "FIXED";
   location: string;
-  address: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  donationGoal: number;
-  contactPerson: string;
-  contactPhone: string;
-  contactEmail: string;
-  requirements?: string;
-  additionalNotes?: string;
+  motivation: string;
+  description: string;
+  startTime: string; // Should be ISO string from frontend
+  endTime: string;   // Should be ISO string from frontend
+  expectedDonors: number;
+  contactPersonName: string;
+  contactPersonPhone: string;
+  medicalEstablishmentId: string;
+  requirements?: any; // JSON field
+}
+
+interface CampaignUpdateForm extends Partial<CampaignForm> {
+  id: string;
+}
+
+interface CampaignDeletionResult {
+  success: boolean;
+  message: string;
+  notificationsSent: {
+    donors: number;
+    hospitals: number;
+  };
 }
 
 interface AttendanceRecord {
@@ -58,81 +76,61 @@ interface AttendanceRecord {
   markedBy: string; // organizer ID
 }
 
+interface CampaignStats {
+  totalAttendance: number;
+  screenedPassed: number;
+  walkInsScreened: number;
+  goalProgress: number;
+  currentDonations: number;
+  donationGoal: number;
+}
+
 class CampaignService {
-  private baseUrl =
-    process.env.EXPO_PUBLIC_API_URL || "https://api.example.com";
 
   // Get campaigns for an organizer
   async getOrganizerCampaigns(organizerId: string): Promise<Campaign[]> {
     try {
-      // Mock implementation - replace with actual API call
-      const mockCampaigns: Campaign[] = [
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/organizer/${organizerId}`,
         {
-          id: "1",
-          title: "Blood Drive at City Hospital",
-          description:
-            "Annual blood donation drive to support emergency blood needs.",
-          location: "Main Street Hospital",
-          address: "123 Main Street, Colombo 07",
-          date: "2025-07-15",
-          startTime: "09:00 AM",
-          endTime: "05:00 PM",
-          donationGoal: 100,
-          currentDonations: 65,
-          totalAttendance: 120,
-          screenedPassed: 85,
-          walkInsScreened: 25,
-          status: "active",
-          organizerId,
-          contactPerson: "Dr. John Doe",
-          contactPhone: "+94771234567",
-          contactEmail: "john.doe@hospital.lk",
-          requirements: "Valid ID required",
-          additionalNotes: "Free health checkup available",
-          createdAt: "2025-07-01T10:00:00Z",
-          approvalStatus: {
-            status: "approved",
-            comment: "Approved for public health benefit",
-            reviewedAt: "2025-07-02T14:30:00Z",
-            reviewedBy: "admin@bloodbank.lk",
-          },
-        },
-        {
-          id: "2",
-          title: "University Blood Campaign",
-          description:
-            "Campus-wide blood donation initiative for students and staff.",
-          location: "UCSC Campus",
-          address: "University of Colombo School of Computing, Colombo 07",
-          date: "2025-07-20",
-          startTime: "10:00 AM",
-          endTime: "04:00 PM",
-          donationGoal: 150,
-          currentDonations: 0,
-          totalAttendance: 0,
-          screenedPassed: 0,
-          walkInsScreened: 0,
-          status: "pending_approval",
-          organizerId,
-          contactPerson: "Prof. Jane Smith",
-          contactPhone: "+94712345678",
-          contactEmail: "jane.smith@ucsc.cmb.ac.lk",
-          requirements: "University ID required for students/staff",
-          additionalNotes: "Refreshments will be provided",
-          createdAt: "2025-07-05T15:30:00Z",
-          approvalStatus: {
-            status: "pending",
-            comment: "Under review by medical team",
-          },
-        },
-      ];
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return mockCampaigns;
+          method: "GET",
+        }
+      );
+      
+      console.log("API Response for campaigns:", response);
+      
+      // Handle different response structures
+      if (response && response.data) {
+        // If response.data is an array
+        if (Array.isArray(response.data)) {
+          return response.data;
+        }
+        
+        // If response.data has a campaigns property
+        if (response.data.campaigns && Array.isArray(response.data.campaigns)) {
+          return response.data.campaigns;
+        }
+        
+        // If response.data has other array properties
+        if (response.data.results && Array.isArray(response.data.results)) {
+          return response.data.results;
+        }
+      }
+      
+      // If response itself is an array
+      if (Array.isArray(response)) {
+        return response;
+      }
+      
+      console.warn("Unexpected API response structure:", response);
+      return []; // Return empty array as fallback
+      
     } catch (error) {
       console.error("Failed to fetch organizer campaigns:", error);
-      throw new Error("Failed to fetch campaigns");
+      if (error instanceof Error) {
+        console.error("Error details:", error.message, error.stack);
+      }
+      return []; // Return empty array instead of throwing
     }
   }
 
@@ -141,28 +139,11 @@ class CampaignService {
     campaignData: CampaignForm & { organizerId: string },
   ): Promise<Campaign> {
     try {
-      const newCampaign: Campaign = {
-        id: Date.now().toString(), // Mock ID generation
-        ...campaignData,
-        currentDonations: 0,
-        totalAttendance: 0,
-        screenedPassed: 0,
-        walkInsScreened: 0,
-        status: "pending_approval",
-        createdAt: new Date().toISOString(),
-        approvalStatus: {
-          status: "pending",
-          comment: "Submitted for review",
-        },
-      };
-
-      // Mock API call - replace with actual implementation
-      console.log("Creating campaign:", newCampaign);
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      return newCampaign;
+      const response = await apiRequestWithAuth(API_ENDPOINTS.CAMPAIGNS, {
+        method: "POST",
+        body: JSON.stringify(campaignData),
+      });
+      return response.data;
     } catch (error) {
       console.error("Failed to create campaign:", error);
       throw new Error("Failed to create campaign");
@@ -170,28 +151,15 @@ class CampaignService {
   }
 
   // Get campaign statistics
-  async getCampaignStats(campaignId: string): Promise<{
-    totalAttendance: number;
-    screenedPassed: number;
-    walkInsScreened: number;
-    goalProgress: number;
-    currentDonations: number;
-    donationGoal: number;
-  }> {
+  async getCampaignStats(campaignId: string): Promise<CampaignStats> {
     try {
-      // Mock implementation - replace with actual API call
-      const mockStats = {
-        totalAttendance: 120,
-        screenedPassed: 85,
-        walkInsScreened: 25,
-        goalProgress: 65,
-        currentDonations: 65,
-        donationGoal: 100,
-      };
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      return mockStats;
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}/stats`,
+        {
+          method: "GET",
+        }
+      );
+      return response.data;
     } catch (error) {
       console.error("Failed to fetch campaign stats:", error);
       throw new Error("Failed to fetch campaign statistics");
@@ -203,18 +171,14 @@ class CampaignService {
     attendanceData: Omit<AttendanceRecord, "id">,
   ): Promise<AttendanceRecord> {
     try {
-      const attendance: AttendanceRecord = {
-        id: Date.now().toString(), // Mock ID generation
-        ...attendanceData,
-      };
-
-      // Mock API call - replace with actual implementation
-      console.log("Marking attendance:", attendance);
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      return attendance;
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${attendanceData.campaignId}/attendance`,
+        {
+          method: "POST",
+          body: JSON.stringify(attendanceData),
+        }
+      );
+      return response.data;
     } catch (error) {
       console.error("Failed to mark attendance:", error);
       throw new Error("Failed to mark attendance");
@@ -224,62 +188,173 @@ class CampaignService {
   // Get attendance records for a campaign
   async getCampaignAttendance(campaignId: string): Promise<AttendanceRecord[]> {
     try {
-      // Mock implementation - replace with actual API call
-      const mockAttendance: AttendanceRecord[] = [
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}/attendance`,
         {
-          id: "1",
-          campaignId,
-          userId: "user1",
-          userName: "Alice Johnson",
-          userEmail: "alice@example.com",
-          bloodType: "A+",
-          isWalkIn: false,
-          screeningPassed: true,
-          timestamp: "2025-07-15T10:30:00Z",
-          markedBy: "organizer1",
-        },
-        {
-          id: "2",
-          campaignId,
-          userId: "user2",
-          userName: "Bob Smith",
-          userEmail: "bob@example.com",
-          bloodType: "O-",
-          isWalkIn: true,
-          screeningPassed: true,
-          timestamp: "2025-07-15T11:15:00Z",
-          markedBy: "organizer1",
-        },
-      ];
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      return mockAttendance;
+          method: "GET",
+        }
+      );
+      return response.data;
     } catch (error) {
       console.error("Failed to fetch campaign attendance:", error);
       throw new Error("Failed to fetch attendance records");
     }
   }
 
-  // Update campaign status (for admin approval)
-  async updateCampaignStatus(
+  // Update campaign
+  async updateCampaign(
     campaignId: string,
-    status: "approved" | "rejected",
-    comment?: string,
+    updateData: Partial<CampaignForm>
   ): Promise<Campaign> {
     try {
-      // Mock implementation - replace with actual API call
-      console.log("Updating campaign status:", { campaignId, status, comment });
-
-      // This would typically be called by admin users only
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Return updated campaign (mock)
-      throw new Error("This would return the updated campaign from the API");
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(updateData),
+        }
+      );
+      return response.data;
     } catch (error) {
-      console.error("Failed to update campaign status:", error);
-      throw new Error("Failed to update campaign status");
+      console.error("Failed to update campaign:", error);
+      if (error instanceof Error) {
+        // Handle specific error messages from backend
+        if (error.message.includes("403")) {
+          throw new Error("Cannot update campaign: Campaign has started or has linked donations");
+        }
+        if (error.message.includes("404")) {
+          throw new Error("Campaign not found");
+        }
+      }
+      throw new Error("Failed to update campaign");
+    }
+  }
+
+  // Delete campaign with notifications
+  async deleteCampaign(campaignId: string): Promise<CampaignDeletionResult> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to delete campaign:", error);
+      if (error instanceof Error) {
+        // Handle specific error messages from backend
+        if (error.message.includes("403")) {
+          throw new Error("Cannot delete campaign: Campaign has started or has linked donations");
+        }
+        if (error.message.includes("404")) {
+          throw new Error("Campaign not found");
+        }
+      }
+      throw new Error("Failed to delete campaign");
+    }
+  }
+
+  // Get single campaign details
+  async getCampaignDetails(campaignId: string): Promise<Campaign> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}`,
+        {
+          method: "GET",
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to get campaign details:", error);
+      throw new Error("Failed to get campaign details");
+    }
+  }
+
+  // Get campaign analytics
+  async getCampaignAnalytics(campaignId: string): Promise<{
+    totalRegistrations: number;
+    totalAttendance: number;
+    totalDonations: number;
+    donationsByBloodType: Record<string, number>;
+    attendanceRate: number;
+    donationRate: number;
+    dailyStats: Array<{
+      date: string;
+      registrations: number;
+      attendance: number;
+      donations: number;
+    }>;
+    topDonors: Array<{
+      id: string;
+      name: string;
+      donationCount: number;
+      bloodGroup: string;
+    }>;
+  }> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}/analytics`,
+        {
+          method: "GET",
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to get campaign analytics:", error);
+      throw new Error("Failed to get campaign analytics");
+    }
+  }
+
+  // Check if campaign can be edited/deleted
+  async checkCampaignPermissions(campaignId: string): Promise<{
+    canEdit: boolean;
+    canDelete: boolean;
+    reasons: string[];
+  }> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}/permissions`,
+        {
+          method: "GET",
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to check campaign permissions:", error);
+      throw new Error("Failed to check campaign permissions");
+    }
+  }
+
+  // Search for donors by NIC or other criteria
+  async searchDonors(query: string): Promise<any[]> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.USERS}/search?q=${encodeURIComponent(query)}`,
+        {
+          method: "GET",
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to search donors:", error);
+      throw new Error("Failed to search donors");
+    }
+  }
+
+  // Get campaign notifications for organizer
+  async getCampaignNotifications(organizerId: string): Promise<any[]> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.NOTIFICATIONS}/campaigns?organizerId=${organizerId}`,
+        {
+          method: "GET",
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch campaign notifications:", error);
+      throw new Error("Failed to fetch notifications");
     }
   }
 }

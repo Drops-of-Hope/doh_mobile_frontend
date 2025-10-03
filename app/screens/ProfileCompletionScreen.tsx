@@ -247,6 +247,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
           <TextInput
             style={styles.input}
             value={phoneNumber}
+            maxLength={10}
             onChangeText={setPhoneNumber}
             placeholder="Enter your phone number"
             keyboardType="phone-pad"
@@ -258,6 +259,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
           <TextInput
             style={styles.input}
             value={emergencyContact}
+            maxLength={10}
             onChangeText={setEmergencyContact}
             placeholder="Enter emergency contact number"
             keyboardType="phone-pad"

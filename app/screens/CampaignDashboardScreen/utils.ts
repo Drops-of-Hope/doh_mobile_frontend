@@ -5,10 +5,19 @@ export const loadUserCampaigns = async (
   userId: string,
 ): Promise<CampaignType[]> => {
   try {
-    return await campaignService.getOrganizerCampaigns(userId);
+    const campaigns = await campaignService.getOrganizerCampaigns(userId);
+    console.log("Loaded campaigns:", campaigns);
+    
+    // Ensure we always return an array
+    if (!campaigns || !Array.isArray(campaigns)) {
+      console.warn("Invalid campaigns data received:", campaigns);
+      return [];
+    }
+    
+    return campaigns;
   } catch (error) {
     console.error("Failed to load campaigns:", error);
-    throw error;
+    return []; // Return empty array instead of throwing
   }
 };
 

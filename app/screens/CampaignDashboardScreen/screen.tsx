@@ -60,15 +60,28 @@ export default function CampaignDashboardScreen({
   const loadCampaigns = async () => {
     try {
       if (user?.sub) {
+        console.log("Loading campaigns for user:", user.sub);
         const userCampaigns = await loadUserCampaigns(user.sub);
-        setCampaigns(userCampaigns);
-        if (!activeCampaign && userCampaigns.length > 0) {
-          setActiveCampaign(userCampaigns[0]);
+        console.log("Received campaigns:", userCampaigns);
+        
+        // Ensure userCampaigns is an array
+        if (Array.isArray(userCampaigns)) {
+          setCampaigns(userCampaigns);
+          if (!activeCampaign && userCampaigns.length > 0) {
+            setActiveCampaign(userCampaigns[0]);
+          }
+        } else {
+          console.warn("userCampaigns is not an array:", userCampaigns);
+          setCampaigns([]);
         }
+      } else {
+        console.warn("No user ID available");
+        setCampaigns([]);
       }
     } catch (error) {
       console.error("Failed to load campaigns:", error);
-      Alert.alert("Error", "Failed to load campaigns");
+      setCampaigns([]); // Set empty array on error
+      Alert.alert("Error", "Failed to load campaigns. Please check your connection and try again.");
     }
   };
 
@@ -126,7 +139,11 @@ export default function CampaignDashboardScreen({
         {activeCampaign && (
           <>
             <QRSection onScanQR={handleQRScan} />
-            <AnalyticsSection stats={stats} />
+            <AnalyticsSection 
+              stats={stats} 
+              campaignId={activeCampaign.id}
+              onStatsUpdated={setStats}
+            />
           </>
         )}
       </ScrollView>

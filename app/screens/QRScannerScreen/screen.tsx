@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, StyleSheet, Alert } from "react-native";
+import { SafeAreaView, StyleSheet, Alert, View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
+import { qrService, QRScanRequest } from "../../services/qrService";
+import { campaignService } from "../../services/campaignService";
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // Define the param list for the stack navigator
 type QRScannerStackParamList = {
   QRScannerScreen: { campaignId: string };
-  // Add other screens if needed
+  ManualSearch: { campaignId: string };
+  CampaignDashboard: undefined;
 };
 
 interface QRScannerScreenProps {
@@ -21,14 +24,13 @@ interface QRScannerScreenProps {
   };
 }
 
-interface AttendanceData {
-  userId: string;
-  userName: string;
-  userEmail: string;
-  bloodType: string;
-  isWalkIn: boolean;
-  screeningPassed: boolean;
-  timestamp: string;
+interface ScannedUser {
+  id: string;
+  name: string;
+  bloodGroup: string;
+  totalDonations: number;
+  donationBadge: string;
+  eligibleToDonate: boolean;
 }
 
 export default function QRScannerScreen({
@@ -40,6 +42,8 @@ export default function QRScannerScreen({
   const { campaignId } = route?.params || {};
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [scannedUser, setScannedUser] = useState<ScannedUser | null>(null);
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -47,48 +51,122 @@ export default function QRScannerScreen({
     }
   }, [permission]);
 
-  const handleBarCodeScanned = ({
+  const handleBarCodeScanned = async ({
     type,
     data,
   }: {
     type: string;
     data: string;
   }) => {
+    if (scanned || isProcessing) return;
+    
     setScanned(true);
+    setIsProcessing(true);
 
     try {
-      const parsedData = JSON.parse(data);
+      // Try to scan the QR code through the backend
+      const scanRequest: QRScanRequest = {
+        qrData: data,
+        campaignId: campaignId,
+        scanType: "CAMPAIGN_ATTENDANCE",
+        metadata: {
+          scannerUserId: user?.sub,
+          scanLocation: "QR_SCANNER",
+          timestamp: new Date().toISOString(),
+        },
+      };
 
-      if (parsedData.userId && parsedData.userName && parsedData.userEmail) {
+      const scanResult = await qrService.scanQR(scanRequest);
+
+      if (scanResult.success) {
+        setScannedUser(scanResult.scannedUser);
+        
+        // Show confirmation dialog with user information
         Alert.alert(
-          "QR Code Scanned",
-          `User: ${parsedData.userName}\nEmail: ${parsedData.userEmail}`,
+          "Donor Identified",
+          `Name: ${scanResult.scannedUser.name}\n` +
+          `Blood Group: ${scanResult.scannedUser.bloodGroup}\n` +
+          `Total Donations: ${scanResult.scannedUser.totalDonations}\n` +
+          `Badge: ${scanResult.scannedUser.donationBadge}\n` +
+          `Eligible: ${scanResult.scannedUser.eligibleToDonate ? 'Yes' : 'No'}`,
           [
             {
               text: "Mark Attendance",
-              onPress: () => {
-                Alert.alert("Success", "Attendance marked successfully");
-                setScanned(false);
-              },
+              onPress: () => handleMarkAttendance(scanResult.scannedUser.id),
+              style: scanResult.scannedUser.eligibleToDonate ? "default" : "destructive",
             },
             {
               text: "Cancel",
-              onPress: () => setScanned(false),
+              onPress: () => resetScanner(),
               style: "cancel",
             },
           ],
         );
       } else {
-        Alert.alert("Invalid QR Code", "Please scan a valid donor QR code");
-        setScanned(false);
+        Alert.alert("Scan Failed", scanResult.message || "Could not verify donor");
+        resetScanner();
       }
     } catch (error) {
-      Alert.alert("Invalid QR Code", "Could not read QR code data");
-      setScanned(false);
+      console.error("QR Scan error:", error);
+      Alert.alert("Error", "Failed to process QR code. Please try again.");
+      resetScanner();
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  const handleMarkAttendance = async (userId: string) => {
+    try {
+      setIsProcessing(true);
+      
+      const attendanceData = {
+        campaignId: campaignId!,
+        userId: userId,
+        userName: scannedUser?.name || "Unknown",
+        userEmail: "", // Will be provided by backend
+        bloodType: scannedUser?.bloodGroup || "Unknown",
+        isWalkIn: false, // Since it's QR scanned, not a walk-in
+        screeningPassed: scannedUser?.eligibleToDonate || false,
+        timestamp: new Date().toISOString(),
+        markedBy: user?.sub || "",
+      };
+
+      await campaignService.markAttendance(attendanceData);
+      
+      Alert.alert(
+        "Success", 
+        "Attendance marked successfully!",
+        [
+          {
+            text: "OK",
+            onPress: () => resetScanner(),
+          },
+        ],
+      );
+    } catch (error) {
+      console.error("Mark attendance error:", error);
+      Alert.alert("Error", "Failed to mark attendance. Please try again.");
+      resetScanner();
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const resetScanner = () => {
+    setScanned(false);
+    setScannedUser(null);
+    setIsProcessing(false);
+  };
+
   const handleBack = () => navigation?.goBack();
+
+  const handleManualSearch = () => {
+    if (campaignId) {
+      navigation?.navigate("ManualSearch", { campaignId });
+    } else {
+      Alert.alert("Error", "Campaign ID not available");
+    }
+  };
 
   if (!permission) {
     return null;
@@ -114,13 +192,36 @@ export default function QRScannerScreen({
         onAdd={() => {}}
       />
 
-      <CameraView
-        style={styles.camera}
-        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-        barcodeScannerSettings={{
-          barcodeTypes: ["qr"],
-        }}
-      />
+      <View style={styles.cameraContainer}>
+        <CameraView
+          style={styles.camera}
+          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+          barcodeScannerSettings={{
+            barcodeTypes: ["qr"],
+          }}
+        />
+        
+        {/* Overlay with scanning frame */}
+        <View style={styles.overlay}>
+          <View style={styles.scanFrame} />
+          <Text style={styles.instructionText}>
+            Point camera at donor's QR code
+          </Text>
+          
+          {/* Manual search button */}
+          <TouchableOpacity style={styles.manualSearchButton} onPress={handleManualSearch}>
+            <Text style={styles.manualSearchText}>Manual Search</Text>
+          </TouchableOpacity>
+          
+          {/* Processing overlay */}
+          {isProcessing && (
+            <View style={styles.processingOverlay}>
+              <ActivityIndicator size="large" color="#fff" />
+              <Text style={styles.processingText}>Processing QR Code...</Text>
+            </View>
+          )}
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -130,7 +231,69 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000000",
   },
+  cameraContainer: {
+    flex: 1,
+    position: "relative",
+  },
   camera: {
     flex: 1,
+  },
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scanFrame: {
+    width: 250,
+    height: 250,
+    borderWidth: 2,
+    borderColor: "#fff",
+    borderRadius: 20,
+    backgroundColor: "transparent",
+  },
+  instructionText: {
+    position: "absolute",
+    bottom: 100,
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+    textAlign: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  processingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  processingText: {
+    color: "#fff",
+    fontSize: 16,
+    marginTop: 20,
+    fontWeight: "500",
+  },
+  manualSearchButton: {
+    position: "absolute",
+    bottom: 40,
+    backgroundColor: "#DC2626",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  manualSearchText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

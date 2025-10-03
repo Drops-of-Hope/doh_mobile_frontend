@@ -21,6 +21,10 @@ import AllCampaignsScreen from "../screens/AllCampaignsScreen";
 import CampaignDashboardScreen from "../screens/CampaignDashboardScreen";
 import QRScannerScreen from "../screens/QRScannerScreen";
 import CreateCampaignScreen from "../screens/CreateCampaignScreen";
+import ManualSearchScreen from "../screens/ManualSearchScreen";
+import CampaignManagementScreen from "../screens/CampaignManagementScreen";
+import CampaignAnalyticsScreen from "../screens/CampaignAnalyticsScreen";
+import EditCampaignScreen from "../screens/EditCampaignScreen";
 
 type RootStackParamList = {
   Splash: undefined;
@@ -39,6 +43,10 @@ type RootStackParamList = {
   CampaignDashboard: undefined;
   QRScanner: { campaignId: string };
   CreateCampaign: undefined;
+  ManualSearch: { campaignId: string };
+  CampaignManagement: undefined;
+  CampaignAnalytics: { campaignId: string };
+  EditCampaign: { campaignId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -87,6 +95,22 @@ export default function AppNavigator() {
             <Stack.Screen
               name="CreateCampaign"
               component={CreateCampaignScreen}
+            />
+            <Stack.Screen
+              name="ManualSearch"
+              component={ManualSearchScreen}
+            />
+            <Stack.Screen
+              name="CampaignManagement"
+              component={CampaignManagementScreen}
+            />
+            <Stack.Screen
+              name="CampaignAnalytics"
+              component={CampaignAnalyticsScreen}
+            />
+            <Stack.Screen
+              name="EditCampaign"
+              component={EditCampaignScreen}
             />
           </>
         ) : (
