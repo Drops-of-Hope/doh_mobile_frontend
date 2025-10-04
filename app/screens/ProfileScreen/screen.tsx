@@ -380,7 +380,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </>
       )}
 
-      <BottomTabBar activeTab="profile" />
+      <BottomTabBar activeTab="Profile" />
     </SafeAreaView>
   );
 }

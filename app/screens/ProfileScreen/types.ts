@@ -4,7 +4,7 @@ export interface UserData {
   email: string;
   bloodType: string;
   mobileNumber: string;
-  donationBadge: "BRONZE" | "SILVER" | "GOLD" | "HERO";
+  donationBadge: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "DIAMOND";
   imageUri: string;
   membershipType: string;
 }

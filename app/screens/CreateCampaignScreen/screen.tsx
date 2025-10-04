@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -10,15 +10,20 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { campaignService } from "../../services/campaignService";
+import { appointmentService, MedicalEstablishment } from "../../services/appointmentService";
+import { District } from "../../../constants/districts";
+import { getDatabaseUserId } from "../../utils/userIdUtils";
 
 // Import refactored components
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import FormSection from "./molecules/FormSection";
 import InputField from "./atoms/InputField";
+import DropdownField from "./atoms/DropdownField";
+import DateSelector from "./atoms/DateSelector";
 import SubmitButton from "./atoms/SubmitButton";
 
 // Import types
-import { CreateCampaignScreenProps, LocalCampaignForm } from "./types";
+import { CreateCampaignScreenProps, LocalCampaignForm, FormErrors } from "./types";
 
 export default function CreateCampaignScreen({
   navigation,
@@ -26,52 +31,145 @@ export default function CreateCampaignScreen({
   const { user } = useAuth();
   const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [medicalEstablishments, setMedicalEstablishments] = useState<MedicalEstablishment[]>([]);
   const [formData, setFormData] = useState<LocalCampaignForm>({
     title: "",
+    type: "",
     description: "",
+    motivation: "",
     location: "",
-    address: "",
-    date: "",
+    day: "",
+    month: "",
+    year: "",
     startTime: "",
     endTime: "",
-    donationGoal: "",
-    contactPerson: user?.name || "",
-    contactPhone: "",
-    contactEmail: user?.email || "",
+    expectedDonors: "",
+    contactPersonName: user?.name || "",
+    contactPersonPhone: "",
+    medicalEstablishmentId: "",
     requirements: "",
-    additionalNotes: "",
   });
 
-  const [errors, setErrors] = useState<Partial<LocalCampaignForm>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  // Load medical establishments on component mount
+  useEffect(() => {
+    loadMedicalEstablishments();
+  }, []);
+
+  const loadMedicalEstablishments = async () => {
+    try {
+      // For now, let's load establishments from all districts
+      // In a real app, you might want to filter by user's district
+      const allEstablishments: MedicalEstablishment[] = [];
+      
+      // Load from a specific district or all districts
+      // For demo purposes, let's try COLOMBO
+      try {
+        const establishments = await appointmentService.getMedicalEstablishmentsByDistrict(District.COLOMBO);
+        allEstablishments.push(...establishments);
+      } catch (error) {
+        console.log("Could not load establishments from COLOMBO, using fallback");
+      }
+      
+      setMedicalEstablishments(allEstablishments);
+    } catch (error) {
+      console.error("Failed to load medical establishments:", error);
+      // Set fallback establishments
+      setMedicalEstablishments([
+        { id: "establishment-1", name: "Central Hospital Colombo", address: "Colombo", region: "Western", email: "central@hospital.lk", bloodCapacity: 100, isBloodBank: true },
+        { id: "establishment-2", name: "Kandy General Hospital", address: "Kandy", region: "Central", email: "kandy@hospital.lk", bloodCapacity: 80, isBloodBank: true },
+        { id: "establishment-3", name: "Galle Teaching Hospital", address: "Galle", region: "Southern", email: "galle@hospital.lk", bloodCapacity: 60, isBloodBank: true },
+      ]);
+    }
+  };
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<LocalCampaignForm> = {};
-    const requiredFields = [
-      "title",
-      "description",
-      "location",
-      "address",
-      "date",
-      "startTime",
-      "endTime",
-      "donationGoal",
-      "contactPerson",
-      "contactPhone",
-      "contactEmail",
-    ];
+    const newErrors: FormErrors = {};
 
-    requiredFields.forEach((field) => {
-      if (!formData[field as keyof LocalCampaignForm].trim()) {
-        newErrors[field as keyof LocalCampaignForm] = `${field} is required`;
+    // Basic required field validation
+    if (!formData.title.trim()) {
+      newErrors.title = "Campaign title is required";
+    }
+
+    if (!formData.type) {
+      newErrors.type = "Campaign type is required";
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = "Description is required";
+    }
+
+    if (!formData.motivation.trim()) {
+      newErrors.motivation = "Motivation is required";
+    }
+
+    if (!formData.location.trim()) {
+      newErrors.location = "Location is required";
+    }
+
+    if (!formData.medicalEstablishmentId) {
+      newErrors.medicalEstablishmentId = "Medical establishment is required";
+    }
+
+    // Date validation
+    if (!formData.day || !formData.month || !formData.year) {
+      newErrors.day = "Please select a complete date";
+    } else {
+      const selectedDate = new Date(
+        parseInt(formData.year),
+        parseInt(formData.month) - 1,
+        parseInt(formData.day)
+      );
+      const today = new Date();
+      const minDate = new Date(today);
+      minDate.setDate(today.getDate() + 28); // 4 weeks ahead
+
+      if (selectedDate < minDate) {
+        newErrors.day = "Date must be at least 4 weeks from today";
       }
-    });
+    }
 
-    if (
-      formData.donationGoal &&
-      (isNaN(Number(formData.donationGoal)) ||
-        Number(formData.donationGoal) <= 0)
-    ) {
-      newErrors.donationGoal = "Please enter a valid donation goal";
+    // Time validation (24-hour format)
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    
+    if (!formData.startTime) {
+      newErrors.startTime = "Start time is required";
+    } else if (!timeRegex.test(formData.startTime)) {
+      newErrors.startTime = "Use 24-hour format (HH:MM)";
+    }
+
+    if (!formData.endTime) {
+      newErrors.endTime = "End time is required";
+    } else if (!timeRegex.test(formData.endTime)) {
+      newErrors.endTime = "Use 24-hour format (HH:MM)";
+    }
+
+    // Check if end time is after start time
+    if (formData.startTime && formData.endTime && timeRegex.test(formData.startTime) && timeRegex.test(formData.endTime)) {
+      const [startHour, startMin] = formData.startTime.split(':').map(Number);
+      const [endHour, endMin] = formData.endTime.split(':').map(Number);
+      const startMinutes = startHour * 60 + startMin;
+      const endMinutes = endHour * 60 + endMin;
+      
+      if (endMinutes <= startMinutes) {
+        newErrors.endTime = "End time must be after start time";
+      }
+    }
+
+    if (!formData.expectedDonors || isNaN(Number(formData.expectedDonors)) || Number(formData.expectedDonors) <= 0) {
+      newErrors.expectedDonors = "Please enter a valid expected donors count";
+    }
+
+    if (!formData.contactPersonName.trim()) {
+      newErrors.contactPersonName = "Contact person name is required";
+    }
+
+    // Phone validation: exactly 10 digits starting with 0
+    if (!formData.contactPersonPhone.trim()) {
+      newErrors.contactPersonPhone = "Contact phone is required";
+    } else if (!/^0[0-9]{9}$/.test(formData.contactPersonPhone)) {
+      newErrors.contactPersonPhone = "Phone must be 10 digits starting with 0";
     }
 
     setErrors(newErrors);
@@ -80,17 +178,58 @@ export default function CreateCampaignScreen({
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      Alert.alert("Validation Error", "Please fill all required fields");
+      Alert.alert("Validation Error", "Please fill all required fields correctly");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      // Get the actual database user ID
+      const databaseUserId = await getDatabaseUserId();
+      
+      if (!databaseUserId) {
+        Alert.alert("Error", "Unable to identify user. Please log in again.");
+        return;
+      }
+
+      console.log('Creating campaign with database user ID:', databaseUserId);
+      console.log('Auth sub was:', user?.sub);
+
+      // Create proper date objects for startTime and endTime
+      const campaignDate = new Date(
+        parseInt(formData.year),
+        parseInt(formData.month) - 1,
+        parseInt(formData.day)
+      );
+
+      // Parse time and create proper datetime objects
+      const [startHour, startMin] = formData.startTime.split(':').map(Number);
+      const [endHour, endMin] = formData.endTime.split(':').map(Number);
+      
+      const startDateTime = new Date(campaignDate);
+      startDateTime.setHours(startHour, startMin, 0, 0);
+      
+      const endDateTime = new Date(campaignDate);
+      endDateTime.setHours(endHour, endMin, 0, 0);
+      
       const campaignData = {
-        ...formData,
-        donationGoal: Number(formData.donationGoal),
-        organizerId: user?.sub || "",
+        title: formData.title.trim(),
+        type: formData.type as "MOBILE" | "FIXED",
+        description: formData.description.trim(),
+        motivation: formData.motivation.trim(),
+        location: formData.location.trim(),
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
+        expectedDonors: Number(formData.expectedDonors),
+        contactPersonName: formData.contactPersonName.trim(),
+        contactPersonPhone: formData.contactPersonPhone.trim(),
+        medicalEstablishmentId: formData.medicalEstablishmentId,
+        organizerId: databaseUserId, // Use database user ID instead of auth sub
+        isApproved: false,
+        requirements: formData.requirements ? JSON.parse(`{"notes": "${formData.requirements.trim()}"}`) : {},
       };
+
+      console.log('Campaign data being sent:', campaignData);
 
       await campaignService.createCampaign(campaignData);
       Alert.alert("Success", "Campaign created successfully", [
@@ -133,12 +272,38 @@ export default function CreateCampaignScreen({
             error={errors.title}
             required
           />
+          
+          <DropdownField
+            label="Campaign Type"
+            value={formData.type}
+            onValueChange={(value) => updateFormData("type", value)}
+            options={[
+              { label: "Fixed Location", value: "FIXED" },
+              { label: "Mobile Campaign", value: "MOBILE" },
+            ]}
+            placeholder="Select campaign type"
+            error={errors.type}
+            required
+          />
+          
+          <InputField
+            label="Motivation"
+            value={formData.motivation}
+            onChangeText={(text) => updateFormData("motivation", text)}
+            placeholder="Why is this campaign important?"
+            multiline
+            maxLength={255}
+            error={errors.motivation}
+            required
+          />
+          
           <InputField
             label="Description"
             value={formData.description}
             onChangeText={(text) => updateFormData("description", text)}
             placeholder="Describe the campaign"
             multiline
+            maxLength={255}
             error={errors.description}
             required
           />
@@ -153,30 +318,36 @@ export default function CreateCampaignScreen({
             error={errors.location}
             required
           />
-          <InputField
-            label="Full Address"
-            value={formData.address}
-            onChangeText={(text) => updateFormData("address", text)}
-            placeholder="Enter complete address"
-            multiline
-            error={errors.address}
+          <DropdownField
+            label="Medical Establishment"
+            value={formData.medicalEstablishmentId}
+            onValueChange={(value) => updateFormData("medicalEstablishmentId", value)}
+            options={medicalEstablishments.map(est => ({
+              label: `${est.name} - ${est.address}`,
+              value: est.id
+            }))}
+            placeholder="Select medical establishment"
+            error={errors.medicalEstablishmentId}
             required
           />
-          <InputField
-            label="Date"
-            value={formData.date}
-            onChangeText={(text) => updateFormData("date", text)}
-            placeholder="YYYY-MM-DD"
-            error={errors.date}
-            required
+          
+          <DateSelector
+            day={formData.day}
+            month={formData.month}
+            year={formData.year}
+            onDayChange={(value) => updateFormData("day", value)}
+            onMonthChange={(value) => updateFormData("month", value)}
+            onYearChange={(value) => updateFormData("year", value)}
+            error={errors.day}
           />
+          
           <View style={styles.timeRow}>
             <View style={styles.timeInput}>
               <InputField
                 label="Start Time"
                 value={formData.startTime}
                 onChangeText={(text) => updateFormData("startTime", text)}
-                placeholder="09:00 AM"
+                placeholder="08:00"
                 error={errors.startTime}
                 required
               />
@@ -186,7 +357,7 @@ export default function CreateCampaignScreen({
                 label="End Time"
                 value={formData.endTime}
                 onChangeText={(text) => updateFormData("endTime", text)}
-                placeholder="05:00 PM"
+                placeholder="17:00"
                 error={errors.endTime}
                 required
               />
@@ -196,39 +367,40 @@ export default function CreateCampaignScreen({
 
         <FormSection title="Goals & Contact">
           <InputField
-            label="Donation Goal"
-            value={formData.donationGoal}
-            onChangeText={(text) => updateFormData("donationGoal", text)}
-            placeholder="Number of donations expected"
+            label="Expected Donors"
+            value={formData.expectedDonors}
+            onChangeText={(text) => updateFormData("expectedDonors", text)}
+            placeholder="Number of donors expected"
             keyboardType="numeric"
-            error={errors.donationGoal}
+            error={errors.expectedDonors}
             required
           />
           <InputField
-            label="Contact Person"
-            value={formData.contactPerson}
-            onChangeText={(text) => updateFormData("contactPerson", text)}
+            label="Contact Person Name"
+            value={formData.contactPersonName}
+            onChangeText={(text) => updateFormData("contactPersonName", text)}
             placeholder="Contact person name"
-            error={errors.contactPerson}
+            error={errors.contactPersonName}
             required
           />
           <InputField
             label="Contact Phone"
-            value={formData.contactPhone}
-            onChangeText={(text) => updateFormData("contactPhone", text)}
-            placeholder="Contact phone number"
+            value={formData.contactPersonPhone}
+            onChangeText={(text) => updateFormData("contactPersonPhone", text)}
+            placeholder="0712345678"
             keyboardType="phone-pad"
-            error={errors.contactPhone}
+            maxLength={10}
+            error={errors.contactPersonPhone}
             required
           />
+          
           <InputField
-            label="Contact Email"
-            value={formData.contactEmail}
-            onChangeText={(text) => updateFormData("contactEmail", text)}
-            placeholder="Contact email address"
-            keyboardType="email-address"
-            error={errors.contactEmail}
-            required
+            label="Requirements"
+            value={formData.requirements}
+            onChangeText={(text) => updateFormData("requirements", text)}
+            placeholder="Special requirements (optional)"
+            multiline
+            error={errors.requirements}
           />
         </FormSection>
 

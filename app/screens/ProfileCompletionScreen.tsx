@@ -9,9 +9,12 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { District } from '../../constants/districts';
+import ValidationUtils from '../utils/ValidationUtils';
 
 interface ProfileCompletionScreenProps {
   userId: string;
@@ -33,6 +36,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
   const [emergencyContact, setEmergencyContact] = useState('');
   const [showBloodGroupPicker, setShowBloodGroupPicker] = useState(false);
   const [showDistrictPicker, setShowDistrictPicker] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const { completeUserProfile, isProcessing, error } = useAuthUser();
 
@@ -86,31 +90,48 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
   ];
 
   const handleComplete = async () => {
-    console.log("🔄 Starting profile completion...");
-    console.log("👤 User ID being sent to backend:", userId);
+    console.log("Starting profile completion...");
+    console.log("User ID being sent to backend:", userId);
     
-    // Validate required fields
-    if (!nic || !bloodGroup || !address || !city || !district) {
-      Alert.alert('Error', 'Please fill in all required fields');
+    // Comprehensive validation using ValidationUtils
+    const formData = {
+      nic,
+      bloodGroup,
+      address,
+      city,
+      district,
+      phoneNumber: phoneNumber || undefined,
+      emergencyContact: emergencyContact || undefined,
+    };
+    
+    const requiredFields = ['nic', 'bloodGroup', 'address', 'city', 'district'];
+    const validation = ValidationUtils.validateForm(formData, requiredFields);
+    
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      Alert.alert('Validation Error', 'Please fix the errors in the form and try again');
       return;
     }
+    
+    // Clear any previous validation errors
+    setValidationErrors({});
 
     try {
       const profileData = {
-        nic,
+        nic: nic.trim(),
         bloodGroup,
-        address,
-        city,
+        address: address.trim(),
+        city: city.trim(),
         district,
-        phoneNumber: phoneNumber || undefined,
-        emergencyContact: emergencyContact || undefined,
+        phoneNumber: phoneNumber ? ValidationUtils.cleanPhoneNumber(phoneNumber) : undefined,
+        emergencyContact: emergencyContact ? ValidationUtils.cleanPhoneNumber(emergencyContact) : undefined,
       };
       
-      console.log("📋 Profile data being sent:", profileData);
+      console.log("Profile data being sent:", profileData);
       
       const userInfo = await completeUserProfile(userId, profileData);
       
-      console.log("✅ Profile completion response:", userInfo);
+      console.log("Profile completion response:", userInfo);
 
       if (userInfo) {
         Alert.alert('Success', 'Profile completed successfully!', [
@@ -118,13 +139,18 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
         ]);
       }
     } catch (error: any) {
-      console.error("❌ Profile completion error:", error);
+      console.error("Profile completion error:", error);
       Alert.alert('Error', error.message || 'Failed to complete profile');
     }
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <View style={styles.header}>
         <Text style={styles.title}>Complete Your Profile</Text>
         <Text style={styles.subtitle}>
@@ -136,12 +162,22 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>NIC Number *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, validationErrors.nic && styles.inputError]}
             value={nic}
-            onChangeText={setNic}
+            onChangeText={(text) => {
+              setNic(text);
+              if (validationErrors.nic) {
+                const newErrors = {...validationErrors};
+                delete newErrors.nic;
+                setValidationErrors(newErrors);
+              }
+            }}
             placeholder="Enter your NIC number"
             maxLength={12}
           />
+          {validationErrors.nic && (
+            <Text style={styles.errorText}>{validationErrors.nic}</Text>
+          )}
         </View>
 
         <View style={styles.fieldContainer}>
@@ -157,7 +193,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
           </TouchableOpacity>
           
           {showBloodGroupPicker && (
-            <View style={styles.dropdownContainer}>
+            <ScrollView style={styles.dropdownContainer} nestedScrollEnabled={true}>
               {bloodGroups.map(group => (
                 <TouchableOpacity
                   key={group.value}
@@ -178,7 +214,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
           )}
         </View>
 
@@ -217,7 +253,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
           </TouchableOpacity>
           
           {showDistrictPicker && (
-            <View style={styles.dropdownContainer}>
+            <ScrollView style={styles.dropdownContainer} nestedScrollEnabled={true}>
               {districtOptions.map(dist => (
                 <TouchableOpacity
                   key={dist.value}
@@ -238,36 +274,66 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
           )}
         </View>
 
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>Phone Number</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, validationErrors.phoneNumber && styles.inputError]}
             value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            placeholder="Enter your phone number"
+            maxLength={10}
+            onChangeText={(text) => {
+              // Only allow digits and ensure it starts with 0
+              const cleaned = text.replace(/\D/g, '');
+              if (cleaned.length === 0 || cleaned.startsWith('0')) {
+                setPhoneNumber(cleaned);
+                if (validationErrors.phoneNumber) {
+                  const newErrors = {...validationErrors};
+                  delete newErrors.phoneNumber;
+                  setValidationErrors(newErrors);
+                }
+              }
+            }}
+            placeholder="0771234567"
             keyboardType="phone-pad"
           />
+          {validationErrors.phoneNumber && (
+            <Text style={styles.errorText}>{validationErrors.phoneNumber}</Text>
+          )}
         </View>
 
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>Emergency Contact</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, validationErrors.emergencyContact && styles.inputError]}
             value={emergencyContact}
-            onChangeText={setEmergencyContact}
-            placeholder="Enter emergency contact number"
+            maxLength={10}
+            onChangeText={(text) => {
+              // Only allow digits and ensure it starts with 0
+              const cleaned = text.replace(/\D/g, '');
+              if (cleaned.length === 0 || cleaned.startsWith('0')) {
+                setEmergencyContact(cleaned);
+                if (validationErrors.emergencyContact) {
+                  const newErrors = {...validationErrors};
+                  delete newErrors.emergencyContact;
+                  setValidationErrors(newErrors);
+                }
+              }
+            }}
+            placeholder="0771234567"
             keyboardType="phone-pad"
           />
+          {validationErrors.emergencyContact && (
+            <Text style={styles.errorText}>{validationErrors.emergencyContact}</Text>
+          )}
         </View>
       </View>
 
       {error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.globalErrorText}>{error}</Text>
         </View>
       )}
 
@@ -294,7 +360,8 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
           </TouchableOpacity>
         )}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -340,6 +407,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#fff',
   },
+  inputError: {
+    borderColor: '#cc0000',
+    borderWidth: 2,
+  },
   textArea: {
     height: 80,
     textAlignVertical: 'top',
@@ -362,6 +433,12 @@ const styles = StyleSheet.create({
     borderColor: '#ffcccc',
   },
   errorText: {
+    color: '#cc0000',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  globalErrorText: {
     color: '#cc0000',
     fontSize: 14,
     textAlign: 'center',

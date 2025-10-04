@@ -18,11 +18,12 @@ export const getRoleMembershipType = (userRole: string | null): string => {
   }
 };
 
-// Get donation badge based on count
+// Get donation badge based on count using new thresholds
 export const getDonationBadge = (
   donationCount: number = 0,
 ): UserData["donationBadge"] => {
-  if (donationCount >= 50) return "HERO";
+  if (donationCount >= 100) return "DIAMOND";
+  if (donationCount >= 50) return "PLATINUM";
   if (donationCount >= 25) return "GOLD";
   if (donationCount >= 10) return "SILVER";
   return "BRONZE";
@@ -31,8 +32,10 @@ export const getDonationBadge = (
 // Get badge color
 export const getBadgeColor = (badge: UserData["donationBadge"]): string => {
   switch (badge) {
-    case "HERO":
-      return "#DC2626";
+    case "DIAMOND":
+      return "#B23CFD";
+    case "PLATINUM":
+      return "#E5E7EB";
     case "GOLD":
       return "#F59E0B";
     case "SILVER":
@@ -46,7 +49,9 @@ export const getBadgeColor = (badge: UserData["donationBadge"]): string => {
 // Get badge icon
 export const getBadgeIcon = (badge: UserData["donationBadge"]): string => {
   switch (badge) {
-    case "HERO":
+    case "DIAMOND":
+      return "diamond";
+    case "PLATINUM":
       return "trophy";
     case "GOLD":
       return "medal";

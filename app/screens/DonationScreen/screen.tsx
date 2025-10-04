@@ -17,6 +17,7 @@ import AppointmentSection from "./molecules/AppointmentSection";
 import QRModal from "./organisms/QRModal";
 import DonationFormModal from "./organisms/DonationFormModal";
 import AppointmentBookingModal from "./organisms/AppointmentBookingModal";
+import QRScannerModal from "../../../components/organisms/QRScannerModal";
 
 // Import existing bottom tab bar
 import BottomTabBar from "../../../components/organisms/BottomTabBar";
@@ -26,6 +27,8 @@ import { TabType, UserProfile, Appointment } from "./types";
 import { getMockAppointments } from "./utils";
 import { useAuth } from "../../context/AuthContext";
 import { donationService } from "../../services/donationService";
+import { qrService } from "../../services/qrService";
+import type { QRScanResult } from "../../services/qrService";
 
 interface DonationScreenProps {
   navigation?: any;
@@ -37,6 +40,7 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
   const [showQRModal, setShowQRModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showQRScannerModal, setShowQRScannerModal] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { user, isAuthenticated, refreshAuthState, getFullName } = useAuth();
@@ -113,27 +117,35 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
   const handleMarkAttendance = () => {
     if (attendanceMarked) return;
 
-    // Simulate QR scan process
+    // Open QR scanner modal for actual QR scanning
+    setShowQRScannerModal(true);
+  };
+
+  const handleQRScanSuccess = (result: QRScanResult) => {
+    // Close the scanner modal
+    setShowQRScannerModal(false);
+    
+    // Mark attendance as completed
+    setAttendanceMarked(true);
+    
+    // Show success message
     Alert.alert(
-      "QR Code Scanned",
-      "Your QR code has been scanned by staff successfully.",
+      "QR Code Verified",
+      `Welcome ${result.scannedUser.name}!\nYour attendance has been marked successfully. You can now fill the donation form.`,
       [
         {
-          text: "Mark Attendance",
+          text: "OK",
           onPress: () => {
-            setAttendanceMarked(true);
-            Alert.alert(
-              "Success",
-              "Your attendance has been marked! You can now fill the donation form."
-            );
+            // Optional: Auto-open donation form
+            // setShowFormModal(true);
           },
-        },
-        {
-          text: "Cancel",
-          style: "cancel",
         },
       ]
     );
+  };
+
+  const handleQRScanClose = () => {
+    setShowQRScannerModal(false);
   };
 
   const handleBookAppointment = () => {
@@ -219,7 +231,14 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
         onBookAppointment={handleBookAppointment}
       />
 
-      <BottomTabBar activeTab="donate" />
+      <QRScannerModal
+        visible={showQRScannerModal}
+        onClose={handleQRScanClose}
+        scanType="DONATION_VERIFICATION"
+        onScanSuccess={handleQRScanSuccess}
+      />
+
+      <BottomTabBar activeTab="Donate" />
     </SafeAreaView>
   );
 }

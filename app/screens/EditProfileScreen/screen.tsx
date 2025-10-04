@@ -5,6 +5,8 @@ import {
   StatusBar,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useAuthUser } from "../../hooks/useAuthUser";
@@ -12,6 +14,7 @@ import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeade
 import FormSection from "../CreateCampaignScreen/molecules/FormSection";
 import InputField from "../CreateCampaignScreen/atoms/InputField";
 import SubmitButton from "../CreateCampaignScreen/atoms/SubmitButton";
+import ValidationUtils from "../../utils/ValidationUtils";
 
 interface EditProfileScreenProps {
   navigation?: any;
@@ -56,13 +59,13 @@ export default function EditProfileScreen({
       try {
         setIsLoading(true);
         const storedUserData = await getStoredUserData();
-        
+
         if (storedUserData) {
           // Split name into first and last
-          const nameParts = storedUserData.name.split(' ');
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
-          
+          const nameParts = storedUserData.name.split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+
           setFormData({
             firstName,
             lastName,
@@ -75,11 +78,11 @@ export default function EditProfileScreen({
           });
         } else if (user) {
           // Fallback to AuthContext user data
-          const nameParts = user.name.split(' ');
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
-          
-          setFormData(prev => ({
+          const nameParts = user.name.split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+
+          setFormData((prev) => ({
             ...prev,
             firstName,
             lastName,
@@ -97,23 +100,17 @@ export default function EditProfileScreen({
   }, [user]);
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<ProfileFormData> = {};
     const requiredFields = [
       "firstName",
-      "lastName",
+      "lastName", 
       "email",
       "phoneNumber",
       "bloodType",
     ];
 
-    requiredFields.forEach((field) => {
-      if (!formData[field as keyof ProfileFormData].trim()) {
-        newErrors[field as keyof ProfileFormData] = `${field} is required`;
-      }
-    });
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const validation = ValidationUtils.validateForm(formData, requiredFields);
+    setErrors(validation.errors);
+    return validation.isValid;
   };
 
   const handleSubmit = async () => {
@@ -138,7 +135,22 @@ export default function EditProfileScreen({
   };
 
   const updateFormData = (field: keyof ProfileFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    let processedValue = value;
+    
+    // Apply specific processing for phone numbers
+    if (field === 'phoneNumber' || field === 'emergencyPhone') {
+      // Keep only digits and limit to 10 characters starting with 0
+      const cleaned = value.replace(/\D/g, '');
+      if (cleaned.length === 0 || cleaned.startsWith('0')) {
+        processedValue = cleaned.slice(0, 10);
+      } else {
+        return; // Don't update if it doesn't start with 0
+      }
+    }
+    
+    setFormData((prev) => ({ ...prev, [field]: processedValue }));
+    
+    // Clear validation error for this field
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
@@ -153,14 +165,19 @@ export default function EditProfileScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
 
-      <DashboardHeader
-        title="Edit Profile"
-        onBack={handleBack}
-        onAdd={() => {}}
-      />
+        <DashboardHeader
+          title="Edit Profile"
+          onBack={handleBack}
+          onAdd={() => {}}
+        />
 
       {isLoading ? (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -176,87 +193,92 @@ export default function EditProfileScreen({
       ) : (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <FormSection title="Personal Information">
-          <InputField
-            label="First Name"
-            value={formData.firstName}
-            onChangeText={(text) => updateFormData("firstName", text)}
-            placeholder="Enter first name"
-            error={errors.firstName}
-            required
-          />
-          <InputField
-            label="Last Name"
-            value={formData.lastName}
-            onChangeText={(text) => updateFormData("lastName", text)}
-            placeholder="Enter last name"
-            error={errors.lastName}
-            required
-          />
-          <InputField
-            label="Email"
-            value={formData.email}
-            onChangeText={(text) => updateFormData("email", text)}
-            placeholder="Enter email address"
-            keyboardType="email-address"
-            error={errors.email}
-            required
-          />
-          <InputField
-            label="Phone Number"
-            value={formData.phoneNumber}
-            onChangeText={(text) => updateFormData("phoneNumber", text)}
-            placeholder="Enter phone number"
-            keyboardType="phone-pad"
-            error={errors.phoneNumber}
-            required
-          />
-        </FormSection>
+            <InputField
+              label="First Name"
+              value={formData.firstName}
+              onChangeText={(text) => updateFormData("firstName", text)}
+              placeholder="Enter first name"
+              error={errors.firstName}
+              required
+            />
+            <InputField
+              label="Last Name"
+              value={formData.lastName}
+              onChangeText={(text) => updateFormData("lastName", text)}
+              placeholder="Enter last name"
+              error={errors.lastName}
+              required
+            />
+            <InputField
+              label="Email"
+              value={formData.email}
+              onChangeText={(text) => updateFormData("email", text)}
+              placeholder="Enter email address"
+              keyboardType="email-address"
+              error={errors.email}
+              required
+            />
+            <InputField
+              label="Phone Number"
+              value={formData.phoneNumber}
+              onChangeText={(text) => {
+                // keep only digits and limit to 10 characters
+                const digitsOnly = text.replace(/\D/g, "").slice(0, 10);
+                updateFormData("phoneNumber", digitsOnly);
+              }}
+              placeholder="Enter phone number"
+              keyboardType="phone-pad"
+              error={errors.phoneNumber}
+              required
+            />
+          </FormSection>
 
-        <FormSection title="Medical Information">
-          <InputField
-            label="Blood Type"
-            value={formData.bloodType}
-            onChangeText={(text) => updateFormData("bloodType", text)}
-            placeholder="e.g., O+, A-, B+, AB-"
-            error={errors.bloodType}
-            required
-          />
-          <InputField
-            label="Address"
-            value={formData.address}
-            onChangeText={(text) => updateFormData("address", text)}
-            placeholder="Enter your address"
-            multiline
-            error={errors.address}
-          />
-        </FormSection>
+          <FormSection title="Medical Information">
+            <InputField
+              label="Blood Type"
+              value={formData.bloodType}
+              onChangeText={(text) => updateFormData("bloodType", text)}
+              placeholder="e.g., O+, A-, B+, AB-"
+              error={errors.bloodType}
+              required
+            />
+            <InputField
+              label="Address"
+              value={formData.address}
+              onChangeText={(text) => updateFormData("address", text)}
+              placeholder="Enter your address"
+              multiline
+              error={errors.address}
+            />
+          </FormSection>
 
-        <FormSection title="Emergency Contact">
-          <InputField
-            label="Emergency Contact Name"
-            value={formData.emergencyContact}
-            onChangeText={(text) => updateFormData("emergencyContact", text)}
-            placeholder="Enter emergency contact name"
-            error={errors.emergencyContact}
-          />
-          <InputField
-            label="Emergency Contact Phone"
-            value={formData.emergencyPhone}
-            onChangeText={(text) => updateFormData("emergencyPhone", text)}
-            placeholder="Enter emergency contact phone"
-            keyboardType="phone-pad"
-            error={errors.emergencyPhone}
-          />
-        </FormSection>
+          <FormSection title="Emergency Contact">
+            <InputField
+              label="Emergency Contact Name"
+              value={formData.emergencyContact}
+              onChangeText={(text) => updateFormData("emergencyContact", text)}
+              placeholder="Enter emergency contact name"
+              error={errors.emergencyContact}
+            />
+            <InputField
+              label="Emergency Contact Phone"
+              value={formData.emergencyPhone}
+              onChangeText={(text) => updateFormData("emergencyPhone", text)}
+              placeholder="Enter emergency contact phone"
+              keyboardType="phone-pad"
+              error={errors.emergencyPhone}
+            />
+          </FormSection>
 
-        <SubmitButton
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          title="Update Profile"
-        />
+          <SubmitButton
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            title="Update Profile"
+          />
         </ScrollView>
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

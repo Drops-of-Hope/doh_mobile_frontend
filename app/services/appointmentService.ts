@@ -1,4 +1,4 @@
-import { apiRequest, API_ENDPOINTS } from "./api";
+import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 import { District, DISTRICT_TO_PROVINCE } from "../../constants/districts";
 
 // Medical Establishment interface
@@ -47,7 +47,7 @@ export const appointmentService = {
     district: District
   ): Promise<MedicalEstablishment[]> => {
     try {
-      const response = await apiRequest(
+      const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.MEDICAL_ESTABLISHMENTS}?district=${district}`,
         {
           method: "GET",
@@ -70,7 +70,7 @@ export const appointmentService = {
     medicalEstablishmentId: string
   ): Promise<AppointmentSlot[]> => {
     try {
-      const response = await apiRequest(
+      const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.APPOINTMENT_SLOTS}/getSlots?establishmentId=${medicalEstablishmentId}`,
         {
           method: "GET",
@@ -105,8 +105,8 @@ export const appointmentService = {
       }
 
       console.log("Booking request:", bookingRequest);
-      const response = await apiRequest(
-        `${API_ENDPOINTS.APPOINTMENTS}/createAppointments`,
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CREATE_APPOINTMENT}`,
         {
           method: "POST",
           headers: {
@@ -127,26 +127,14 @@ export const appointmentService = {
   // Get user's appointments
   getUserAppointments: async (userId: string): Promise<Appointment[]> => {
     try {
-      const response = await apiRequest(
-        `${API_ENDPOINTS.APPOINTMENTS}/user/${userId}`,
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.USER_APPOINTMENTS}`,
         {
           method: "GET",
         }
       );
 
-      // Mock user appointments
-      const mockAppointments: Appointment[] = [
-        {
-          id: "1",
-          donorId: userId,
-          bdfId: "bdf-001",
-          scheduled: "PENDING",
-          slotId: "slot-001",
-          appointmentDate: new Date("2025-08-15"),
-        },
-      ];
-
-      return mockAppointments;
+      return response.data;
     } catch (error) {
       console.error("Error fetching user appointments:", error);
       throw error;
@@ -156,9 +144,12 @@ export const appointmentService = {
   // Cancel an appointment
   cancelAppointment: async (appointmentId: string): Promise<void> => {
     try {
-      await apiRequest(`${API_ENDPOINTS.APPOINTMENTS}/${appointmentId}`, {
-        method: "DELETE",
-      });
+      await apiRequestWithAuth(
+        `${API_ENDPOINTS.APPOINTMENTS}/${appointmentId}`,
+        {
+          method: "DELETE",
+        }
+      );
     } catch (error) {
       console.error("Error cancelling appointment:", error);
       throw error;
@@ -172,7 +163,7 @@ export const appointmentService = {
     newDate: string
   ): Promise<Appointment> => {
     try {
-      const response = await apiRequest(
+      const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.APPOINTMENTS}/${appointmentId}`,
         {
           method: "PUT",

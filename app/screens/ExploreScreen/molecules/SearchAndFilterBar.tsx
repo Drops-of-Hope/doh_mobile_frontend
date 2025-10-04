@@ -18,16 +18,20 @@ export default function SearchAndFilterBar({
 }: SearchAndFilterBarProps) {
   return (
     <View style={styles.container}>
-      <SearchBar
-        value={searchText}
-        onChangeText={onSearchTextChange}
-        placeholder="Search campaigns..."
-      />
-      <View style={styles.filterContainer}>
-        <FilterButton
-          onPress={onFilterPress}
-          hasActiveFilters={hasActiveFilters}
-        />
+      <View style={styles.searchAndFilterRow}>
+        <View style={styles.searchContainer}>
+          <SearchBar
+            value={searchText}
+            onChangeText={onSearchTextChange}
+            placeholder="Search campaigns..."
+          />
+        </View>
+        <View style={styles.filterContainer}>
+          <FilterButton
+            onPress={onFilterPress}
+            hasActiveFilters={hasActiveFilters}
+          />
+        </View>
       </View>
     </View>
   );
@@ -39,8 +43,15 @@ const styles = StyleSheet.create({
     marginTop: 20, // Added top margin for spacing
     paddingHorizontal: 20, // Added horizontal padding
   },
+  searchAndFilterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  searchContainer: {
+    flex: 1,
+  },
   filterContainer: {
-    alignItems: "flex-end",
-    marginTop: 12,
+    flexShrink: 0,
   },
 });

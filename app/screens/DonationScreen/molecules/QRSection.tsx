@@ -45,7 +45,7 @@ export default function QRSection({
             />
 
             <ActionButton
-              title="Simulate QR Scan"
+              title="Scan QR Code"
               icon="scan"
               onPress={onMarkAttendance}
               variant="secondary"
