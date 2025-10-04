@@ -5,6 +5,8 @@ import {
   StatusBar,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useAuthUser } from "../../hooks/useAuthUser";
@@ -12,6 +14,7 @@ import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeade
 import FormSection from "../CreateCampaignScreen/molecules/FormSection";
 import InputField from "../CreateCampaignScreen/atoms/InputField";
 import SubmitButton from "../CreateCampaignScreen/atoms/SubmitButton";
+import ValidationUtils from "../../utils/ValidationUtils";
 
 interface EditProfileScreenProps {
   navigation?: any;
@@ -97,23 +100,17 @@ export default function EditProfileScreen({
   }, [user]);
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<ProfileFormData> = {};
     const requiredFields = [
       "firstName",
-      "lastName",
+      "lastName", 
       "email",
       "phoneNumber",
       "bloodType",
     ];
 
-    requiredFields.forEach((field) => {
-      if (!formData[field as keyof ProfileFormData].trim()) {
-        newErrors[field as keyof ProfileFormData] = `${field} is required`;
-      }
-    });
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const validation = ValidationUtils.validateForm(formData, requiredFields);
+    setErrors(validation.errors);
+    return validation.isValid;
   };
 
   const handleSubmit = async () => {
@@ -138,7 +135,22 @@ export default function EditProfileScreen({
   };
 
   const updateFormData = (field: keyof ProfileFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    let processedValue = value;
+    
+    // Apply specific processing for phone numbers
+    if (field === 'phoneNumber' || field === 'emergencyPhone') {
+      // Keep only digits and limit to 10 characters starting with 0
+      const cleaned = value.replace(/\D/g, '');
+      if (cleaned.length === 0 || cleaned.startsWith('0')) {
+        processedValue = cleaned.slice(0, 10);
+      } else {
+        return; // Don't update if it doesn't start with 0
+      }
+    }
+    
+    setFormData((prev) => ({ ...prev, [field]: processedValue }));
+    
+    // Clear validation error for this field
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
@@ -153,14 +165,19 @@ export default function EditProfileScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
 
-      <DashboardHeader
-        title="Edit Profile"
-        onBack={handleBack}
-        onAdd={() => {}}
-      />
+        <DashboardHeader
+          title="Edit Profile"
+          onBack={handleBack}
+          onAdd={() => {}}
+        />
 
       {isLoading ? (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -260,7 +277,8 @@ export default function EditProfileScreen({
           />
         </ScrollView>
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

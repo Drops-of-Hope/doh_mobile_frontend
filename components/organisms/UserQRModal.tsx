@@ -112,11 +112,12 @@ export default function UserQRModal({ visible, onClose }: UserQRModalProps) {
       // Get QR code as base64
       qrRef.toDataURL((dataURL: string) => {
         const filename = `DropsOfHope_QR_${user?.name?.replace(/\s+/g, "_")}_${Date.now()}.png`;
-        const path = `${FileSystem.documentDirectory}${filename}`;
+        const documentDir = (FileSystem as any).documentDirectory;
+        const path = `${documentDir}${filename}`;
 
         // Convert base64 to file
         FileSystem.writeAsStringAsync(path, dataURL.split(',')[1], {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: "base64",
         }).then(() => {
           // Save to media library
           return MediaLibrary.saveToLibraryAsync(path);
@@ -151,10 +152,11 @@ export default function UserQRModal({ visible, onClose }: UserQRModalProps) {
 
       qrRef.toDataURL(async (dataURL: string) => {
         const filename = `DropsOfHope_QR_${userProfile.name.replace(/\s+/g, "_")}.png`;
-        const path = `${FileSystem.cacheDirectory}${filename}`;
+        const cacheDir = (FileSystem as any).cacheDirectory;
+        const path = `${cacheDir}${filename}`;
 
         await FileSystem.writeAsStringAsync(path, dataURL.split(',')[1], {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: "base64",
         });
 
         await Share.share({
@@ -292,7 +294,7 @@ export default function UserQRModal({ visible, onClose }: UserQRModalProps) {
                     size={200}
                     color="#000000"
                     backgroundColor="#FFFFFF"
-                    logo={require("../../../assets/logo.png")}
+                    logo={require("../../assets/logo.png")}
                     logoSize={40}
                     logoBackgroundColor="transparent"
                     getRef={(c) => setQrRef(c)}

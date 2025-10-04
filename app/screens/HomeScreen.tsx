@@ -1,2 +1,2 @@
-// Re-export the refactored HomeScreen
+// Re-export the HomeScreen with dynamic data
 export { default } from "./HomeScreen/screen";

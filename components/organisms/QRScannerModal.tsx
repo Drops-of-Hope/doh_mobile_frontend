@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Vibration,
 } from "react-native";
-import { BarCodeScanner } from "expo-barcode-scanner";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -35,7 +35,7 @@ export default function QRScannerModal({
   scanType = "CAMPAIGN_ATTENDANCE",
   onScanSuccess,
 }: QRScannerModalProps) {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [flashEnabled, setFlashEnabled] = useState(false);
@@ -46,16 +46,13 @@ export default function QRScannerModal({
 
   useEffect(() => {
     if (visible) {
-      requestCameraPermission();
+      if (!permission?.granted) {
+        requestPermission();
+      }
       setScanned(false);
       setScannerEnabled(true);
     }
-  }, [visible]);
-
-  const requestCameraPermission = async () => {
-    const { status } = await BarCodeScanner.requestPermissionsAsync();
-    setHasPermission(status === "granted");
-  };
+  }, [visible, permission]);
 
   const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
     if (scanned || processing) return;
@@ -204,7 +201,7 @@ export default function QRScannerModal({
 
   if (!visible) return null;
 
-  if (hasPermission === null) {
+  if (!permission) {
     return (
       <Modal visible={visible} animationType="slide">
         <View style={styles.permissionContainer}>
@@ -215,14 +212,14 @@ export default function QRScannerModal({
     );
   }
 
-  if (hasPermission === false) {
+  if (!permission.granted) {
     return (
       <Modal visible={visible} animationType="slide">
         <View style={styles.permissionContainer}>
           <Ionicons name="camera-outline" size={64} color="#999" />
           <Text style={styles.permissionTitle}>{t("qr_scanner.camera_permission_required")}</Text>
           <Text style={styles.permissionText}>{t("qr_scanner.camera_permission_message")}</Text>
-          <TouchableOpacity style={styles.permissionButton} onPress={requestCameraPermission}>
+          <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
             <Text style={styles.permissionButtonText}>{t("qr_scanner.grant_permission")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
@@ -238,8 +235,11 @@ export default function QRScannerModal({
       <View style={styles.container}>
         {/* Camera View */}
         {scannerEnabled && (
-          <BarCodeScanner
-            onBarCodeScanned={handleBarCodeScanned}
+          <CameraView
+            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: ["qr"],
+            }}
             style={styles.camera}
           />
         )}

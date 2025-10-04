@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// Enhanced Home Screen with dynamic data integration
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -6,47 +7,27 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-  Text,
-  TouchableOpacity,
+  RefreshControl,
 } from "react-native";
+
+// Import existing components
 import BottomTabBar from "../../../components/organisms/BottomTabBar";
-import { useAuth } from "../../context/AuthContext";
-import { useLanguage } from "../../context/LanguageContext";
-
-// Import services
-import { homeService, UserDonationData } from "../../services/homeService";
-import { appointmentService } from "../../services/appointmentService";
-
-// Import existing HomeScreen components
-import HomeHeader from "../../../components/organisms/HomeScreen/HomeHeader";
 import StatsCard from "../../../components/molecules/HomeScreen/StatsCard";
 import ComponentRow from "../../../components/molecules/HomeScreen/ComponentRow";
 import EmergenciesSection from "../../../components/organisms/HomeScreen/EmergenciesSection";
 import CampaignsSection from "../../../components/organisms/HomeScreen/CampaignsSection";
 import AppointmentSection from "../../../components/organisms/HomeScreen/AppointmentSection";
 
-// Import new refactored components
-import FloatingButton from "./atoms/FloatingButton";
-import AppointmentDetailsModal from "./organisms/AppointmentDetailsModal";
-import EmergencyDetailsModal from "./organisms/EmergencyDetailsModal";
-import DonationBookingModal from "./organisms/DonationBookingModal";
-import RescheduleModal from "./organisms/RescheduleModal";
+// Import new components
+import UserQRModal from "../../../components/organisms/UserQRModal";
 
-// Import types and utilities
-import {
-  Appointment,
-  Emergency,
-  Campaign,
-  DonationFormData,
-  RescheduleFormData,
-  CalendarData,
-} from "./types";
-import {
-  generateMockData,
-  generateCalendarDays,
-  getMonthName,
-  getAvailableTimeSlots,
-} from "./utils";
+// Import services
+import { homeService, HomeScreenData } from "../../services/homeService";
+import { userService } from "../../services/userService";
+
+// Import context
+import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface HomeScreenProps {
   navigation?: any;
@@ -54,140 +35,77 @@ interface HomeScreenProps {
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   // State management
-  const [searchText, setSearchText] = useState<string>("");
-  const [upcomingAppointment, setUpcomingAppointment] =
-    useState<Appointment | null>(null);
+  const [homeData, setHomeData] = useState<HomeScreenData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
-  // Backend data state
-  const [userDonationData, setUserDonationData] =
-    useState<UserDonationData | null>(null);
-  const [userProfile, setUserProfile] = useState<{
-    bloodGroup: string;
-    name: string;
-    email: string;
-  } | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [dataError, setDataError] = useState<string | null>(null);
-
-  // Modal states
-  const [showAppointmentModal, setShowAppointmentModal] =
-    useState<boolean>(false);
-  const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
-  const [showDonationModal, setShowDonationModal] = useState<boolean>(false);
-  const [showRescheduleModal, setShowRescheduleModal] =
-    useState<boolean>(false);
-
-  // Selection states
-  const [selectedEmergency, setSelectedEmergency] = useState<Emergency | null>(
-    null
-  );
-
-  // Form states
-  const [donationForm, setDonationForm] = useState<DonationFormData>({
-    contactNumber: "",
-    specialRequests: "",
-  });
-
-  const [rescheduleForm, setRescheduleForm] = useState<RescheduleFormData>({
-    preferredDate: "",
-    preferredTime: "",
-    reason: "",
-  });
-
-  // Calendar states
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
-  // Auth and Language
-  const { getFirstName, logout } = useAuth();
+  // Context
+  const { user, getFirstName, logout } = useAuth();
   const { t } = useLanguage();
 
+  // Helper functions
+  const getLastDonationDays = () => {
+    if (!homeData?.userStats?.lastDonationDate) return null;
+    const lastDonation = new Date(homeData.userStats.lastDonationDate);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - lastDonation.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   useEffect(() => {
-    loadHomeScreenData();
+    loadHomeData();
   }, []);
 
-  const loadHomeScreenData = async () => {
+  const loadHomeData = async () => {
     try {
       setLoading(true);
-      setDataError(null);
-
-      // Load data from backend
-      const [donationData, profile, appointment] = await Promise.all([
-        homeService.getUserDonationData(),
-        homeService.getUserProfile(),
-        homeService.getUpcomingAppointment(),
-      ]);
-
-      setUserDonationData(donationData);
-      setUserProfile(profile);
-
-      if (appointment) {
-        const formattedAppointment =
-          homeService.formatAppointmentForDisplay(appointment);
-        setUpcomingAppointment({
-          ...formattedAppointment,
-          status: formattedAppointment.status as
-            | "upcoming"
-            | "completed"
-            | "cancelled",
-        });
-      } else {
-        setUpcomingAppointment(null);
-      }
+      const data = await homeService.getHomeData();
+      setHomeData(data);
     } catch (error) {
-      console.error("Failed to load home screen data:", error);
-      setDataError("Failed to load data. Please try again.");
-
-      // Fallback to mock data for demo purposes
-      loadMockData();
+      console.error("Failed to load home data:", error);
+      Alert.alert(
+        t("home.error_title"),
+        t("home.load_error"),
+        [{ text: t("common.ok") }]
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const loadMockData = () => {
-    // Fallback mock data when backend is not available
-    setUserDonationData({
-      totalDonations: 12,
-      lastDonationDate: "2023-06-15",
-      daysSinceLastDonation: 473,
-      eligibleToDonate: true,
-      bloodGroup: "O+",
-    });
+  const handleRefresh = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      const data = await homeService.getHomeData();
+      setHomeData(data);
+    } catch (error) {
+      console.error("Failed to refresh home data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
-    setUserProfile({
-      bloodGroup: "O+",
-      name: "John Doe",
-      email: "john@example.com",
-    });
-
-    const mockAppointment: Appointment = {
-      id: "1",
-      date: "July 15, 2025",
-      time: "10:00 AM",
-      location: "Colombo Blood Bank",
-      hospital: "Colombo General Hospital",
-      status: "upcoming",
-    };
-    setUpcomingAppointment(mockAppointment);
+  const handleEmergencyPress = (emergencyId: string) => {
+    navigation?.navigate("EmergencyDetails", { emergencyId });
   };
 
-  // Navigation handlers
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+  const handleCampaignPress = (campaignId: string) => {
+    navigation?.navigate("CampaignDetails", { campaignId });
+  };
+
+  const handleAppointmentPress = (appointmentId: string) => {
+    navigation?.navigate("AppointmentDetails", { appointmentId });
+  };
+
+  const handleQRPress = () => {
+    setShowQRModal(true);
   };
 
   const handleNotificationPress = () => {
-    if (navigation) {
-      navigation.navigate("Notifications");
-    } else {
-      console.log("Navigate to Notifications screen");
-    }
+    navigation?.navigate("Notifications");
   };
 
   const handleViewAllEmergencies = () => {
@@ -198,262 +116,158 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     navigation?.navigate("AllCampaigns");
   };
 
-  // Modal handlers
-  const handleDonateNow = (emergency: Emergency) => {
-    setSelectedEmergency(emergency);
-    setShowDonationModal(true);
+  const handleBookAppointment = () => {
+    navigation?.navigate("DonationScreen");
   };
 
-  const handleViewEmergencyDetails = (emergency: Emergency) => {
-    setSelectedEmergency(emergency);
-    setShowEmergencyModal(true);
+  // Transform data for existing components
+  const getStatsData = () => {
+    if (!homeData?.userStats) return null;
+    
+    return {
+      totalDonations: homeData.userStats.totalDonations,
+      totalPoints: homeData.userStats.totalPoints,
+      donationStreak: homeData.userStats.donationStreak,
+      eligibleToDonate: homeData.userStats.eligibleToDonate,
+      nextEligibleDate: homeData.userStats.nextEligibleDate,
+    };
   };
 
-  const handleAppointmentDetails = () => {
-    setShowAppointmentModal(true);
+  const getEmergenciesData = () => {
+    if (!homeData?.emergencies) return [];
+    
+    return homeData.emergencies.map(emergency => ({
+      id: parseInt(emergency.id, 10) || 0,
+      hospital: emergency.hospital.name,
+      bloodType: emergency.bloodTypesNeeded.join(", "),
+      slotsUsed: 0, // Calculate based on responses
+      totalSlots: Object.values(emergency.quantityNeeded).reduce((a, b) => a + b, 0),
+      urgency: emergency.urgencyLevel as any,
+      timeLeft: calculateTimeLeft(emergency.expiresAt),
+      description: emergency.description,
+      contactNumber: emergency.contactNumber,
+      address: emergency.hospital.address,
+      requirements: emergency.specialInstructions,
+    }));
   };
 
-  const handleReschedule = () => {
-    setShowRescheduleModal(true);
+  const getCampaignsData = () => {
+    if (!homeData?.featuredCampaigns) return [];
+    
+    return homeData.featuredCampaigns.map(campaign => ({
+      id: parseInt(campaign.id, 10) || 0,
+      title: campaign.title,
+      date: formatDate(campaign.startTime),
+      location: campaign.location,
+      slotsUsed: campaign.actualDonors,
+      totalSlots: campaign.expectedDonors,
+      urgency: "Moderate" as any, // Map based on availability
+    }));
   };
 
-  // Modal close handlers
-  const closeModal = () => setShowAppointmentModal(false);
-  const closeEmergencyModal = () => {
-    setShowEmergencyModal(false);
-    setSelectedEmergency(null);
-  };
-  const closeDonationModal = () => {
-    setShowDonationModal(false);
-    setSelectedEmergency(null);
-    setDonationForm({ contactNumber: "", specialRequests: "" });
-  };
-  const closeRescheduleModal = () => {
-    setShowRescheduleModal(false);
-    setShowCalendar(false);
-    setRescheduleForm({ preferredDate: "", preferredTime: "", reason: "" });
+  const getUpcomingAppointment = () => {
+    if (!homeData?.upcomingAppointments?.length) return null;
+    
+    const appointment = homeData.upcomingAppointments[0];
+    return {
+      id: appointment.id,
+      date: formatDate(appointment.appointmentDateTime),
+      time: formatTime(appointment.appointmentDateTime),
+      location: appointment.location || appointment.medicalEstablishment?.name || "",
+      hospital: appointment.medicalEstablishment?.name || "",
+      status: appointment.scheduled as any,
+    };
   };
 
-  // Form submission handlers
-  const handleDonationSubmit = () => {
-    if (!donationForm.contactNumber) {
-      Alert.alert(
-        t("home.missing_information"),
-        t("home.contact_number_required")
-      );
-      return;
+  const calculateTimeLeft = (expiresAt: string): string => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry.getTime() - now.getTime();
+    
+    if (diff <= 0) return t("home.expired");
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return t("home.time_left_hours", { hours, minutes });
     }
-
-    Alert.alert(
-      t("home.emergency_response_submitted"),
-      t("home.emergency_response_message"),
-      [{ text: t("common.ok"), onPress: closeDonationModal }]
-    );
+    return t("home.time_left_minutes", { minutes });
   };
 
-  const handleRescheduleSubmit = () => {
-    if (!rescheduleForm.preferredDate || !rescheduleForm.preferredTime) {
-      Alert.alert(
-        t("home.missing_information"),
-        t("home.reschedule_missing_info")
-      );
-      return;
-    }
-
-    Alert.alert(
-      t("home.appointment_rescheduled"),
-      t("home.appointment_reschedule_message", {
-        date: rescheduleForm.preferredDate,
-        time: rescheduleForm.preferredTime,
-      }),
-      [
-        {
-          text: t("common.ok"),
-          onPress: () => {
-            closeRescheduleModal();
-            loadHomeScreenData();
-          },
-        },
-      ]
-    );
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString();
   };
 
-  // Calendar handlers
-  const canNavigatePrevious = () => {
-    const today = new Date();
-    return (
-      selectedMonth > today.getMonth() || selectedYear > today.getFullYear()
-    );
-  };
-
-  const navigateMonth = (direction: "prev" | "next") => {
-    if (direction === "prev" && canNavigatePrevious()) {
-      if (selectedMonth === 0) {
-        setSelectedMonth(11);
-        setSelectedYear(selectedYear - 1);
-      } else {
-        setSelectedMonth(selectedMonth - 1);
-      }
-    } else if (direction === "next") {
-      if (selectedMonth === 11) {
-        setSelectedMonth(0);
-        setSelectedYear(selectedYear + 1);
-      } else {
-        setSelectedMonth(selectedMonth + 1);
-      }
-    }
-  };
-
-  const selectCalendarDate = (date: Date) => {
-    setRescheduleForm({
-      ...rescheduleForm,
-      preferredDate: date.toLocaleDateString(),
-      preferredTime: "", // Reset time when date changes
+  const formatTime = (dateString: string): string => {
+    return new Date(dateString).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
     });
-    setShowCalendar(false);
   };
-
-  // Get mock data
-  const { emergencies, upcomingCampaigns } = generateMockData();
-  const calendarDays = generateCalendarDays(selectedMonth, selectedYear);
-  const monthName = getMonthName(selectedMonth);
-  const availableTimeSlots = getAvailableTimeSlots();
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
-
+      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      
       <ScrollView
         style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.contentContainer}>
-          <HomeHeader
-            firstName={userProfile?.name || getFirstName()}
-            donorLevel={t("home.silver_donor")}
-            searchText={searchText}
-            onSearchTextChange={setSearchText}
-            onLogout={handleLogout}
+        {/* Stats Section */}
+        {homeData?.userStats && (
+          <StatsCard
+            totalDonations={homeData?.userStats?.totalDonations || 0}
           />
+        )}
 
-          {dataError && (
-            <View
-              style={{
-                padding: 16,
-                backgroundColor: "#ffe6e6",
-                margin: 10,
-                borderRadius: 8,
-              }}
-            >
-              <Text style={{ color: "#d32f2f", textAlign: "center" }}>
-                {dataError}
-              </Text>
-              <TouchableOpacity
-                style={{
-                  marginTop: 8,
-                  padding: 8,
-                  backgroundColor: "#f44336",
-                  borderRadius: 4,
-                }}
-                onPress={loadHomeScreenData}
-              >
-                <Text style={{ color: "white", textAlign: "center" }}>
-                  Retry
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
+        {/* Component Row - Quick Actions */}
+        <ComponentRow 
+          bloodType={user?.bloodType || 'A+'} 
+          lastDonationDays={getLastDonationDays() || 0} 
+        />
 
-          <StatsCard totalDonations={userDonationData?.totalDonations || 0} />
-
-          <View style={styles.section}>
-            <ComponentRow
-              bloodType={userProfile?.bloodGroup || "Unknown"}
-              lastDonationDays={userDonationData?.daysSinceLastDonation || 0}
-            />
-          </View>
-
+        {/* Upcoming Appointment */}
+        {homeData?.upcomingAppointments && homeData.upcomingAppointments.length > 0 && (
           <AppointmentSection
-            appointment={upcomingAppointment}
-            title={t("home.blood_donation")}
-            onViewDetails={handleAppointmentDetails}
-            onReschedule={handleReschedule}
+            appointment={getUpcomingAppointment()}
+            onViewDetails={(appointment) => handleAppointmentPress(appointment.id)}
           />
+        )}
 
+        {/* Emergencies Section */}
+        {homeData?.emergencies && homeData.emergencies.length > 0 && (
           <EmergenciesSection
-            emergencies={emergencies}
-            onDonate={handleDonateNow}
-            onViewDetails={handleViewEmergencyDetails}
+            emergencies={getEmergenciesData()}
+            onDonate={(emergency) => handleEmergencyPress(emergency.id.toString())}
             onViewAll={handleViewAllEmergencies}
           />
+        )}
 
+        {/* Campaigns Section */}
+        {homeData?.featuredCampaigns && homeData.featuredCampaigns.length > 0 && (
           <CampaignsSection
-            campaigns={upcomingCampaigns}
+            campaigns={getCampaignsData()}
+            onCampaignPress={(campaign) => handleCampaignPress(campaign.id.toString())}
             onViewAll={handleViewAllCampaigns}
-            limit={2}
           />
+        )}
 
-          <View style={styles.bottomPadding} />
-        </View>
+        {/* Bottom Padding */}
+        <View style={styles.bottomPadding} />
       </ScrollView>
 
-      <FloatingButton
-        onPress={handleNotificationPress}
-        iconName="notifications"
-        hasNotification={true}
-      />
+      {/* Bottom Tab Bar */}
+      <BottomTabBar activeTab="Home" />
 
-      {/* Modals */}
-      <AppointmentDetailsModal
-        visible={showAppointmentModal}
-        appointment={upcomingAppointment}
-        onClose={closeModal}
-        onReschedule={() => {
-          closeModal();
-          handleReschedule();
-        }}
+      {/* QR Code Modal */}
+      <UserQRModal
+        visible={showQRModal}
+        onClose={() => setShowQRModal(false)}
       />
-
-      <EmergencyDetailsModal
-        visible={showEmergencyModal}
-        emergency={selectedEmergency}
-        onClose={closeEmergencyModal}
-        onDonate={() => {
-          if (selectedEmergency) {
-            handleDonateNow(selectedEmergency);
-          }
-        }}
-      />
-
-      <DonationBookingModal
-        visible={showDonationModal}
-        emergency={selectedEmergency}
-        formData={donationForm}
-        onFormChange={setDonationForm}
-        onClose={closeDonationModal}
-        onSubmit={handleDonationSubmit}
-      />
-
-      <RescheduleModal
-        visible={showRescheduleModal}
-        formData={rescheduleForm}
-        onFormChange={setRescheduleForm}
-        showCalendar={showCalendar}
-        onToggleCalendar={() => setShowCalendar(!showCalendar)}
-        selectedMonth={selectedMonth}
-        selectedYear={selectedYear}
-        calendarDays={calendarDays}
-        monthName={monthName}
-        canNavigatePrevious={canNavigatePrevious()}
-        onPreviousMonth={() => navigateMonth("prev")}
-        onNextMonth={() => navigateMonth("next")}
-        onDateSelect={selectCalendarDate}
-        availableTimeSlots={availableTimeSlots}
-        onClose={closeRescheduleModal}
-        onSubmit={handleRescheduleSubmit}
-      />
-
-      <BottomTabBar />
     </SafeAreaView>
   );
 }
@@ -461,19 +275,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FAFBFC",
+    backgroundColor: "#f5f5f5",
   },
   scrollView: {
     flex: 1,
   },
-  contentContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  section: {
-    marginBottom: 20,
-  },
   bottomPadding: {
-    height: 100,
+    height: 100, // Space for bottom tab bar
   },
 });

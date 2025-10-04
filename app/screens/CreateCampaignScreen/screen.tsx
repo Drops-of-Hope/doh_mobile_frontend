@@ -12,6 +12,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { campaignService } from "../../services/campaignService";
 import { appointmentService, MedicalEstablishment } from "../../services/appointmentService";
 import { District } from "../../../constants/districts";
+import { getDatabaseUserId } from "../../utils/userIdUtils";
 
 // Import refactored components
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
@@ -183,6 +184,17 @@ export default function CreateCampaignScreen({
 
     setIsSubmitting(true);
     try {
+      // Get the actual database user ID
+      const databaseUserId = await getDatabaseUserId();
+      
+      if (!databaseUserId) {
+        Alert.alert("Error", "Unable to identify user. Please log in again.");
+        return;
+      }
+
+      console.log('Creating campaign with database user ID:', databaseUserId);
+      console.log('Auth sub was:', user?.sub);
+
       // Create proper date objects for startTime and endTime
       const campaignDate = new Date(
         parseInt(formData.year),
@@ -212,10 +224,12 @@ export default function CreateCampaignScreen({
         contactPersonName: formData.contactPersonName.trim(),
         contactPersonPhone: formData.contactPersonPhone.trim(),
         medicalEstablishmentId: formData.medicalEstablishmentId,
-        organizerId: user?.sub || "",
+        organizerId: databaseUserId, // Use database user ID instead of auth sub
         isApproved: false,
         requirements: formData.requirements ? JSON.parse(`{"notes": "${formData.requirements.trim()}"}`) : {},
       };
+
+      console.log('Campaign data being sent:', campaignData);
 
       await campaignService.createCampaign(campaignData);
       Alert.alert("Success", "Campaign created successfully", [

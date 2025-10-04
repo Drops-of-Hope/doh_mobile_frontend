@@ -4,29 +4,45 @@ import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 interface Campaign {
   id: string;
   title: string;
-  description: string;
+  type: "MOBILE" | "FIXED";
   location: string;
-  address: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  donationGoal: number;
-  currentDonations: number;
-  totalAttendance: number;
-  screenedPassed: number;
-  walkInsScreened: number;
-  status: "upcoming" | "active" | "completed" | "cancelled";
   organizerId: string;
-  contactPerson: string;
-  contactPhone: string;
-  contactEmail: string;
-  requirements?: string;
-  additionalNotes?: string;
+  motivation: string;
+  description: string;
+  startTime: string; // ISO string
+  endTime: string;   // ISO string
+  expectedDonors: number;
+  contactPersonName: string;
+  contactPersonPhone: string;
+  isApproved: boolean;
+  medicalEstablishmentId: string;
+  bloodbankId?: string;
+  actualDonors: number;
   createdAt: string;
+  imageUrl?: string;
+  isActive: boolean;
+  requirements?: any; // JSON field
   updatedAt: string;
-  canEdit: boolean; // Computed field from backend
-  canDelete: boolean; // Computed field from backend
-  hasLinkedDonations: boolean; // Computed field from backend
+  
+  // Computed fields for UI
+  donationGoal?: number; // Alias for expectedDonors for backward compatibility
+  currentDonations?: number; // Alias for actualDonors
+  totalAttendance?: number;
+  screenedPassed?: number;
+  walkInsScreened?: number;
+  status?: "upcoming" | "active" | "completed" | "cancelled";
+  canEdit?: boolean;
+  canDelete?: boolean;
+  hasLinkedDonations?: boolean;
+  
+  // Additional fields for backward compatibility
+  address?: string;
+  date?: string;
+  contactPerson?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  additionalNotes?: string;
+  
   approvalStatus?: {
     status: "approved" | "rejected" | "pending";
     comment?: string;
@@ -90,43 +106,125 @@ class CampaignService {
   // Get campaigns for an organizer
   async getOrganizerCampaigns(organizerId: string): Promise<Campaign[]> {
     try {
-      const response = await apiRequestWithAuth(
-        `${API_ENDPOINTS.CAMPAIGNS}/organizer/${organizerId}`,
-        {
-          method: "GET",
-        }
-      );
+      console.log("Fetching campaigns for organizer:", organizerId);
       
-      console.log("API Response for campaigns:", response);
+      let response;
+      let usedEndpoint = "";
+      
+      // Try different endpoint patterns to find one that works
+      const endpointsToTry = [
+        // Try getting all campaigns first (most likely to work)
+        { url: API_ENDPOINTS.CAMPAIGNS, name: "All Campaigns" },
+        // Try with query parameter
+        { url: `${API_ENDPOINTS.CAMPAIGNS}?organizerId=${organizerId}`, name: "Query Parameter" },
+        // Try the organizer-specific endpoint
+        { url: `${API_ENDPOINTS.CAMPAIGNS}/organizer/${organizerId}`, name: "Organizer Specific" },
+        // Try the my-campaigns endpoint (might work with proper auth)
+        { url: API_ENDPOINTS.MY_CAMPAIGNS, name: "My Campaigns" }
+      ];
+      
+      for (const endpoint of endpointsToTry) {
+        try {
+          console.log(`Trying ${endpoint.name}: ${endpoint.url}`);
+          response = await apiRequestWithAuth(endpoint.url, {
+            method: "GET",
+          });
+          
+          console.log(`✅ Success with ${endpoint.name}:`, response);
+          usedEndpoint = endpoint.name;
+          break; // If successful, exit the loop
+        } catch (error) {
+          console.log(`❌ Failed with ${endpoint.name}:`, error instanceof Error ? error.message : error);
+          // Continue to next endpoint
+        }
+      }
+      
+      if (!response) {
+        console.error("❌ All endpoints failed - no campaigns can be retrieved");
+        return [];
+      }
+      
+      console.log(`📡 Successfully used: ${usedEndpoint}`);
+      console.log("📦 Raw API Response:", response);
       
       // Handle different response structures
+      let campaignsData: any[] = [];
+      
       if (response && response.data) {
         // If response.data is an array
         if (Array.isArray(response.data)) {
-          return response.data;
+          campaignsData = response.data;
+          console.log(`📋 Found ${campaignsData.length} campaigns in response.data`);
         }
-        
         // If response.data has a campaigns property
-        if (response.data.campaigns && Array.isArray(response.data.campaigns)) {
-          return response.data.campaigns;
+        else if (response.data.campaigns && Array.isArray(response.data.campaigns)) {
+          campaignsData = response.data.campaigns;
+          console.log(`📋 Found ${campaignsData.length} campaigns in response.data.campaigns`);
         }
-        
         // If response.data has other array properties
-        if (response.data.results && Array.isArray(response.data.results)) {
-          return response.data.results;
+        else if (response.data.results && Array.isArray(response.data.results)) {
+          campaignsData = response.data.results;
+          console.log(`📋 Found ${campaignsData.length} campaigns in response.data.results`);
+        }
+        else {
+          console.log("🔍 response.data structure:", Object.keys(response.data));
         }
       }
-      
       // If response itself is an array
-      if (Array.isArray(response)) {
-        return response;
+      else if (Array.isArray(response)) {
+        campaignsData = response;
+        console.log(`📋 Response is direct array with ${campaignsData.length} campaigns`);
       }
       
-      console.warn("Unexpected API response structure:", response);
-      return []; // Return empty array as fallback
+      if (campaignsData.length === 0) {
+        console.log("📭 No campaigns found in any data structure");
+        return [];
+      }
+      
+      // Log campaign details for debugging
+      console.log("🔎 Campaign details:");
+      campaignsData.forEach((campaign, index) => {
+        // Handle both organizer as string and as object
+        const organizerInfo = typeof campaign.organizer === 'object' && campaign.organizer 
+          ? `object with id: ${campaign.organizer.id}` 
+          : campaign.organizer || campaign.organizerId;
+        console.log(`  ${index + 1}. ${campaign.title} (organizer: ${organizerInfo})`);
+      });
+      
+      // Filter campaigns by organizerId if we got all campaigns
+      let filteredCampaigns = campaignsData;
+      
+      // Only filter if we seem to have gotten all campaigns (check if we need filtering)
+      const hasMultipleOrganizers = campaignsData.length > 1 && 
+        new Set(campaignsData.map(c => {
+          // Handle both organizer as string and as object
+          return typeof c.organizer === 'object' && c.organizer 
+            ? c.organizer.id 
+            : c.organizer || c.organizerId;
+        })).size > 1;
+      
+      if (hasMultipleOrganizers || usedEndpoint === "All Campaigns") {
+        filteredCampaigns = campaignsData.filter(campaign => {
+          // Handle both cases: organizer as string ID or as object with id property
+          const campaignOrganizerId = typeof campaign.organizer === 'object' && campaign.organizer
+            ? campaign.organizer.id
+            : campaign.organizer || campaign.organizerId;
+          
+          // Warn if organizer field has unexpected shape
+          if (!campaignOrganizerId) {
+            console.warn(`⚠️ Campaign "${campaign.title}" has unexpected organizer shape:`, campaign.organizer);
+          }
+          
+          return campaignOrganizerId === organizerId;
+        });
+        console.log(`🔽 Filtered from ${campaignsData.length} to ${filteredCampaigns.length} campaigns for organizer ${organizerId}`);
+      }
+      
+      console.log("✅ Final result:", filteredCampaigns);
+      return filteredCampaigns || [];
       
     } catch (error) {
-      console.error("Failed to fetch organizer campaigns:", error);
+      console.error("❌ Failed to fetch organizer campaigns:", error);
       if (error instanceof Error) {
         console.error("Error details:", error.message, error.stack);
       }
@@ -210,7 +308,7 @@ class CampaignService {
       const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}`,
         {
-          method: "PATCH",
+          method: "PUT",
           body: JSON.stringify(updateData),
         }
       );

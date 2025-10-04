@@ -6,9 +6,10 @@ import {
   StyleSheet,
   StatusBar,
   ActivityIndicator,
+  Text,
 } from "react-native";
 import BottomTabBar from "../../../components/organisms/BottomTabBar";
-import { donationService } from "../../services/donationService";
+import { exploreService } from "../../services/exploreService";
 
 // Import refactored components
 import SearchAndFilterBar from "./molecules/SearchAndFilterBar";
@@ -50,8 +51,33 @@ const ExploreScreen: React.FC = () => {
 
   const loadCampaigns = async () => {
     try {
-      const campaignsData = await donationService.getCampaigns();
-      setCampaigns(campaignsData);
+      setLoading(true);
+      // Get upcoming campaigns (active and future)
+      const campaignsData = await exploreService.getUpcomingCampaigns({
+        sortBy: "date",
+        sortOrder: "asc",
+        limit: 50
+      });
+      
+      // Map service Campaign type to screen Campaign type
+      const mappedCampaigns = campaignsData.map(campaign => ({
+        id: campaign.id,
+        title: campaign.title,
+        description: campaign.description,
+        participants: campaign.actualDonors,
+        location: campaign.location,
+        date: new Date(campaign.startTime).toLocaleDateString(),
+        time: new Date(campaign.startTime).toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })
+      }));
+      
+      setCampaigns(mappedCampaigns);
+      
+      if (campaignsData.length === 0) {
+        console.log("No upcoming campaigns found");
+      }
     } catch (error) {
       console.error("Failed to load campaigns:", error);
       // Use mock data when API fails
@@ -85,8 +111,12 @@ const ExploreScreen: React.FC = () => {
       // Show loading state
       setLoading(true);
 
-      // Try to register user interest in the campaign
-      await donationService.joinCampaign(campaign.id);
+      // Try to join the campaign
+      await exploreService.joinCampaign({
+        campaignId: campaign.id,
+        contactNumber: "", // Could be collected from user input
+        specialRequests: ""
+      });
 
       Alert.alert(
         "Registration Successful!",
@@ -137,7 +167,7 @@ const ExploreScreen: React.FC = () => {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3B82F6" />
         </View>
-        <BottomTabBar />
+        <BottomTabBar activeTab="Explore" />
       </SafeAreaView>
     );
   }
@@ -159,6 +189,17 @@ const ExploreScreen: React.FC = () => {
         loading={loading}
       />
 
+      {/* Show message when no campaigns are available */}
+      {!loading && filteredCampaigns.length === 0 && (
+        <View style={styles.noCampaignsContainer}>
+          <Text style={styles.noCampaignsText}>
+            {campaigns.length === 0 
+              ? "No upcoming campaigns available at the moment."
+              : "No campaigns match your search criteria."}
+          </Text>
+        </View>
+      )}
+
       <FilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
@@ -174,7 +215,7 @@ const ExploreScreen: React.FC = () => {
         onJoin={handleJoinCampaign}
       />
 
-      <BottomTabBar />
+      <BottomTabBar activeTab="Explore" />
     </SafeAreaView>
   );
 };
@@ -189,6 +230,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  noCampaignsContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginTop: 100,
+  },
+  noCampaignsText: {
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 24,
   },
 });
 

@@ -30,27 +30,33 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 }) => {
   const getBadgeColor = (badge: string): [string, string] => {
     switch (badge) {
-      case "HERO":
-        return ["#8B5CF6", "#7C3AED"];
+      case "DIAMOND":
+        return ["#B23CFD", "#9333EA"];
+      case "PLATINUM":
+        return ["#E5E7EB", "#9CA3AF"];
       case "GOLD":
         return ["#F59E0B", "#D97706"];
       case "SILVER":
         return ["#9CA3AF", "#6B7280"];
+      case "BRONZE":
       default:
-        return ["#3B82F6", "#2563EB"];
+        return ["#92400E", "#78350F"];
     }
   };
 
   const getBadgeIcon = (badge: string) => {
     switch (badge) {
-      case "HERO":
+      case "DIAMOND":
+        return "diamond";
+      case "PLATINUM":
         return "trophy";
       case "GOLD":
         return "medal";
       case "SILVER":
         return "ribbon";
+      case "BRONZE":
       default:
-        return "person";
+        return "star";
     }
   };
 

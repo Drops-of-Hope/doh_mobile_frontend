@@ -79,7 +79,7 @@ export default function EnhancedHomeScreen({ navigation }: EnhancedHomeScreenPro
   const handleRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
-      const data = await homeService.refreshHomeData();
+      const data = await homeService.getHomeData();
       setHomeData(data);
     } catch (error) {
       console.error("Failed to refresh home data:", error);
@@ -261,7 +261,7 @@ export default function EnhancedHomeScreen({ navigation }: EnhancedHomeScreenPro
       </ScrollView>
 
       {/* Bottom Tab Bar */}
-      <BottomTabBar />
+      <BottomTabBar activeTab="Home" />
 
       {/* QR Code Modal */}
       <UserQRModal

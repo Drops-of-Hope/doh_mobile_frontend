@@ -1,11 +1,23 @@
 import { campaignService } from "../../services/campaignService";
 import { DashboardStats, CampaignType } from "./types";
+import { getDatabaseUserId } from "../../utils/userIdUtils";
 
 export const loadUserCampaigns = async (
   userId: string,
 ): Promise<CampaignType[]> => {
   try {
-    const campaigns = await campaignService.getOrganizerCampaigns(userId);
+    // Get the actual database user ID instead of using the passed userId (which might be auth sub)
+    const databaseUserId = await getDatabaseUserId();
+    
+    if (!databaseUserId) {
+      console.error('No database user ID available');
+      return [];
+    }
+
+    console.log('Loading campaigns for database user ID:', databaseUserId);
+    console.log('Original userId parameter was:', userId);
+    
+    const campaigns = await campaignService.getOrganizerCampaigns(databaseUserId);
     console.log("Loaded campaigns:", campaigns);
     
     // Ensure we always return an array
