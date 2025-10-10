@@ -70,7 +70,6 @@ export const createMenuItems = (
   t: (key: string) => string,
   handlers: {
     onEditProfile: () => void;
-    onMyDonations: () => void;
     onActivities: () => void;
     onCampaignDashboard: () => void;
     onLanguageSettings: () => void;
@@ -84,12 +83,6 @@ export const createMenuItems = (
       title: t("profile.edit_profile"),
       icon: "person-outline",
       onPress: handlers.onEditProfile,
-    },
-    {
-      id: "my-donations",
-      title: t("profile.my_donations"),
-      icon: "heart-outline",
-      onPress: handlers.onMyDonations,
     },
     {
       id: "activities",

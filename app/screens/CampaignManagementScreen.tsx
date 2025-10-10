@@ -40,7 +40,9 @@ export default function CampaignManagementScreen({
 
     try {
       setIsLoading(true);
-      const userCampaigns = await campaignService.getOrganizerCampaigns(user.sub);
+      const userCampaigns = await campaignService.getOrganizerCampaigns(
+        user.sub
+      );
       setCampaigns(userCampaigns);
     } catch (error) {
       console.error("Failed to load campaigns:", error);
@@ -63,14 +65,14 @@ export default function CampaignManagementScreen({
   const handleEditCampaign = async (campaign: Campaign) => {
     // Check permissions first
     try {
-      const permissions = await campaignService.checkCampaignPermissions(campaign.id);
-      
+      const permissions = await campaignService.checkCampaignPermissions(
+        campaign.id
+      );
+
       if (!permissions.canEdit) {
-        Alert.alert(
-          "Cannot Edit Campaign",
-          permissions.reasons.join("\\n"),
-          [{ text: "OK" }]
-        );
+        Alert.alert("Cannot Edit Campaign", permissions.reasons.join("\\n"), [
+          { text: "OK" },
+        ]);
         return;
       }
 
@@ -84,14 +86,14 @@ export default function CampaignManagementScreen({
   const handleDeleteCampaign = async (campaign: Campaign) => {
     try {
       // Check permissions first
-      const permissions = await campaignService.checkCampaignPermissions(campaign.id);
-      
+      const permissions = await campaignService.checkCampaignPermissions(
+        campaign.id
+      );
+
       if (!permissions.canDelete) {
-        Alert.alert(
-          "Cannot Delete Campaign",
-          permissions.reasons.join("\\n"),
-          [{ text: "OK" }]
-        );
+        Alert.alert("Cannot Delete Campaign", permissions.reasons.join("\\n"), [
+          { text: "OK" },
+        ]);
         return;
       }
 
@@ -105,8 +107,10 @@ export default function CampaignManagementScreen({
             style: "destructive",
             onPress: async () => {
               try {
-                const result = await campaignService.deleteCampaign(campaign.id);
-                
+                const result = await campaignService.deleteCampaign(
+                  campaign.id
+                );
+
                 Alert.alert(
                   "Campaign Deleted",
                   `${result.message}\\n\\nNotifications sent to:\\n• ${result.notificationsSent.donors} donors\\n• ${result.notificationsSent.hospitals} hospitals`,
@@ -114,7 +118,12 @@ export default function CampaignManagementScreen({
                 );
               } catch (error) {
                 console.error("Failed to delete campaign:", error);
-                Alert.alert("Error", error instanceof Error ? error.message : "Failed to delete campaign");
+                Alert.alert(
+                  "Error",
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to delete campaign"
+                );
               }
             },
           },
@@ -209,7 +218,10 @@ export default function CampaignManagementScreen({
             <Text style={styles.emptySubtitle}>
               Create your first blood donation campaign to get started
             </Text>
-            <TouchableOpacity style={styles.createButton} onPress={handleCreateCampaign}>
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={handleCreateCampaign}
+            >
               <Text style={styles.createButtonText}>Create Campaign</Text>
             </TouchableOpacity>
           </View>
@@ -260,29 +272,43 @@ function CampaignCard({
       <View style={styles.cardHeader}>
         <View style={styles.titleContainer}>
           <Text style={styles.campaignTitle}>{campaign.title}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(campaign.status) }]}>
-            <Text style={styles.statusText}>{getStatusText(campaign.status)}</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusColor(campaign.status || 'upcoming') },
+            ]}
+          >
+            <Text style={styles.statusText}>
+              {getStatusText(campaign.status || 'upcoming')}
+            </Text>
           </View>
         </View>
       </View>
 
       {/* Details */}
       <View style={styles.cardContent}>
-        <Text style={styles.campaignLocation}>📍 {campaign.location}</Text>
-        <Text style={styles.campaignDate}>📅 {new Date(campaign.date).toLocaleDateString()}</Text>
-        <Text style={styles.campaignTime}>🕐 {campaign.startTime} - {campaign.endTime}</Text>
-        
+        <Text style={styles.campaignLocation}>{campaign.location}</Text>
+        <Text style={styles.campaignDate}>
+          {new Date(campaign.startTime).toLocaleDateString()}
+        </Text>
+        <Text style={styles.campaignTime}>
+          {new Date(campaign.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(campaign.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </Text>
+
         {/* Progress */}
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>
-            {campaign.currentDonations} / {campaign.donationGoal} donations
+            {campaign.actualDonors || 0} / {campaign.expectedDonors || 0} donations
           </Text>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
                 {
-                  width: `${Math.min((campaign.currentDonations / campaign.donationGoal) * 100, 100)}%`,
+                  width: `${Math.min(
+                    ((campaign.actualDonors || 0) / (campaign.expectedDonors || 1)) * 100,
+                    100
+                  )}%`,
                 },
               ]}
             />
@@ -295,20 +321,30 @@ function CampaignCard({
         <TouchableOpacity style={styles.actionButton} onPress={onManage}>
           <Text style={styles.actionButtonText}>Manage</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.actionButton} onPress={onViewAnalytics}>
           <Text style={styles.actionButtonText}>Analytics</Text>
         </TouchableOpacity>
 
         {campaign.canEdit && (
-          <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={onEdit}>
-            <Text style={[styles.actionButtonText, styles.editButtonText]}>Edit</Text>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.editButton]}
+            onPress={onEdit}
+          >
+            <Text style={[styles.actionButtonText, styles.editButtonText]}>
+              Edit
+            </Text>
           </TouchableOpacity>
         )}
 
         {campaign.canDelete && (
-          <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={onDelete}>
-            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>Delete</Text>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={onDelete}
+          >
+            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>
+              Delete
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -450,30 +486,30 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionButton: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#E53E3E",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: "#E53E3E",
   },
   actionButtonText: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#374151",
+    color: "#FFFFFF",
   },
   editButton: {
-    backgroundColor: "#EBF8FF",
-    borderColor: "#3B82F6",
+    backgroundColor: "#E53E3E",
+    borderColor: "#E53E3E",
   },
   editButtonText: {
-    color: "#3B82F6",
+    color: "#FFFFFF",
   },
   deleteButton: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#EF4444",
+    backgroundColor: "#DC2626",
+    borderColor: "#DC2626",
   },
   deleteButtonText: {
-    color: "#EF4444",
+    color: "#FFFFFF",
   },
 });

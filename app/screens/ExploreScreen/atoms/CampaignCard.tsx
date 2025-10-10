@@ -27,11 +27,11 @@ export default function CampaignCard({
         {description}
       </Text>
 
-      {location && <Text style={styles.detail}>📍 {location}</Text>}
+      {location && <Text style={styles.detail}>{location}</Text>}
 
-      {date && <Text style={styles.detail}>📅 {date}</Text>}
+      {date && <Text style={styles.detail}>{date}</Text>}
 
-      {time && <Text style={styles.detail}>⏰ {time}</Text>}
+      {time && <Text style={styles.detail}>{time}</Text>}
 
       <Text style={styles.participants}>{participants} participants</Text>
     </TouchableOpacity>

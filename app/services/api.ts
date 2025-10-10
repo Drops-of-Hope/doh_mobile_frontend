@@ -2,7 +2,7 @@
 // Choose the correct host depending on platform/emulator and allow override.
 import { Platform } from "react-native";
 
-const ANDROID_EMULATOR_HOST = "http://10.34.87.17:5000/api";
+const ANDROID_EMULATOR_HOST = "http://192.168.1.171:5000/api";
 const DEFAULT_LOCALHOST = "http://localhost:5000/api";
 
 // Allow an environment or runtime override (set EXPO_PUBLIC_API_URL in your .env or app config)

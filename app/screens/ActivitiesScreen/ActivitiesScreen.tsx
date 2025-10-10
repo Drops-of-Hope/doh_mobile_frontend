@@ -13,25 +13,73 @@ import {
 } from "react-native";
 import BottomTabBar from "../../../components/organisms/BottomTabBar";
 import { activityService } from "../../services/activityService";
+import { localActivityService, LocalActivity } from "../../services/localActivityService";
 import ActivitiesHeader from "../../../components/organisms/ActivitiesScreen/ActivitiesHeader";
 import ActivitiesList from "../../../components/organisms/ActivitiesScreen/ActivitiesList";
-import LoadingCard from "../../../components/molecules/ActivitiesScreen/LoadingCard";
+import ActivitiesScreenSkeleton from "../../../components/molecules/skeletons/ActivitiesScreenSkeleton";
+import ActivityFilterBar, { FilterOption } from "../../../components/molecules/ActivitiesScreen/ActivityFilterBar";
+import LocalActivitiesList from "../../../components/molecules/ActivitiesScreen/LocalActivitiesList";
 import { DonationActivity } from "../../../components/molecules/ActivitiesScreen/ActivityCard";
+import { COLORS, SPACING, BORDER_RADIUS } from "../../../constants/theme";
 
 const ActivitiesScreen: React.FC = () => {
   const [activities, setActivities] = useState<DonationActivity[]>([]);
+  const [localActivities, setLocalActivities] = useState<LocalActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [activeTab, setActiveTab] = useState<'donations' | 'local'>('donations');
+  const [selectedFilter, setSelectedFilter] = useState('all');
 
   const ITEMS_PER_PAGE = 10;
 
+  const donationFilters: FilterOption[] = [
+    { label: 'All', value: 'all', icon: 'list' },
+    { label: 'Recent', value: 'recent', icon: 'time' },
+    { label: 'Donations', value: 'donation', icon: 'heart' },
+    { label: 'Checkups', value: 'checkup', icon: 'medical' },
+  ];
+
+  const localFilters: FilterOption[] = [
+    { label: 'All', value: 'all', icon: 'list' },
+    { label: 'Today', value: 'today', icon: 'today' },
+    { label: 'This Week', value: 'week', icon: 'calendar' },
+    { label: 'Appointments', value: 'appointment_created', icon: 'calendar' },
+    { label: 'Campaigns', value: 'campaign_created', icon: 'add-circle' },
+  ];
+
   useEffect(() => {
     loadActivities();
+    loadLocalActivities();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'local') {
+      loadLocalActivities();
+    }
+  }, [selectedFilter, activeTab]);
+
+  const loadLocalActivities = async () => {
+    try {
+      let filter: any = {};
+      
+      if (selectedFilter === 'today') {
+        filter.dateRange = 'today';
+      } else if (selectedFilter === 'week') {
+        filter.dateRange = 'week';
+      } else if (selectedFilter !== 'all') {
+        filter.type = selectedFilter;
+      }
+
+      const localActivityData = await localActivityService.getActivities(filter);
+      setLocalActivities(localActivityData);
+    } catch (error) {
+      console.error('Failed to load local activities:', error);
+    }
+  };
 
   const loadActivities = async (page: number = 1, isRefresh: boolean = false) => {
     try {
@@ -152,17 +200,43 @@ const ActivitiesScreen: React.FC = () => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await loadActivities(1, true);
+      if (activeTab === 'donations') {
+        await loadActivities(1, true);
+      } else {
+        await loadLocalActivities();
+      }
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [activeTab]);
 
   const handleLoadMore = useCallback(async () => {
-    if (!loadingMore && hasMore && !loading) {
+    if (!loadingMore && hasMore && !loading && activeTab === 'donations') {
       await loadActivities(currentPage + 1);
     }
-  }, [loadingMore, hasMore, loading, currentPage]);
+  }, [loadingMore, hasMore, loading, currentPage, activeTab]);
+
+  const handleFilterChange = (filter: string) => {
+    setSelectedFilter(filter);
+    if (activeTab === 'donations') {
+      // Filter donations based on selection
+      // This would need backend support for proper filtering
+      loadActivities(1, true);
+    }
+  };
+
+  const handleTabChange = (tab: 'donations' | 'local') => {
+    setActiveTab(tab);
+    setSelectedFilter('all');
+  };
+
+  const handleLocalActivityPress = (activity: LocalActivity) => {
+    Alert.alert(
+      activity.title,
+      `${activity.description}\n\nTime: ${new Date(activity.timestamp).toLocaleString()}`,
+      [{ text: 'OK' }]
+    );
+  };
 
   useEffect(() => {
     loadActivities();
@@ -226,8 +300,8 @@ const ActivitiesScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
-        <LoadingCard />
-        <BottomTabBar activeTab="Activities" />
+        <ActivitiesScreenSkeleton />
+        <BottomTabBar activeTab="activities" />
       </SafeAreaView>
     );
   }
@@ -238,6 +312,33 @@ const ActivitiesScreen: React.FC = () => {
 
       <ActivitiesHeader />
 
+      {/* Tab Selector */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'donations' && styles.activeTab]}
+          onPress={() => handleTabChange('donations')}
+        >
+          <Text style={[styles.tabText, activeTab === 'donations' && styles.activeTabText]}>
+            Donations
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'local' && styles.activeTab]}
+          onPress={() => handleTabChange('local')}
+        >
+          <Text style={[styles.tabText, activeTab === 'local' && styles.activeTabText]}>
+            Recent Activity
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Filter Bar */}
+      <ActivityFilterBar
+        selectedFilter={selectedFilter}
+        onFilterChange={handleFilterChange}
+        filters={activeTab === 'donations' ? donationFilters : localFilters}
+      />
+
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -245,14 +346,24 @@ const ActivitiesScreen: React.FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <ActivitiesList
-          activities={activities}
-          onViewDetails={handleViewDetails}
-        />
-        {renderLoadMoreButton()}
+        {activeTab === 'donations' ? (
+          <>
+            <ActivitiesList
+              activities={activities}
+              onViewDetails={handleViewDetails}
+            />
+            {renderLoadMoreButton()}
+          </>
+        ) : (
+          <LocalActivitiesList
+            activities={localActivities}
+            onActivityPress={handleLocalActivityPress}
+            emptyMessage="No local activities recorded yet. Start by creating an appointment or joining a campaign!"
+          />
+        )}
       </ScrollView>
 
-      <BottomTabBar activeTab="Activities" />
+      <BottomTabBar activeTab="activities" />
     </SafeAreaView>
   );
 };
@@ -265,6 +376,32 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: 24,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.BACKGROUND,
+    marginHorizontal: SPACING.MD,
+    marginVertical: SPACING.SM,
+    borderRadius: BORDER_RADIUS.MD,
+    padding: SPACING.XS,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: SPACING.SM,
+    paddingHorizontal: SPACING.MD,
+    borderRadius: BORDER_RADIUS.SM,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: COLORS.PRIMARY,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.TEXT_SECONDARY,
+  },
+  activeTabText: {
+    color: COLORS.BACKGROUND,
   },
   loadMoreContainer: {
     alignItems: "center",

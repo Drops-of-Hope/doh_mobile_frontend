@@ -16,13 +16,13 @@ export default function ComponentRow({
 
   return (
     <View style={styles.componentRow}>
-      <ComponentInfoCard
+      {/* <ComponentInfoCard
         title={t("home.blood_type")}
-        subtitle="O+ Universal donor"
+        subtitle="Category of blood"
         value={bloodType}
         icon="water"
         iconColor="#FF4757"
-      />
+      /> */}
       <ComponentInfoCard
         title={t("home.last_donation")}
         subtitle="Time since last visit"

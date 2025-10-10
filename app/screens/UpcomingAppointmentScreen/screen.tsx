@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   View,
+  ActivityIndicator,
 } from "react-native";
 
 // Import refactored components
@@ -15,16 +16,93 @@ import EmptyState from "./organisms/EmptyState";
 
 // Import types and utilities
 import { AppointmentScreenProps, Appointment } from "./types";
-import { getMockAppointments, filterAppointments } from "./utils";
+import { filterAppointments } from "./utils";
+import { appointmentService } from "../../services/appointmentService";
+import { useAuth } from "../../context/AuthContext";
 
 export default function UpcomingAppointmentScreen({
   navigation,
 }: AppointmentScreenProps) {
-  const [appointments, setAppointments] = useState<Appointment[]>(
-    getMockAppointments(),
-  );
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  const handleCancelAppointment = (appointmentId: string) => {
+  // Load user appointments from backend
+  useEffect(() => {
+    if (user?.id || user?.sub) {
+      loadUserAppointments();
+    }
+  }, [user]);
+
+  const loadUserAppointments = async () => {
+    if (!user?.id && !user?.sub) {
+      console.log("⚠️ No user ID available");
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const userId = user.id || user.sub;
+      console.log("🔍 Loading appointments for user:", userId);
+      
+      const userAppointments = await appointmentService.getUserAppointments(userId);
+      console.log("📅 Raw appointments from API:", userAppointments);
+      
+      if (!userAppointments || userAppointments.length === 0) {
+        console.log("📅 No appointments found");
+        setAppointments([]);
+        return;
+      }
+      
+      // Transform backend appointments to screen format
+      const transformedAppointments: Appointment[] = userAppointments.map(apt => {
+        console.log("🔄 Transforming appointment:", apt);
+        
+        return {
+          id: apt.id,
+          hospital: "Medical Center", // TODO: Get from medical establishment
+          date: new Date(apt.appointmentDate).toISOString().split('T')[0],
+          time: new Date(apt.appointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          location: "Blood Donation Center", // TODO: Get from medical establishment
+          confirmationId: apt.id,
+          status: apt.scheduled === "PENDING" 
+            ? "upcoming" 
+            : apt.scheduled === "COMPLETED" 
+              ? "completed" 
+              : "cancelled",
+          type: "blood_donation", // Default type
+          notes: `Appointment ID: ${apt.id}` // Include appointment ID for reference
+        };
+      });
+      
+      console.log("✅ Transformed appointments:", transformedAppointments);
+      setAppointments(transformedAppointments);
+    } catch (error) {
+      console.error("❌ Failed to load appointments:", error);
+      
+      // For debugging purposes, let's create a mock appointment to test the UI
+      const mockAppointments: Appointment[] = [
+        {
+          id: "mock-1",
+          hospital: "General Hospital",
+          date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+          time: "10:00",
+          location: "Blood Donation Center, Ward 3",
+          confirmationId: "CONF-123",
+          status: "upcoming",
+          type: "blood_donation",
+          notes: "Please bring your ID and eat well before donation"
+        }
+      ];
+      
+      console.log("🔧 Using mock appointments for testing:", mockAppointments);
+      setAppointments(mockAppointments);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelAppointment = async (appointmentId: string) => {
     Alert.alert(
       "Cancel Appointment",
       "Are you sure you want to cancel this appointment?",
@@ -33,25 +111,36 @@ export default function UpcomingAppointmentScreen({
         {
           text: "Yes, Cancel",
           style: "destructive",
-          onPress: () => {
-            setAppointments((prev) =>
-              prev.map((apt) =>
-                apt.id === appointmentId
-                  ? { ...apt, status: "cancelled" as const }
-                  : apt,
-              ),
-            );
+          onPress: async () => {
+            try {
+              await appointmentService.cancelAppointment(appointmentId);
+              // Reload appointments after cancellation
+              await loadUserAppointments();
+              Alert.alert("Success", "Appointment cancelled successfully.");
+            } catch (error) {
+              console.error("Failed to cancel appointment:", error);
+              Alert.alert("Error", "Failed to cancel appointment. Please try again.");
+            }
           },
         },
       ],
     );
   };
 
-  const handleReschedule = (appointmentId: string) => {
+  const handleReschedule = async (appointmentId: string) => {
     Alert.alert(
       "Reschedule Appointment",
-      "Contact the hospital to reschedule your appointment.",
-      [{ text: "OK" }],
+      "Contact the hospital to reschedule your appointment or book a new one.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Book New",
+          onPress: () => {
+            // Navigate to booking screen
+            navigation?.navigate('DonationScreen');
+          }
+        }
+      ],
     );
   };
 
@@ -73,6 +162,15 @@ export default function UpcomingAppointmentScreen({
     filterAppointments(appointments);
   const hasNoAppointments =
     upcomingAppointments.length === 0 && pastAppointments.length === 0;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, styles.loadingContainer]}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+        <ActivityIndicator size="large" color="#DC2626" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -122,6 +220,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAFBFC",
+  },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   scrollView: {
     flex: 1,

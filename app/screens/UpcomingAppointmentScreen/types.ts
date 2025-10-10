@@ -30,6 +30,8 @@ export interface DetailRowProps {
   text: string;
   color?: string;
   isPast?: boolean;
+  onCopy?: (message: string) => void;
+  copyValue?: string;
 }
 
 export interface ActionButtonProps {

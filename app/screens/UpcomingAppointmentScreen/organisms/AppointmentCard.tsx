@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { AppointmentCardProps } from "../types";
 import { getTypeDisplay } from "../utils";
@@ -7,6 +7,7 @@ import AppointmentInfo from "../molecules/AppointmentInfo";
 import AppointmentDetails from "../molecules/AppointmentDetails";
 import NotesContainer from "../molecules/NotesContainer";
 import ActionButtons from "../molecules/ActionButtons";
+import Toast from "../../../../components/atoms/Toast";
 
 export default function AppointmentCard({
   appointment,
@@ -14,8 +15,20 @@ export default function AppointmentCard({
   onReschedule,
   isPast = false,
 }: AppointmentCardProps) {
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
   const handleCancel = () => onCancel(appointment.id);
   const handleReschedule = () => onReschedule(appointment.id);
+
+  const handleCopy = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
   return (
     <View style={[styles.appointmentCard, isPast && styles.pastCard]}>
@@ -28,7 +41,11 @@ export default function AppointmentCard({
         <StatusBadge status={appointment.status} />
       </View>
 
-      <AppointmentDetails appointment={appointment} isPast={isPast} />
+      <AppointmentDetails 
+        appointment={appointment} 
+        isPast={isPast} 
+        onCopy={handleCopy}
+      />
 
       {appointment.notes && <NotesContainer notes={appointment.notes} />}
 
@@ -38,6 +55,13 @@ export default function AppointmentCard({
           onCancel={handleCancel}
         />
       )}
+
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type="success"
+        onHide={hideToast}
+      />
     </View>
   );
 }

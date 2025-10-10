@@ -22,7 +22,7 @@ export interface AppointmentSlot {
   medicalEstablishmentId: string;
 }
 
-// Appointment interface
+// Appointment interface - comprehensive with all needed details
 export interface Appointment {
   id: string;
   donorId: string;
@@ -30,6 +30,17 @@ export interface Appointment {
   scheduled: "CANCELLED" | "COMPLETED" | "PENDING";
   appointmentDate: Date;
   slotId: string;
+  medicalEstablishment?: {
+    id: string;
+    name: string;
+    address: string;
+    district: string;
+  };
+  slot?: {
+    id: string;
+    startTime: string;
+    endTime: string;
+  };
 }
 
 // Appointment booking request interface

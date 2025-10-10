@@ -11,7 +11,6 @@ interface QRSectionProps {
   attendanceMarked: boolean;
   onShowQR: () => void;
   onShowForm: () => void;
-  onMarkAttendance: () => void;
 }
 
 export default function QRSection({
@@ -19,7 +18,6 @@ export default function QRSection({
   attendanceMarked,
   onShowQR,
   onShowForm,
-  onMarkAttendance,
 }: QRSectionProps) {
   const { t } = useLanguage();
 
@@ -37,20 +35,11 @@ export default function QRSection({
 
       <View style={styles.qrActions}>
         {!attendanceMarked ? (
-          <>
-            <ActionButton
-              title="Show QR Code"
-              icon="qr-code"
-              onPress={onShowQR}
-            />
-
-            <ActionButton
-              title="Scan QR Code"
-              icon="scan"
-              onPress={onMarkAttendance}
-              variant="secondary"
-            />
-          </>
+          <ActionButton
+            title="Show QR Code"
+            icon="qr-code"
+            onPress={onShowQR}
+          />
         ) : (
           <ActionButton
             title="Fill Donation Form"

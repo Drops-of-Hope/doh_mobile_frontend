@@ -234,10 +234,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     setShowEditProfileModal(true);
   };
 
-  const handleMyDonations = () => {
-    navigation?.navigate("MyDonations");
-  };
-
   const handleActivities = () => {
     navigation?.navigate("Activities");
   };
@@ -303,7 +299,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // Menu item handlers
   const menuItems = createMenuItems(userRole, hasRole, t, {
     onEditProfile: handleEditProfile,
-    onMyDonations: handleMyDonations,
     onActivities: handleActivities,
     onCampaignDashboard: handleCampaignDashboard,
     onLanguageSettings: handleLanguageSettings,
@@ -380,7 +375,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </>
       )}
 
-      <BottomTabBar activeTab="Profile" />
+      <BottomTabBar activeTab="account" />
     </SafeAreaView>
   );
 }

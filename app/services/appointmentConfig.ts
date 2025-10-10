@@ -1,25 +1,8 @@
-// Configuration for appointment services
-// Change USE_MOCK_SERVICES to false when backend is ready
+// Production appointment configuration - no mock services allowed
 
 export const APPOINTMENT_CONFIG = {
-  // Set to false when backend API is available
-  USE_MOCK_SERVICES: false,
-
   // API Configuration
   API_TIMEOUT: 10000, // 10 seconds
-
-  // Mock Service Configuration
-  MOCK_API_DELAY: {
-    ESTABLISHMENTS: 800, // ms
-    SLOTS: 600, // ms
-    BOOKING: 1000, // ms
-  },
-
-  // Error Simulation (for testing)
-  MOCK_ERROR_RATES: {
-    BOOKING_FAILURE: 0.05, // 5% chance of booking failure
-    NETWORK_ERROR: 0.02, // 2% chance of network error
-  },
 
   // Business Rules
   APPOINTMENT_RULES: {
@@ -29,11 +12,7 @@ export const APPOINTMENT_CONFIG = {
   },
 };
 
-// Helper function to get the appropriate service
+// Production service only - no mock fallback
 export const getAppointmentService = () => {
-  if (APPOINTMENT_CONFIG.USE_MOCK_SERVICES) {
-    return require("./mockAppointmentService").mockAppointmentService;
-  } else {
-    return require("./appointmentService").appointmentService;
-  }
+  return require("./appointmentService").appointmentService;
 };

@@ -30,14 +30,14 @@ interface Campaign {
   title: string;
   description: string;
   location: string;
-  address: string;
-  date: string;
+  address?: string;
+  date?: string;
   startTime: string;
   endTime: string;
-  donationGoal: number;
-  contactPerson: string;
-  contactPhone: string;
-  contactEmail: string;
+  donationGoal?: number;
+  contactPerson?: string;
+  contactPhone?: string;
+  contactEmail?: string;
   requirements?: string;
   additionalNotes?: string;
 }
@@ -133,8 +133,25 @@ export default function EditCampaignScreen({
       }
     } catch (error) {
       console.error("Failed to load campaign:", error);
-      Alert.alert("Error", "Failed to load campaign details.");
-      navigation?.goBack();
+      
+      // Handle specific error cases
+      let errorMessage = "Failed to load campaign details.";
+      let errorTitle = "Error";
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMsg = error.message as string;
+        if (errorMsg.includes('not found')) {
+          errorTitle = "Campaign Not Found";
+          errorMessage = "The campaign you're trying to edit could not be found. It may have been deleted or you may not have permission to access it.";
+        } else if (errorMsg.includes('permissions')) {
+          errorTitle = "Permission Error";
+          errorMessage = "You don't have permission to edit this campaign.";
+        }
+      }
+      
+      Alert.alert(errorTitle, errorMessage, [
+        { text: "OK", onPress: () => navigation?.goBack() }
+      ]);
     } finally {
       setIsLoading(false);
     }

@@ -10,15 +10,18 @@ import {
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useAuthUser } from "../../hooks/useAuthUser";
+import { userService } from "../../services/userService";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import FormSection from "../CreateCampaignScreen/molecules/FormSection";
-import InputField from "../CreateCampaignScreen/atoms/InputField";
 import SubmitButton from "../CreateCampaignScreen/atoms/SubmitButton";
+import EnhancedInputField from "../../../components/atoms/EnhancedInputField";
+import PhoneInputField from "../../../components/atoms/PhoneInputField";
 import ValidationUtils from "../../utils/ValidationUtils";
 
 interface EditProfileScreenProps {
   navigation?: any;
   onBack?: () => void;
+  onClose?: () => void;
 }
 
 interface ProfileFormData {
@@ -35,6 +38,7 @@ interface ProfileFormData {
 export default function EditProfileScreen({
   navigation,
   onBack,
+  onClose,
 }: EditProfileScreenProps) {
   const { user } = useAuth();
   const { getStoredUserData } = useAuthUser();
@@ -108,9 +112,40 @@ export default function EditProfileScreen({
       "bloodType",
     ];
 
+    // Use enhanced validation with specific field validation
     const validation = ValidationUtils.validateForm(formData, requiredFields);
-    setErrors(validation.errors);
-    return validation.isValid;
+    
+    // Additional custom validations
+    const customErrors: Partial<ProfileFormData> = {};
+    
+    // Blood type validation (convert display format to enum format)
+    if (formData.bloodType) {
+      const bloodTypeMap: Record<string, string> = {
+        'A+': 'A_POSITIVE', 'A-': 'A_NEGATIVE',
+        'B+': 'B_POSITIVE', 'B-': 'B_NEGATIVE', 
+        'AB+': 'AB_POSITIVE', 'AB-': 'AB_NEGATIVE',
+        'O+': 'O_POSITIVE', 'O-': 'O_NEGATIVE'
+      };
+      
+      const enumValue = bloodTypeMap[formData.bloodType.toUpperCase()];
+      if (!enumValue) {
+        customErrors.bloodType = "Please select a valid blood type (A+, A-, B+, B-, AB+, AB-, O+, O-)";
+      }
+    }
+    
+    // Emergency phone validation (optional but if provided, must be valid)
+    if (formData.emergencyPhone && formData.emergencyPhone.trim()) {
+      const emergencyPhoneValidation = ValidationUtils.validatePhoneNumber(formData.emergencyPhone);
+      if (!emergencyPhoneValidation.isValid) {
+        customErrors.emergencyPhone = emergencyPhoneValidation.error;
+      }
+    }
+    
+    // Combine validation errors
+    const allErrors = { ...validation.errors, ...customErrors };
+    setErrors(allErrors);
+    
+    return Object.keys(allErrors).length === 0;
   };
 
   const handleSubmit = async () => {
@@ -121,14 +156,23 @@ export default function EditProfileScreen({
 
     setIsSubmitting(true);
     try {
-      // Simulate profile update
-      console.log("Updating profile:", formData);
+      // Prepare update data for API
+      const updateData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        phoneNumber: formData.phoneNumber,
+        address: formData.address,
+        emergencyContact: formData.emergencyContact,
+      };
+
+      // Call the real API
+      const updatedProfile = await userService.updateProfile(updateData);
+      
       Alert.alert("Success", "Profile updated successfully", [
         { text: "OK", onPress: () => handleBack() },
       ]);
     } catch (error) {
       console.error("Failed to update profile:", error);
-      Alert.alert("Error", "Failed to update profile");
+      Alert.alert("Error", "Failed to update profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -148,16 +192,34 @@ export default function EditProfileScreen({
       }
     }
     
+    // Update form data
     setFormData((prev) => ({ ...prev, [field]: processedValue }));
     
-    // Clear validation error for this field
+    // Clear validation error for this field when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+    
+    // Real-time validation for certain fields
+    setTimeout(() => {
+      if (field === 'email' && processedValue.trim()) {
+        const emailValidation = ValidationUtils.validateEmail(processedValue);
+        if (!emailValidation.isValid) {
+          setErrors(prev => ({ ...prev, [field]: emailValidation.error }));
+        }
+      } else if ((field === 'phoneNumber' || field === 'emergencyPhone') && processedValue.length >= 10) {
+        const phoneValidation = ValidationUtils.validatePhoneNumber(processedValue);
+        if (!phoneValidation.isValid) {
+          setErrors(prev => ({ ...prev, [field]: phoneValidation.error }));
+        }
+      }
+    }, 500); // Debounce validation
   };
 
   const handleBack = () => {
-    if (onBack) {
+    if (onClose) {
+      onClose();
+    } else if (onBack) {
       onBack();
     } else {
       navigation?.goBack();
@@ -176,13 +238,12 @@ export default function EditProfileScreen({
         <DashboardHeader
           title="Edit Profile"
           onBack={handleBack}
-          onAdd={() => {}}
         />
 
       {isLoading ? (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <FormSection title="Loading Profile Data...">
-            <InputField
+            <EnhancedInputField
               label="Loading..."
               value=""
               onChangeText={() => {}}
@@ -193,80 +254,81 @@ export default function EditProfileScreen({
       ) : (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <FormSection title="Personal Information">
-            <InputField
+            <EnhancedInputField
               label="First Name"
               value={formData.firstName}
-              onChangeText={(text) => updateFormData("firstName", text)}
+              onChangeText={(text: string) => updateFormData("firstName", text)}
               placeholder="Enter first name"
               error={errors.firstName}
               required
+              helpText="Your legal first name"
             />
-            <InputField
+            <EnhancedInputField
               label="Last Name"
               value={formData.lastName}
-              onChangeText={(text) => updateFormData("lastName", text)}
+              onChangeText={(text: string) => updateFormData("lastName", text)}
               placeholder="Enter last name"
               error={errors.lastName}
               required
+              helpText="Your legal last name"
             />
-            <InputField
+            <EnhancedInputField
               label="Email"
               value={formData.email}
-              onChangeText={(text) => updateFormData("email", text)}
+              onChangeText={(text: string) => updateFormData("email", text)}
               placeholder="Enter email address"
               keyboardType="email-address"
+              autoCapitalize="none"
               error={errors.email}
               required
+              helpText="We'll use this for important account notifications"
             />
-            <InputField
+            <PhoneInputField
               label="Phone Number"
               value={formData.phoneNumber}
-              onChangeText={(text) => {
-                // keep only digits and limit to 10 characters
-                const digitsOnly = text.replace(/\D/g, "").slice(0, 10);
-                updateFormData("phoneNumber", digitsOnly);
-              }}
-              placeholder="Enter phone number"
-              keyboardType="phone-pad"
+              onChangeText={(text: string) => updateFormData("phoneNumber", text.replace(/\s/g, ''))}
               error={errors.phoneNumber}
               required
+              helpText="Your primary contact number"
             />
           </FormSection>
 
           <FormSection title="Medical Information">
-            <InputField
+            <EnhancedInputField
               label="Blood Type"
               value={formData.bloodType}
-              onChangeText={(text) => updateFormData("bloodType", text)}
+              onChangeText={(text: string) => updateFormData("bloodType", text)}
               placeholder="e.g., O+, A-, B+, AB-"
               error={errors.bloodType}
               required
+              helpText="Select your blood type (important for donation matching)"
             />
-            <InputField
+            <EnhancedInputField
               label="Address"
               value={formData.address}
-              onChangeText={(text) => updateFormData("address", text)}
-              placeholder="Enter your address"
+              onChangeText={(text: string) => updateFormData("address", text)}
+              placeholder="Enter your complete address"
               multiline
               error={errors.address}
+              helpText="Your current residential address (minimum 10 characters)"
             />
           </FormSection>
 
           <FormSection title="Emergency Contact">
-            <InputField
+            <EnhancedInputField
               label="Emergency Contact Name"
               value={formData.emergencyContact}
-              onChangeText={(text) => updateFormData("emergencyContact", text)}
+              onChangeText={(text: string) => updateFormData("emergencyContact", text)}
               placeholder="Enter emergency contact name"
               error={errors.emergencyContact}
+              helpText="Someone we can contact in case of emergency"
             />
-            <InputField
+            <PhoneInputField
               label="Emergency Contact Phone"
               value={formData.emergencyPhone}
-              onChangeText={(text) => updateFormData("emergencyPhone", text)}
-              placeholder="Enter emergency contact phone"
-              keyboardType="phone-pad"
+              onChangeText={(text: string) => updateFormData("emergencyPhone", text.replace(/\s/g, ''))}
               error={errors.emergencyPhone}
+              helpText="Emergency contact's phone number"
             />
           </FormSection>
 

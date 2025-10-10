@@ -15,11 +15,12 @@ import BottomTabBar from "../../../components/organisms/BottomTabBar";
 import StatsCard from "../../../components/molecules/HomeScreen/StatsCard";
 import ComponentRow from "../../../components/molecules/HomeScreen/ComponentRow";
 import EmergenciesSection from "../../../components/organisms/HomeScreen/EmergenciesSection";
-import CampaignsSection from "../../../components/organisms/HomeScreen/CampaignsSection";
 import AppointmentSection from "../../../components/organisms/HomeScreen/AppointmentSection";
+import HomeHeader from "../../../components/organisms/HomeScreen/HomeHeader";
 
 // Import new components
 import UserQRModal from "../../../components/organisms/UserQRModal";
+import HomeScreenSkeleton from "../../../components/molecules/skeletons/HomeScreenSkeleton";
 
 // Import services
 import { homeService, HomeScreenData } from "../../services/homeService";
@@ -92,14 +93,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     navigation?.navigate("EmergencyDetails", { emergencyId });
   };
 
-  const handleCampaignPress = (campaignId: string) => {
-    navigation?.navigate("CampaignDetails", { campaignId });
-  };
-
-  const handleAppointmentPress = (appointmentId: string) => {
-    navigation?.navigate("AppointmentDetails", { appointmentId });
-  };
-
   const handleQRPress = () => {
     setShowQRModal(true);
   };
@@ -110,10 +103,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   const handleViewAllEmergencies = () => {
     navigation?.navigate("AllEmergencies");
-  };
-
-  const handleViewAllCampaigns = () => {
-    navigation?.navigate("AllCampaigns");
   };
 
   const handleBookAppointment = () => {
@@ -148,20 +137,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       contactNumber: emergency.contactNumber,
       address: emergency.hospital.address,
       requirements: emergency.specialInstructions,
-    }));
-  };
-
-  const getCampaignsData = () => {
-    if (!homeData?.featuredCampaigns) return [];
-    
-    return homeData.featuredCampaigns.map(campaign => ({
-      id: parseInt(campaign.id, 10) || 0,
-      title: campaign.title,
-      date: formatDate(campaign.startTime),
-      location: campaign.location,
-      slotsUsed: campaign.actualDonors,
-      totalSlots: campaign.expectedDonors,
-      urgency: "Moderate" as any, // Map based on availability
     }));
   };
 
@@ -208,60 +183,66 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Stats Section */}
-        {homeData?.userStats && (
-          <StatsCard
-            totalDonations={homeData?.userStats?.totalDonations || 0}
-          />
-        )}
-
-        {/* Component Row - Quick Actions */}
-        <ComponentRow 
-          bloodType={user?.bloodType || 'A+'} 
-          lastDonationDays={getLastDonationDays() || 0} 
+      {/* Header Section with Welcome Message */}
+      <View style={styles.headerContainer}>
+        <HomeHeader
+          firstName={getFirstName() || "User"}
+          donorLevel="Bronze Donor" // This could be dynamic based on user stats
+          searchText={searchText}
+          onSearchTextChange={setSearchText}
+          onLogout={logout}
         />
+      </View>
+      
+      {loading ? (
+        <HomeScreenSkeleton />
+      ) : (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Stats Section */}
+          {homeData?.userStats && (
+            <StatsCard
+              totalDonations={homeData?.userStats?.totalDonations || 0}
+            />
+          )}
 
-        {/* Upcoming Appointment */}
-        {homeData?.upcomingAppointments && homeData.upcomingAppointments.length > 0 && (
-          <AppointmentSection
-            appointment={getUpcomingAppointment()}
-            onViewDetails={(appointment) => handleAppointmentPress(appointment.id)}
+          {/* Component Row - Quick Actions */}
+          <ComponentRow 
+            bloodType={user?.bloodType || user?.bloodGroup || 'A+'} 
+            lastDonationDays={getLastDonationDays() || 0} 
           />
-        )}
 
-        {/* Emergencies Section */}
-        {homeData?.emergencies && homeData.emergencies.length > 0 && (
-          <EmergenciesSection
-            emergencies={getEmergenciesData()}
-            onDonate={(emergency) => handleEmergencyPress(emergency.id.toString())}
-            onViewAll={handleViewAllEmergencies}
-          />
-        )}
+          {/* Upcoming Appointment */}
+          {homeData?.upcomingAppointments && homeData.upcomingAppointments.length > 0 && (
+            <AppointmentSection
+              appointment={getUpcomingAppointment()}
+            />
+          )}
 
-        {/* Campaigns Section */}
-        {homeData?.featuredCampaigns && homeData.featuredCampaigns.length > 0 && (
-          <CampaignsSection
-            campaigns={getCampaignsData()}
-            onCampaignPress={(campaign) => handleCampaignPress(campaign.id.toString())}
-            onViewAll={handleViewAllCampaigns}
-          />
-        )}
+          {/* Emergencies Section */}
+          {homeData?.emergencies && homeData.emergencies.length > 0 && (
+            <EmergenciesSection
+              emergencies={getEmergenciesData()}
+              onDonate={(emergency) => handleEmergencyPress(emergency.id.toString())}
+              onViewAll={handleViewAllEmergencies}
+            />
+          )}
 
-        {/* Bottom Padding */}
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+          {/* Bottom Padding */}
+          <View style={styles.bottomPadding} />
+        </ScrollView>
+      )}
 
       {/* Bottom Tab Bar */}
-      <BottomTabBar activeTab="Home" />
+      <BottomTabBar activeTab="home" />
 
       {/* QR Code Modal */}
       <UserQRModal
@@ -277,8 +258,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
+  headerContainer: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   bottomPadding: {
     height: 100, // Space for bottom tab bar

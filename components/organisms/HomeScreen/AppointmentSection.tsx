@@ -1,20 +1,18 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import AppointmentCard, {
+import ExpandableAppointmentCard, {
   Appointment,
-} from "../../molecules/HomeScreen/AppointmentCard";
+} from "../../molecules/HomeScreen/ExpandableAppointmentCard";
 
 interface AppointmentSectionProps {
   appointment: Appointment | null;
   title?: string;
-  onViewDetails?: (appointment: Appointment) => void;
   onReschedule?: (appointment: Appointment) => void;
 }
 
 export default function AppointmentSection({
   appointment,
   title,
-  onViewDetails,
   onReschedule,
 }: AppointmentSectionProps) {
   if (!appointment) {
@@ -23,10 +21,9 @@ export default function AppointmentSection({
 
   return (
     <View style={styles.section}>
-      <AppointmentCard
+      <ExpandableAppointmentCard
         appointment={appointment}
         title={title}
-        onViewDetails={onViewDetails}
         onReschedule={onReschedule}
       />
     </View>

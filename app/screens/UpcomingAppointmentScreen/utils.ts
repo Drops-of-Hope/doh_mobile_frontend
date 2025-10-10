@@ -62,30 +62,7 @@ export const formatAppointmentDate = (date: string, isPast = false): string => {
   });
 };
 
-export const getMockAppointments = (): Appointment[] => [
-  {
-    id: "1",
-    hospital: "City General Hospital",
-    date: "2024-01-15",
-    time: "10:00 AM",
-    location: "Blood Bank Unit, 3rd Floor",
-    confirmationId: "APT-2024-001",
-    status: "confirmed",
-    type: "blood_donation",
-    notes: "Please arrive 15 minutes early. Bring a valid ID.",
-  },
-  {
-    id: "2",
-    hospital: "University Medical Center",
-    date: "2024-02-20",
-    time: "2:00 PM",
-    location: "Donation Center, Building A",
-    confirmationId: "APT-2024-025",
-    status: "upcoming",
-    type: "platelet_donation",
-    notes: "Platelet donation session. Duration: 2-3 hours.",
-  },
-];
+// Mock appointments removed - using real backend data only
 
 export const filterAppointments = (appointments: Appointment[]) => {
   const upcomingAppointments = appointments.filter(

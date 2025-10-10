@@ -7,11 +7,13 @@ import { formatAppointmentDate } from "../utils";
 interface AppointmentDetailsProps {
   appointment: Appointment;
   isPast?: boolean;
+  onCopy?: (message: string) => void;
 }
 
 export default function AppointmentDetails({
   appointment,
   isPast = false,
+  onCopy,
 }: AppointmentDetailsProps) {
   return (
     <View style={styles.appointmentDetails}>
@@ -39,6 +41,8 @@ export default function AppointmentDetails({
         text={`ID: ${appointment.confirmationId}`}
         color={isPast ? "#6B7280" : "#10B981"}
         isPast={isPast}
+        onCopy={onCopy}
+        copyValue={appointment.confirmationId}
       />
     </View>
   );

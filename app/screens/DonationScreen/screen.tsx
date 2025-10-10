@@ -17,18 +17,15 @@ import AppointmentSection from "./molecules/AppointmentSection";
 import QRModal from "./organisms/QRModal";
 import DonationFormModal from "./organisms/DonationFormModal";
 import AppointmentBookingModal from "./organisms/AppointmentBookingModal";
-import QRScannerModal from "../../../components/organisms/QRScannerModal";
 
 // Import existing bottom tab bar
 import BottomTabBar from "../../../components/organisms/BottomTabBar";
 
 // Import types and utilities
 import { TabType, UserProfile, Appointment } from "./types";
-import { getMockAppointments } from "./utils";
+import { getUserAppointments } from "./utils";
 import { useAuth } from "../../context/AuthContext";
 import { donationService } from "../../services/donationService";
-import { qrService } from "../../services/qrService";
-import type { QRScanResult } from "../../services/qrService";
 
 interface DonationScreenProps {
   navigation?: any;
@@ -40,12 +37,35 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
   const [showQRModal, setShowQRModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [showQRScannerModal, setShowQRScannerModal] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { user, isAuthenticated, refreshAuthState, getFullName } = useAuth();
   const [attendanceMarked, setAttendanceMarked] = useState(false);
-  const [appointments] = useState<Appointment[]>(getMockAppointments());
+  const [appointments, setAppointments] = useState<{
+    upcoming: Appointment[];
+    history: Appointment[];
+  }>({ upcoming: [], history: [] });
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+
+  // Load user appointments
+  const loadUserAppointments = async () => {
+    if (!userProfile?.id) return;
+    
+    try {
+      setAppointmentsLoading(true);
+      const appointmentData = await getUserAppointments(userProfile.id);
+      setAppointments(appointmentData);
+    } catch (error) {
+      console.error("Error loading user appointments:", error);
+      Alert.alert(
+        "Error",
+        "Failed to load appointments. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setAppointmentsLoading(false);
+    }
+  };
 
   // Load user profile
   // Refresh auth state once on mount. Calling this repeatedly when `user`
@@ -93,6 +113,13 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
     mapAuthUserToProfile();
   }, [user, isAuthenticated]);
 
+  // Load appointments when user profile is available
+  useEffect(() => {
+    if (userProfile?.id) {
+      loadUserAppointments();
+    }
+  }, [userProfile?.id]);
+
   // Modal handlers
   const handleShowQR = () => {
     if (!userProfile?.eligibleForDonation) {
@@ -114,51 +141,11 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
     setShowBookingModal(true);
   };
 
-  const handleMarkAttendance = () => {
-    if (attendanceMarked) return;
-
-    // Open QR scanner modal for actual QR scanning
-    setShowQRScannerModal(true);
-  };
-
-  const handleQRScanSuccess = (result: QRScanResult) => {
-    // Close the scanner modal
-    setShowQRScannerModal(false);
-    
-    // Mark attendance as completed
-    setAttendanceMarked(true);
-    
-    // Show success message
-    Alert.alert(
-      "QR Code Verified",
-      `Welcome ${result.scannedUser.name}!\nYour attendance has been marked successfully. You can now fill the donation form.`,
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            // Optional: Auto-open donation form
-            // setShowFormModal(true);
-          },
-        },
-      ]
-    );
-  };
-
-  const handleQRScanClose = () => {
-    setShowQRScannerModal(false);
-  };
-
   const handleBookAppointment = () => {
-    Alert.alert(
-      "Appointment Booked",
-      "Your appointment has been successfully booked. You will receive a confirmation shortly.",
-      [
-        {
-          text: "OK",
-          onPress: () => setShowBookingModal(false),
-        },
-      ]
-    );
+    // Close the booking modal - success message is handled by AppointmentBookingForm
+    setShowBookingModal(false);
+    // Refresh appointments to show the new booking
+    loadUserAppointments();
   };
 
   const handleFormSubmit = () => {
@@ -200,12 +187,15 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
             attendanceMarked={attendanceMarked}
             onShowQR={handleShowQR}
             onShowForm={handleShowForm}
-            onMarkAttendance={handleMarkAttendance}
           />
         ) : (
           <AppointmentSection
-            appointments={appointments}
+            appointments={[...appointments.upcoming, ...appointments.history]}
+            upcomingAppointments={appointments.upcoming}
+            appointmentHistory={appointments.history}
+            loading={appointmentsLoading}
             onShowBooking={handleShowBooking}
+            onRefresh={loadUserAppointments}
           />
         )}
 
@@ -231,14 +221,7 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
         onBookAppointment={handleBookAppointment}
       />
 
-      <QRScannerModal
-        visible={showQRScannerModal}
-        onClose={handleQRScanClose}
-        scanType="DONATION_VERIFICATION"
-        onScanSuccess={handleQRScanSuccess}
-      />
-
-      <BottomTabBar activeTab="Donate" />
+      <BottomTabBar activeTab="donate" />
     </SafeAreaView>
   );
 }

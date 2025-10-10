@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import BottomTabBar from "../../../components/organisms/BottomTabBar";
 import { exploreService } from "../../services/exploreService";
+import ExploreScreenSkeleton from "../../../components/molecules/skeletons/ExploreScreenSkeleton";
 
 // Import refactored components
 import SearchAndFilterBar from "./molecules/SearchAndFilterBar";
@@ -164,10 +165,8 @@ const ExploreScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#3B82F6" />
-        </View>
-        <BottomTabBar activeTab="Explore" />
+        <ExploreScreenSkeleton />
+        <BottomTabBar activeTab="explore" />
       </SafeAreaView>
     );
   }
@@ -215,7 +214,7 @@ const ExploreScreen: React.FC = () => {
         onJoin={handleJoinCampaign}
       />
 
-      <BottomTabBar activeTab="Explore" />
+      <BottomTabBar activeTab="explore" />
     </SafeAreaView>
   );
 };

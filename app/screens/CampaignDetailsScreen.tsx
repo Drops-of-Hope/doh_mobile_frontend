@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { campaignService } from "../services/campaignService";
+import CampaignDetailsSkeleton from "../../components/molecules/skeletons/CampaignDetailsSkeleton";
 
 interface CampaignDetailsScreenProps {
   navigation?: any;
@@ -61,32 +62,32 @@ export default function CampaignDetailsScreen({
 
   const loadCampaignDetails = async () => {
     try {
-      // For now, create mock data since we don't have a specific details endpoint
-      // In a real app, you'd call: await campaignService.getCampaignDetails(campaignId)
+      setLoading(true);
+      const campaignDetails = await campaignService.getCampaignDetails(campaignId!);
       
-      // Mock data - replace with actual API call
-      const mockCampaign: CampaignDetails = {
-        id: campaignId || "",
-        title: "Blood Donation Campaign",
-        type: "FIXED",
-        location: "Central Hospital Colombo",
-        motivation: "Save lives by donating blood",
-        description: "Join us in our mission to save lives through blood donation.",
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-        expectedDonors: 100,
-        actualDonors: 45,
-        contactPersonName: "Dr. John Doe",
-        contactPersonPhone: "0712345678",
-        isApproved: true,
-        createdAt: new Date().toISOString(),
-        status: "active"
+      // Transform the campaign data to match our interface
+      const transformedCampaign: CampaignDetails = {
+        id: campaignDetails.id,
+        title: campaignDetails.title,
+        type: campaignDetails.type,
+        location: campaignDetails.location,
+        motivation: campaignDetails.motivation,
+        description: campaignDetails.description,
+        startTime: campaignDetails.startTime,
+        endTime: campaignDetails.endTime,
+        expectedDonors: campaignDetails.expectedDonors,
+        actualDonors: campaignDetails.actualDonors,
+        contactPersonName: campaignDetails.contactPersonName,
+        contactPersonPhone: campaignDetails.contactPersonPhone,
+        isApproved: campaignDetails.isApproved,
+        createdAt: campaignDetails.createdAt,
+        status: campaignDetails.status || "upcoming"
       };
       
-      setCampaign(mockCampaign);
+      setCampaign(transformedCampaign);
     } catch (error) {
       console.error("Failed to load campaign details:", error);
-      Alert.alert("Error", "Failed to load campaign details");
+      Alert.alert("Error", "Failed to load campaign details. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -112,10 +113,7 @@ export default function CampaignDetailsScreen({
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E53E3E" />
-          <Text style={styles.loadingText}>Loading campaign details...</Text>
-        </View>
+        <CampaignDetailsSkeleton />
       </SafeAreaView>
     );
   }
@@ -138,18 +136,21 @@ export default function CampaignDetailsScreen({
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backIcon}>
-          <Ionicons name="arrow-back" size={24} color="#1A202C" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Campaign Details</Text>
-        <TouchableOpacity onPress={handleEdit} style={styles.editIcon}>
-          <Ionicons name="create" size={24} color="#E53E3E" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollContainer} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleBack} style={styles.backIcon}>
+            <Ionicons name="arrow-back" size={24} color="#1A202C" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Campaign Details</Text>
+          <TouchableOpacity onPress={handleEdit} style={styles.editIcon}>
+            <Ionicons name="create" size={24} color="#E53E3E" />
+          </TouchableOpacity>
+        </View>
         {/* Campaign Title */}
         <View style={styles.titleSection}>
           <Text style={styles.campaignTitle}>{campaign.title}</Text>
@@ -259,6 +260,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -268,6 +275,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
+    marginBottom: 8,
   },
   backIcon: {
     width: 40,
@@ -282,10 +290,6 @@ const styles = StyleSheet.create({
   editIcon: {
     width: 40,
     alignItems: "flex-end",
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -323,7 +327,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 16,
-    marginTop: 16,
+    marginHorizontal: 20,
+    marginTop: 8,
     marginBottom: 16,
   },
   campaignTitle: {
@@ -348,6 +353,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 16,
+    marginHorizontal: 20,
     marginBottom: 16,
   },
   infoRow: {
@@ -361,6 +367,7 @@ const styles = StyleSheet.create({
     color: "#4A5568",
   },
   progressSection: {
+    marginHorizontal: 20,
     marginBottom: 16,
   },
   sectionTitle: {
@@ -403,6 +410,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 16,
+    marginHorizontal: 20,
     marginBottom: 16,
   },
   descriptionText: {
@@ -412,6 +420,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   contactSection: {
+    marginHorizontal: 20,
     marginBottom: 16,
   },
   contactCard: {
@@ -430,6 +439,7 @@ const styles = StyleSheet.create({
     color: "#4A5568",
   },
   statusSection: {
+    marginHorizontal: 20,
     marginBottom: 20,
   },
   statusCard: {
