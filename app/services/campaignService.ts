@@ -146,24 +146,22 @@ interface CampaignStats {
 
 class CampaignService {
 
-  // Get campaigns for an organizer
+  // Get campaigns for an organizer - STRICT mode: only returns campaigns organized by the specific user
   async getOrganizerCampaigns(organizerId: string): Promise<Campaign[]> {
     try {
-      console.log("Fetching campaigns for organizer:", organizerId);
+      console.log("Fetching campaigns for organizer (STRICT mode):", organizerId);
       
       let response;
       let usedEndpoint = "";
       
-      // Try different endpoint patterns to find one that works
+      // Try only organizer-specific endpoints - NO fallback to all campaigns
       const endpointsToTry = [
-        // Try with query parameter
-        { url: `${API_ENDPOINTS.CAMPAIGNS}?organizerId=${organizerId}`, name: "Query Parameter" },
+        // Try the my-campaigns endpoint first (most specific)
+        { url: API_ENDPOINTS.MY_CAMPAIGNS, name: "My Campaigns" },
         // Try the organizer-specific endpoint
         { url: `${API_ENDPOINTS.CAMPAIGNS}/organizer/${organizerId}`, name: "Organizer Specific" },
-        // Try getting all campaigns first (most likely to work)
-        { url: API_ENDPOINTS.CAMPAIGNS, name: "All Campaigns" },
-        // Try the my-campaigns endpoint (might work with proper auth)
-        { url: API_ENDPOINTS.MY_CAMPAIGNS, name: "My Campaigns" }
+        // Try with query parameter
+        { url: `${API_ENDPOINTS.CAMPAIGNS}?organizerId=${organizerId}`, name: "Query Parameter" }
       ];
       
       for (const endpoint of endpointsToTry) {
@@ -183,7 +181,7 @@ class CampaignService {
       }
       
       if (!response) {
-        console.error("❌ All endpoints failed - no campaigns can be retrieved");
+        console.log("❌ All organizer-specific endpoints failed - returning empty array (no fallback)");
         return [];
       }
       
@@ -211,6 +209,7 @@ class CampaignService {
         }
         else {
           console.log("🔍 response.data structure:", Object.keys(response.data));
+          return [];
         }
       }
       // If response itself is an array
@@ -220,7 +219,7 @@ class CampaignService {
       }
       
       if (campaignsData.length === 0) {
-        console.log("📭 No campaigns found in any data structure");
+        console.log("📭 No campaigns found for this organizer");
         return [];
       }
       
@@ -230,7 +229,6 @@ class CampaignService {
         // Handle both organizer as string and as object
         let organizerInfo;
         if (typeof campaign.organizer === 'object' && campaign.organizer) {
-          // Check if organizer object has id, otherwise use organizerId from campaign root
           const organizerId = campaign.organizer.id || campaign.organizerId;
           organizerInfo = `object {id: ${organizerId}, name: ${campaign.organizer.name}, email: ${campaign.organizer.email}}`;
         } else {
@@ -239,48 +237,31 @@ class CampaignService {
         console.log(`  ${index + 1}. ${campaign.title} (organizer: ${organizerInfo})`);
       });
       
-      // Filter campaigns by organizerId if we got all campaigns
-      let filteredCampaigns = campaignsData;
+      // STRICT filtering: Always verify that returned campaigns belong to the requested organizer
+      const filteredCampaigns = campaignsData.filter(campaign => {
+        let campaignOrganizerId;
+        
+        if (typeof campaign.organizer === 'object' && campaign.organizer) {
+          campaignOrganizerId = campaign.organizer.id || campaign.organizerId;
+        } else {
+          campaignOrganizerId = campaign.organizer || campaign.organizerId;
+        }
+        
+        if (!campaignOrganizerId) {
+          console.warn(`⚠️ Campaign "${campaign.title}" has no organizer ID - organizer:`, campaign.organizer, "organizerId:", campaign.organizerId);
+          return false;
+        }
+        
+        const matches = campaignOrganizerId === organizerId;
+        console.log(`🔍 Campaign "${campaign.title}": organizerId="${campaignOrganizerId}" vs target="${organizerId}" => ${matches ? "✅ MATCH" : "❌ NO MATCH"}`);
+        
+        return matches;
+      });
       
-      // Only filter if we seem to have gotten all campaigns (check if we need filtering)
-      const hasMultipleOrganizers = campaignsData.length > 1 && 
-        new Set(campaignsData.map(c => {
-          // Handle both organizer as string and as object
-          if (typeof c.organizer === 'object' && c.organizer) {
-            // Try organizer.id first, then fall back to campaign.organizerId
-            return c.organizer.id || c.organizerId;
-          }
-          return c.organizer || c.organizerId;
-        })).size > 1;
+      console.log(`🔽 Filtered from ${campaignsData.length} to ${filteredCampaigns.length} campaigns for organizer ${organizerId}`);
+      console.log("✅ Final result (STRICT mode):", filteredCampaigns);
       
-      if (hasMultipleOrganizers || usedEndpoint === "All Campaigns") {
-        filteredCampaigns = campaignsData.filter(campaign => {
-          // Handle both cases: organizer as string ID or as object with id property
-          let campaignOrganizerId;
-          
-          if (typeof campaign.organizer === 'object' && campaign.organizer) {
-            // If organizer is an object, try to get id from organizer.id or fall back to campaign.organizerId
-            campaignOrganizerId = campaign.organizer.id || campaign.organizerId;
-          } else {
-            // If organizer is a string or doesn't exist, use it directly or fall back to organizerId
-            campaignOrganizerId = campaign.organizer || campaign.organizerId;
-          }
-          
-          // Warn if organizer field has unexpected shape
-          if (!campaignOrganizerId) {
-            console.warn(`⚠️ Campaign "${campaign.title}" has no organizer ID - organizer:`, campaign.organizer, "organizerId:", campaign.organizerId);
-          }
-          
-          const matches = campaignOrganizerId === organizerId;
-          console.log(`🔍 Campaign "${campaign.title}": organizerId="${campaignOrganizerId}" vs target="${organizerId}" => ${matches ? "✅ MATCH" : "❌ NO MATCH"}`);
-          
-          return matches;
-        });
-        console.log(`🔽 Filtered from ${campaignsData.length} to ${filteredCampaigns.length} campaigns for organizer ${organizerId}`);
-      }
-      
-      console.log("✅ Final result:", filteredCampaigns);
-      return filteredCampaigns || [];
+      return filteredCampaigns;
       
     } catch (error) {
       console.error("❌ Failed to fetch organizer campaigns:", error);

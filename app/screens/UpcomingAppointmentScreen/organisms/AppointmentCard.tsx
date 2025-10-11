@@ -7,7 +7,7 @@ import AppointmentInfo from "../molecules/AppointmentInfo";
 import AppointmentDetails from "../molecules/AppointmentDetails";
 import NotesContainer from "../molecules/NotesContainer";
 import ActionButtons from "../molecules/ActionButtons";
-import Toast from "../../../../components/atoms/Toast";
+import Toast from "../../shared/atoms/Toast";
 
 export default function AppointmentCard({
   appointment,

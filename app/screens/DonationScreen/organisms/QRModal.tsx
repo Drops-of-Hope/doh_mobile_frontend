@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "react-native";
-import QRDisplay from "../../../../components/atoms/Donation/QRDisplay";
+import QRDisplay from "../../shared/atoms/Donation/QRDisplay";
 import { UserProfile } from "../types";
 
 interface QRModalProps {

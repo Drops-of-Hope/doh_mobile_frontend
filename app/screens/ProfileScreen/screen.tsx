@@ -19,7 +19,7 @@ import FAQModal from "./organisms/FAQModal";
 import EditProfileModal from "./organisms/EditProfileModal";
 
 // Import existing bottom tab bar
-import BottomTabBar from "../../../components/organisms/BottomTabBar";
+import BottomTabBar from "../shared/organisms/BottomTabBar";
 
 // Import types and utilities
 import { UserData, MenuItem } from "./types";
@@ -38,9 +38,10 @@ import {
   validateUserDataConsistency,
   clearAllUserData,
 } from "../../utils/userDataUtils";
+import { COLORS, SPACING } from "../../../constants/theme";
 
 // Import the profile completion screen
-import ProfileCompletionScreen from "../ProfileCompletionScreen";
+import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
 
 interface ProfileScreenProps {
   navigation?: any;
@@ -346,6 +347,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
           >
             <ProfileHeader
               userData={userData}
@@ -353,7 +355,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             />
 
             <MenuSection
-              menuItems={menuItems}
+              title="Account"
+              menuItems={menuItems.slice(0, 3)} // First 3 items
+              onItemPress={handleMenuItemPress}
+            />
+
+            <MenuSection
+              title="Settings"
+              menuItems={menuItems.slice(3)} // Remaining items
               onItemPress={handleMenuItemPress}
             />
 
@@ -383,11 +392,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FAFBFC",
+    backgroundColor: COLORS.BACKGROUND_SECONDARY,
     paddingTop: StatusBar.currentHeight || 0,
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: SPACING.XL,
   },
   bottomPadding: {
     height: 100,

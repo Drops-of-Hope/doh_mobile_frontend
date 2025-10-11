@@ -8,9 +8,9 @@ import {
   ActivityIndicator,
   Text,
 } from "react-native";
-import BottomTabBar from "../../../components/organisms/BottomTabBar";
+import BottomTabBar from "../shared/organisms/BottomTabBar";
 import { exploreService } from "../../services/exploreService";
-import ExploreScreenSkeleton from "../../../components/molecules/skeletons/ExploreScreenSkeleton";
+import ExploreScreenSkeleton from "../shared/molecules/skeletons/ExploreScreenSkeleton";
 
 // Import refactored components
 import SearchAndFilterBar from "./molecules/SearchAndFilterBar";

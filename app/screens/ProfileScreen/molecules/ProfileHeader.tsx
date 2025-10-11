@@ -1,120 +1,131 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import ProfileAvatar from "../atoms/ProfileAvatar";
-import BadgeDisplay from "../atoms/BadgeDisplay";
 import { UserData } from "../types";
+import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 
 interface ProfileHeaderProps {
   userData: UserData;
-  onEditProfile: () => void;
+  onEditProfile?: () => void;
+  onProfilePicturePress?: () => void;
 }
 
-export default function ProfileHeader({
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   userData,
   onEditProfile,
-}: ProfileHeaderProps) {
+  onProfilePicturePress,
+}) => {
+  const {
+    name,
+    email,
+    bloodType,
+  } = userData;
+
   return (
-    <View style={styles.profileHeader}>
-      <View style={styles.headerTop}>
-        <TouchableOpacity style={styles.editButton} onPress={onEditProfile}>
-          <Ionicons name="create-outline" size={20} color="#DC2626" />
+    <View style={styles.container}>
+      <View style={styles.profileCard}>
+        {/* Profile Picture */}
+        <TouchableOpacity 
+          style={styles.avatarContainer}
+          onPress={onProfilePicturePress}
+        >
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {name.charAt(0).toUpperCase()}
+            </Text>
+          </View>
         </TouchableOpacity>
-      </View>
 
-      <ProfileAvatar imageUri={userData.imageUri} size={100} />
-
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>{userData.name}</Text>
-        <Text style={styles.userEmail}>{userData.email}</Text>
-
-        <View style={styles.detailsRow}>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Blood Type</Text>
-            <Text style={styles.detailValue}>{userData.bloodType}</Text>
-          </View>
-          <View style={styles.detailSeparator} />
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Mobile</Text>
-            <Text style={styles.detailValue}>{userData.mobileNumber}</Text>
-          </View>
+        {/* User Info */}
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>{name}</Text>
+          <Text style={styles.userEmail}>{email}</Text>
+          {bloodType && (
+            <View style={styles.bloodTypeContainer}>
+              <Ionicons name="water" size={14} color={COLORS.PRIMARY} />
+              <Text style={styles.bloodType}>{bloodType}</Text>
+            </View>
+          )}
         </View>
 
-        <BadgeDisplay
-          badge={userData.donationBadge}
-          membershipType={userData.membershipType}
-        />
+        {/* Edit Button */}
+        <TouchableOpacity 
+          style={styles.editButton}
+          onPress={onEditProfile}
+        >
+          <Ionicons name="pencil" size={16} color={COLORS.SECONDARY} />
+        </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  profileHeader: {
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 32,
-    paddingHorizontal: 20,
+  container: {
+    paddingHorizontal: SPACING.MD,
+    paddingTop: SPACING.MD,
+    paddingBottom: SPACING.SM,
+  },
+  profileCard: {
+    backgroundColor: COLORS.BACKGROUND,
+    borderRadius: BORDER_RADIUS.LG,
+    padding: SPACING.MD,
+    flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  headerTop: {
-    width: "100%",
-    alignItems: "flex-end",
-    marginBottom: 20,
+  avatarContainer: {
+    marginRight: SPACING.MD,
   },
-  editButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "#FEF2F2", // Light red background
-    borderWidth: 1,
-    borderColor: "#FECACA", // Light red border
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.PRIMARY,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: COLORS.BACKGROUND,
   },
   userInfo: {
-    alignItems: "center",
-    marginTop: 16,
-    width: "100%",
+    flex: 1,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1F2937",
+    fontSize: 18,
+    fontWeight: "600",
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 20,
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: 6,
   },
-  detailsRow: {
+  bloodTypeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-    paddingHorizontal: 20,
-    backgroundColor: "#FEF2F2", // Light red background for details
-    borderRadius: 12,
-    paddingVertical: 12,
   },
-  detailItem: {
-    alignItems: "center",
-    flex: 1,
-  },
-  detailSeparator: {
-    width: 1,
-    height: 32,
-    backgroundColor: "#FECACA", // Light red separator
-    marginHorizontal: 16,
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: "#DC2626", // Red label color
+  bloodType: {
+    fontSize: 14,
+    color: COLORS.PRIMARY,
     fontWeight: "500",
-    marginBottom: 4,
+    marginLeft: 4,
   },
-  detailValue: {
-    fontSize: 16,
-    color: "#1F2937",
-    fontWeight: "600",
+  editButton: {
+    padding: SPACING.SM,
+    borderRadius: BORDER_RADIUS.MD,
+    backgroundColor: COLORS.BACKGROUND_SECONDARY,
   },
 });
+
+export default ProfileHeader;

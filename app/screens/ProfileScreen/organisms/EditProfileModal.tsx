@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "react-native";
-import EditProfileScreen from "../../EditProfileScreen";
+import EditProfileScreen from "../../EditProfileScreen/screen";
 
 interface EditProfileModalProps {
   visible: boolean;

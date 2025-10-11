@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet, Text, ActivityIndicator, RefreshControl, ScrollView } from "react-native";
-import AppointmentTab from "../../../../components/organisms/DonationScreen/AppointmentTab";
+import AppointmentTab from "../organisms/AppointmentTab";
 import ActionButton from "../atoms/ActionButton";
 import { Appointment } from "../types";
 

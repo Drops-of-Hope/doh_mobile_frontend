@@ -51,7 +51,7 @@ export default function CalendarWidget({
       <View style={styles.calendarGrid}>
         {calendarDays.map((dayData, index) => (
           <CalendarDay
-            key={index}
+            key={`calendar-day-${dayData.date?.getTime() || index}`}
             day={dayData.day}
             isAvailable={dayData.isAvailable}
             isPast={dayData.isPast}

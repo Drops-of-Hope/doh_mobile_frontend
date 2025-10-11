@@ -14,8 +14,8 @@ import { userService } from "../../services/userService";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import FormSection from "../CreateCampaignScreen/molecules/FormSection";
 import SubmitButton from "../CreateCampaignScreen/atoms/SubmitButton";
-import EnhancedInputField from "../../../components/atoms/EnhancedInputField";
-import PhoneInputField from "../../../components/atoms/PhoneInputField";
+import EnhancedInputField from "../shared/atoms/EnhancedInputField";
+import PhoneInputField from "../shared/atoms/PhoneInputField";
 import ValidationUtils from "../../utils/ValidationUtils";
 
 interface EditProfileScreenProps {

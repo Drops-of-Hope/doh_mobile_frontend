@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "react-native";
-import FAQsScreen from "../../FAQsScreen";
+import FAQsScreen from "../../FAQsScreen/screen";
 
 interface FAQModalProps {
   visible: boolean;

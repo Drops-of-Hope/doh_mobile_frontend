@@ -19,7 +19,7 @@ import DonationFormModal from "./organisms/DonationFormModal";
 import AppointmentBookingModal from "./organisms/AppointmentBookingModal";
 
 // Import existing bottom tab bar
-import BottomTabBar from "../../../components/organisms/BottomTabBar";
+import BottomTabBar from "../shared/organisms/BottomTabBar";
 
 // Import types and utilities
 import { TabType, UserProfile, Appointment } from "./types";

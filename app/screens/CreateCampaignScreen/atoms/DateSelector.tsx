@@ -61,12 +61,26 @@ export default function DateSelector({
           days.push({ label: dayStr, value: dayStr });
         }
       } else {
+        // If year or month not selected, show all possible days but they will be validated later
         days.push({ label: dayStr, value: dayStr });
       }
     }
     
     return days;
   };
+
+  // If day is selected but becomes invalid after month/year change, clear it
+  React.useEffect(() => {
+    if (day && month && year) {
+      const selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const daysInSelectedMonth = getDaysInMonth(month, year);
+      
+      // Clear day if it's invalid for the selected month or if date is too early
+      if (parseInt(day) > daysInSelectedMonth || selectedDate < minDate) {
+        onDayChange('');
+      }
+    }
+  }, [month, year, day, onDayChange, minDate]);
 
   const days = generateDays();
 
