@@ -12,6 +12,7 @@ import {
 // Import refactored components
 import ProfileHeader from "./molecules/ProfileHeader";
 import MenuSection from "./molecules/MenuSection";
+import LogoutButton from "./atoms/LogoutButton";
 
 // Import modal organisms
 import LanguageModal from "./organisms/LanguageModal";
@@ -305,7 +306,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     onLanguageSettings: handleLanguageSettings,
     onFAQs: handleFAQs,
     onLogout: handleLogout,
-  });
+  }).filter(item => item.id !== "logout"); // Remove logout from menu items
 
   const handleMenuItemPress = (item: MenuItem) => {
     item.onPress();
@@ -362,9 +363,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
             <MenuSection
               title="Settings"
-              menuItems={menuItems.slice(3)} // Remaining items
+              menuItems={menuItems.slice(3)} // Remaining items (without logout)
               onItemPress={handleMenuItemPress}
             />
+
+            {/* Separate Logout Button */}
+            <LogoutButton onPress={handleLogout} title={t("profile.log_out")} />
 
             <View style={styles.bottomPadding} />
           </ScrollView>
