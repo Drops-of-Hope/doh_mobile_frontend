@@ -47,16 +47,34 @@ function LocalActivityCard({ activity, onPress }: LocalActivityCardProps) {
   const formatDate = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 1) {
       const diffInMinutes = Math.floor(diffInHours * 60);
+      // Ensure diffInMinutes is a valid number
+      if (isNaN(diffInMinutes)) {
+        return 'Just now';
+      }
       return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
     } else if (diffInHours < 24) {
       const hours = Math.floor(diffInHours);
+      // Ensure hours is a valid number
+      if (isNaN(hours)) {
+        return 'Recently';
+      }
       return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
     } else if (diffInHours < 168) {
       const days = Math.floor(diffInHours / 24);
+      // Ensure days is a valid number
+      if (isNaN(days)) {
+        return 'Recently';
+      }
       return `${days} day${days !== 1 ? 's' : ''} ago`;
     } else {
       return date.toLocaleDateString();

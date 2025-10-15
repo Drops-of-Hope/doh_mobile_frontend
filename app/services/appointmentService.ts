@@ -58,6 +58,8 @@ export const appointmentService = {
     district: District
   ): Promise<MedicalEstablishment[]> => {
     try {
+      console.log(`Fetching medical establishments for district: ${district}`);
+      
       const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.MEDICAL_ESTABLISHMENTS}?district=${district}`,
         {
@@ -68,11 +70,35 @@ export const appointmentService = {
           },
         }
       );
+      
       console.log("Medical establishments response:", response);
-      return response as MedicalEstablishment[];
+      
+      // Handle different response formats
+      let establishments: MedicalEstablishment[] = [];
+      
+      if (Array.isArray(response)) {
+        establishments = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        establishments = response.data;
+      } else if (response?.establishments && Array.isArray(response.establishments)) {
+        establishments = response.establishments;
+      } else {
+        console.warn("Unexpected response format for medical establishments:", response);
+        return [];
+      }
+      
+      // Validate establishment format
+      const validEstablishments = establishments.filter(est => 
+        est && typeof est === 'object' && est.id && est.name
+      );
+      
+      console.log(`Validated ${validEstablishments.length} medical establishments`);
+      return validEstablishments;
+      
     } catch (error) {
       console.error("Error fetching medical establishments:", error);
-      throw error;
+      // Don't throw here, let the caller handle the empty array
+      return [];
     }
   },
 
