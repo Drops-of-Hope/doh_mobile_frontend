@@ -305,6 +305,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               {/* Next Donation Date Card */}
               <NextDonationCard 
                 lastDonationDate={homeData?.userStats?.lastDonationDate}
+                nextEligibleDate={homeData?.userStats?.nextEligibleDate}
+                eligibleToDonate={homeData?.userStats?.eligibleToDonate}
               />
 
               {/* Thank You Card */}

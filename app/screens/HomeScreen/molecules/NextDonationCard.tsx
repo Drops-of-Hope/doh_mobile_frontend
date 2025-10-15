@@ -5,34 +5,58 @@ import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 
 interface NextDonationCardProps {
   lastDonationDate?: string;
+  nextEligibleDate?: string;
+  eligibleToDonate?: boolean;
 }
 
 export default function NextDonationCard({
   lastDonationDate,
+  nextEligibleDate,
+  eligibleToDonate,
 }: NextDonationCardProps) {
-  const calculateNextDonationDate = (lastDate?: string): string => {
-    if (!lastDate) {
-      return "You can donate now!";
+  const calculateNextDonationInfo = (): { text: string; canDonate: boolean } => {
+    // Use API data for eligibility if available
+    if (eligibleToDonate !== undefined) {
+      if (eligibleToDonate) {
+        return { text: "You can donate now!", canDonate: true };
+      }
+      
+      // If not eligible, show next eligible date from API
+      if (nextEligibleDate) {
+        const nextDate = new Date(nextEligibleDate);
+        const formattedDate = nextDate.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        return { text: formattedDate, canDonate: false };
+      }
     }
 
-    const last = new Date(lastDate);
+    // Fallback calculation if API data is not available
+    if (!lastDonationDate) {
+      return { text: "You can donate now!", canDonate: true };
+    }
+
+    const last = new Date(lastDonationDate);
     const nextDate = new Date(last);
     nextDate.setMonth(nextDate.getMonth() + 4); // Add 4 months
 
     const now = new Date();
     if (nextDate <= now) {
-      return "You can donate now!";
+      return { text: "You can donate now!", canDonate: true };
     }
 
-    return nextDate.toLocaleDateString("en-US", {
+    const formattedDate = nextDate.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+    
+    return { text: formattedDate, canDonate: false };
   };
 
-  const nextDonationText = calculateNextDonationDate(lastDonationDate);
-  const canDonateNow = nextDonationText === "You can donate now!";
+  const { text: nextDonationText, canDonate: canDonateNow } = calculateNextDonationInfo();
 
   return (
     <View style={styles.container}>
