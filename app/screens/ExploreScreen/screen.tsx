@@ -20,7 +20,7 @@ import CampaignDetailsModal from "./organisms/CampaignDetailsModal";
 
 // Import types and utilities
 import { Campaign, FilterCriteria } from "./types";
-import { getMockCampaigns, filterCampaigns } from "./utils";
+import { getMockCampaigns, filterCampaigns, parseSearchText, formatDateRange } from "./utils";
 
 const ExploreScreen: React.FC = () => {
   // State management
@@ -34,6 +34,10 @@ const ExploreScreen: React.FC = () => {
     location: "",
     date: "",
   });
+
+  // Additional filter state for UI display
+  const [locationFilter, setLocationFilter] = useState<string>("");
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>("");
 
   // Modal states
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -154,6 +158,38 @@ const ExploreScreen: React.FC = () => {
     setFilters(newFilters);
   };
 
+  const handleSearchPress = () => {
+    // Parse the search text for prefixed searches
+    const parsed = parseSearchText(searchText);
+    
+    // Apply parsed criteria to filters
+    setFilters({
+      location: parsed.location,
+      date: parsed.startDate || parsed.endDate ? `${parsed.startDate}-${parsed.endDate}` : "",
+    });
+
+    // Update display filters
+    setLocationFilter(parsed.location);
+    setDateRangeFilter(formatDateRange(parsed.startDate, parsed.endDate));
+
+    // Update search text to show only general search
+    setSearchText(parsed.generalSearch);
+  };
+
+  const handleLocationPress = () => {
+    // Add "Location: " prefix to search text
+    if (!searchText.toLowerCase().includes('location:')) {
+      setSearchText(searchText ? `${searchText} Location: ` : 'Location: ');
+    }
+  };
+
+  const handleDateRangePress = () => {
+    // Add date range prefix to search text
+    if (!searchText.toLowerCase().includes('start:') && !searchText.toLowerCase().includes('end:')) {
+      setSearchText(searchText ? `${searchText} Start: dd/mm/yyyy End: dd/mm/yyyy` : 'Start: dd/mm/yyyy End: dd/mm/yyyy');
+    }
+  };
+
   const handleClearFilters = () => {
     setFilters({ location: "", date: "" });
   };
@@ -178,8 +214,13 @@ const ExploreScreen: React.FC = () => {
       <SearchAndFilterBar
         searchText={searchText}
         onSearchTextChange={setSearchText}
+        onSearchPress={handleSearchPress}
         onFilterPress={() => setFilterModalVisible(true)}
+        onLocationPress={handleLocationPress}
+        onDateRangePress={handleDateRangePress}
         hasActiveFilters={hasActiveFilters}
+        locationFilter={locationFilter}
+        dateRangeFilter={dateRangeFilter}
       />
 
       <CampaignList

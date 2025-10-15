@@ -37,6 +37,8 @@ export default function CampaignList({
     <FlatList
       data={campaigns}
       keyExtractor={(item) => item.id}
+      numColumns={2}
+      columnWrapperStyle={styles.row}
       renderItem={({ item }) => (
         <CampaignCard
           title={item.title}
@@ -83,5 +85,10 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 100,
+    paddingHorizontal: 16,
+  },
+  row: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
   },
 });
