@@ -2,14 +2,16 @@
 // Choose the correct host depending on platform/emulator and allow override.
 import { Platform } from "react-native";
 
-const ANDROID_EMULATOR_HOST = "http://10.106.222.17:5000/api";
+const ANDROID_EMULATOR_HOST = "http://192.168.1.52:5000/api";
 const DEFAULT_LOCALHOST = "http://localhost:5000/api";
 
 // Allow an environment or runtime override (set EXPO_PUBLIC_API_URL in your .env or app config)
-const ENV_API_URL = process.env.EXPO_PUBLIC_API_URL || (global as any)?.EXPO_PUBLIC_API_URL;
+const ENV_API_URL =
+  process.env.EXPO_PUBLIC_API_URL || (global as any)?.EXPO_PUBLIC_API_URL;
 
 export const API_BASE_URL =
-  ENV_API_URL || (Platform.OS === "android" ? ANDROID_EMULATOR_HOST : DEFAULT_LOCALHOST);
+  ENV_API_URL ||
+  (Platform.OS === "android" ? ANDROID_EMULATOR_HOST : DEFAULT_LOCALHOST);
 
 // NOTE: If you're testing on a physical device, set EXPO_PUBLIC_API_URL to
 // `http://<YOUR_MACHINE_IP>:5000/api` and ensure your backend listens on 0.0.0.0
@@ -84,7 +86,7 @@ export const apiRequest = async (
 ): Promise<any> => {
   const url = `${API_BASE_URL}${endpoint}`;
   console.log("API Request:", { url, options });
-  
+
   const defaultHeaders = {
     "Content-Type": "application/json",
   };
@@ -104,7 +106,9 @@ export const apiRequest = async (
     if (!response.ok) {
       const errorText = await response.text();
       console.error("API Error Response:", errorText);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
     }
 
     const data = await response.json();
@@ -132,7 +136,7 @@ export const getAuthToken = async (): Promise<string | null> => {
   try {
     // First try to get from accessToken (legacy)
     let token = await SecureStore.getItemAsync("accessToken");
-    
+
     if (!token) {
       // If not found, get from authState (current auth system)
       const authState = await SecureStore.getItemAsync("authState");
@@ -141,7 +145,7 @@ export const getAuthToken = async (): Promise<string | null> => {
         token = parsedAuthState.accessToken;
       }
     }
-    
+
     return token;
   } catch (error) {
     console.error("Failed to retrieve auth token:", error);

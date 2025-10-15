@@ -63,33 +63,90 @@ export default function QRScannerModal({
     Vibration.vibrate(100);
 
     try {
-      // Validate scanned data (should be a user ID)
-      if (!data || data.length < 36) { // UUID should be 36 characters
+      console.log("🔍 QR SCAN DEBUG: Raw scanned data:", data);
+      console.log("🔍 QR SCAN DEBUG: Data type:", typeof data);
+      console.log("🔍 QR SCAN DEBUG: Data length:", data.length);
+
+      let userId: string;
+      let donorData: any = null;
+
+      // Try to parse as JSON first (new format)
+      try {
+        const parsedData = JSON.parse(data);
+        console.log("🔍 QR SCAN DEBUG: Successfully parsed as JSON:", parsedData);
+        
+        // Check if it's the expected donor format: {name, email, uid, timestamp}
+        if (parsedData.uid && parsedData.name && parsedData.email) {
+          userId = parsedData.uid;
+          donorData = {
+            name: parsedData.name,
+            email: parsedData.email,
+            uid: parsedData.uid,
+            timestamp: parsedData.timestamp
+          };
+          console.log("🔍 QR SCAN DEBUG: Detected donor QR format, extracted userId:", userId);
+          console.log("🔍 QR SCAN DEBUG: Donor data:", donorData);
+        } else {
+          console.log("🔍 QR SCAN DEBUG: JSON doesn't have expected donor format");
+          throw new Error("Invalid QR format");
+        }
+      } catch (jsonError: any) {
+        console.log("🔍 QR SCAN DEBUG: JSON parse failed, trying legacy format:", jsonError.message);
+        // Fallback to old format - direct UUID string
+        if (data && data.length >= 36) {
+          userId = data;
+          console.log("🔍 QR SCAN DEBUG: Using legacy UUID format:", userId);
+        } else {
+          console.log("🔍 QR SCAN DEBUG: Data too short for UUID:", data.length);
+          throw new Error(t("qr_scanner.invalid_qr"));
+        }
+      }
+
+      // Validate userId
+      if (!userId) {
+        console.log("🔍 QR SCAN DEBUG: No userId extracted");
         throw new Error(t("qr_scanner.invalid_qr"));
       }
 
-      const scanResult = await qrService.scanQR({
-        qrData: data,
+      console.log("🔍 QR SCAN DEBUG: Final userId to send:", userId);
+      console.log("🔍 QR SCAN DEBUG: campaignId:", campaignId);
+      console.log("🔍 QR SCAN DEBUG: scanType:", scanType);
+      console.log("🔍 QR SCAN DEBUG: donorData metadata:", donorData);
+
+      const scanRequest = {
+        qrData: userId, // Send only the user ID, not the full JSON
         campaignId,
         scanType,
-      });
+        metadata: {
+          scannerUserId: user?.id,
+          scanLocation: "QR_SCANNER",
+          timestamp: new Date().toISOString(),
+          donorInfo: donorData, // Include donor data in metadata if available
+        },
+      };
+
+      console.log("🔍 QR SCAN DEBUG: Full request payload:", scanRequest);
+
+      const scanResult = await qrService.scanQR(scanRequest);
 
       if (scanResult.success) {
         // Show success message
         Alert.alert(
-          t("qr_scanner.scan_success"),
-          getScanSuccessMessage(scanResult),
+          "QR Code Scanned Successfully",
+          getScanSuccessMessage(scanResult, donorData),
           [
             {
-              text: t("qr_scanner.mark_attendance"),
-              onPress: () => markAttendance(data),
+              text: "Mark Attendance",
+              onPress: () => markAttendance(userId, donorData),
+              style: "default",
             },
             {
-              text: t("common.close"),
+              text: "Close",
               onPress: () => {
                 onScanSuccess?.(scanResult);
                 resetScanner();
               },
+              style: "cancel",
             },
           ]
         );
@@ -117,7 +174,7 @@ export default function QRScannerModal({
     }
   };
 
-  const markAttendance = async (userId: string) => {
+  const markAttendance = async (userId: string, donorData?: any) => {
     if (!campaignId) {
       Alert.alert(t("qr_scanner.error"), t("qr_scanner.no_campaign"));
       return;
@@ -130,12 +187,13 @@ export default function QRScannerModal({
         userId,
         campaignId,
         scanType: "CHECK_IN",
+        notes: donorData ? `Donor: ${donorData.name} (${donorData.email})` : undefined,
       });
 
       if (result.success) {
         Alert.alert(
           t("qr_scanner.attendance_marked"),
-          getAttendanceSuccessMessage(result),
+          getAttendanceSuccessMessage(result, donorData),
           [
             {
               text: t("common.ok"),
@@ -151,9 +209,24 @@ export default function QRScannerModal({
       }
     } catch (error: any) {
       console.error("Mark attendance error:", error);
+      
+      // Provide more specific error messages based on the error type
+      let errorMessage = error.message || t("qr_scanner.attendance_failed");
+      let errorTitle = t("qr_scanner.error");
+      
+      if (error.message?.includes("Participation not found")) {
+        errorTitle = "Registration Required";
+        errorMessage = donorData 
+          ? `${donorData.name} is not registered for this campaign. Please register for the campaign first before marking attendance.`
+          : "This user is not registered for this campaign. Please register for the campaign first before marking attendance.";
+      } else if (error.message?.includes("404")) {
+        errorTitle = "User Not Found";
+        errorMessage = "This user could not be found in the system. Please verify the QR code.";
+      }
+      
       Alert.alert(
-        t("qr_scanner.error"),
-        error.message || t("qr_scanner.attendance_failed"),
+        errorTitle,
+        errorMessage,
         [{ text: t("common.ok"), onPress: resetScanner }]
       );
     } finally {
@@ -161,21 +234,41 @@ export default function QRScannerModal({
     }
   };
 
-  const getScanSuccessMessage = (result: QRScanResult): string => {
+  const getScanSuccessMessage = (result: QRScanResult, donorData?: any): string => {
     const { scannedUser } = result;
-    return t("qr_scanner.user_scanned", {
-      name: scannedUser.name,
-      bloodGroup: formatBloodGroup(scannedUser.bloodGroup),
-      donations: scannedUser.totalDonations,
-      badge: scannedUser.donationBadge,
-    });
+    
+    // Format the basic user information
+    let message = `User Identified:\nName: ${scannedUser.name}\nBlood Group: ${formatBloodGroup(scannedUser.bloodGroup)}`;
+    
+    // Add additional user info if available
+    if (scannedUser.totalDonations !== undefined) {
+      message += `\nTotal Donations: ${scannedUser.totalDonations}`;
+    }
+    
+    if (scannedUser.donationBadge) {
+      message += `\nBadge: ${scannedUser.donationBadge}`;
+    }
+
+    // Add donor-specific information if available from QR code
+    if (donorData) {
+      message += `\n\nQR Code Details:\nEmail: ${donorData.email}\nScanned at: ${donorData.timestamp ? new Date(donorData.timestamp).toLocaleString() : 'Unknown'}`;
+    }
+
+    return message;
   };
 
-  const getAttendanceSuccessMessage = (result: AttendanceMarkResult): string => {
-    return t("qr_scanner.attendance_success", {
+  const getAttendanceSuccessMessage = (result: AttendanceMarkResult, donorData?: any): string => {
+    let message = t("qr_scanner.attendance_success", {
       status: result.status,
       points: result.pointsEarned || 0,
     });
+
+    // Add donor-specific information if available
+    if (donorData) {
+      message += `\n\nAttendance marked for: ${donorData.name} (${donorData.email})`;
+    }
+
+    return message;
   };
 
   const formatBloodGroup = (bloodGroup: string): string => {

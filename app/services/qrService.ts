@@ -130,7 +130,21 @@ export const qrService = {
         method: "POST",
         body: JSON.stringify(request),
       });
-      return response.data;
+      
+      // Handle the API response structure: { scanResult: {...}, success: true }
+      if (response.success && response.scanResult) {
+        return {
+          success: true,
+          scanId: response.scanResult.scanId,
+          scannedUser: response.scanResult.scannedUser,
+          message: "Scan successful",
+          timestamp: response.scanResult.timestamp,
+          campaign: response.scanResult.campaign,
+          participation: response.scanResult.participation,
+        };
+      } else {
+        throw new Error(response.message || "Scan failed");
+      }
     } catch (error) {
       console.error("Failed to scan QR code:", error);
       throw error;
