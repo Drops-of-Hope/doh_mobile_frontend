@@ -31,6 +31,7 @@ export default function CreateCampaignScreen({
   const { user } = useAuth();
   const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingEstablishments, setLoadingEstablishments] = useState(true);
   const [medicalEstablishments, setMedicalEstablishments] = useState<MedicalEstablishment[]>([]);
   const [formData, setFormData] = useState<LocalCampaignForm>({
     title: "",
@@ -59,28 +60,106 @@ export default function CreateCampaignScreen({
 
   const loadMedicalEstablishments = async () => {
     try {
-      // For now, let's load establishments from all districts
-      // In a real app, you might want to filter by user's district
-      const allEstablishments: MedicalEstablishment[] = [];
+      setLoadingEstablishments(true);
+      console.log("Loading medical establishments...");
+      let allEstablishments: MedicalEstablishment[] = [];
       
-      // Load from a specific district or all districts
-      // For demo purposes, let's try COLOMBO
+      // Try to load from API first
       try {
         const establishments = await appointmentService.getMedicalEstablishmentsByDistrict(District.COLOMBO);
-        allEstablishments.push(...establishments);
-      } catch (error) {
-        console.log("Could not load establishments from COLOMBO, using fallback");
+        console.log("Loaded establishments from API:", establishments);
+        allEstablishments = establishments;
+      } catch (apiError) {
+        console.log("API call failed, trying to load all establishments...");
+        
+        // Try different districts
+        const districts = [District.COLOMBO, District.KANDY, District.GALLE, District.GAMPAHA];
+        
+        for (const district of districts) {
+          try {
+            const establishments = await appointmentService.getMedicalEstablishmentsByDistrict(district);
+            allEstablishments.push(...establishments);
+          } catch (districtError) {
+            console.log(`Failed to load from ${district}:`, districtError);
+          }
+        }
       }
       
-      setMedicalEstablishments(allEstablishments);
+      // If we got some establishments, use them
+      if (allEstablishments.length > 0) {
+        console.log("Successfully loaded establishments:", allEstablishments.length);
+        setMedicalEstablishments(allEstablishments);
+        return;
+      }
+      
+      // Fallback to mock data if no establishments loaded
+      console.log("Using fallback medical establishments");
+      const fallbackEstablishments: MedicalEstablishment[] = [
+        { 
+          id: "establishment-1", 
+          name: "Central Hospital Colombo", 
+          address: "Colombo 08", 
+          region: "Western", 
+          email: "central@hospital.lk", 
+          bloodCapacity: 100, 
+          isBloodBank: true 
+        },
+        { 
+          id: "establishment-2", 
+          name: "Kandy General Hospital", 
+          address: "Kandy", 
+          region: "Central", 
+          email: "kandy@hospital.lk", 
+          bloodCapacity: 80, 
+          isBloodBank: true 
+        },
+        { 
+          id: "establishment-3", 
+          name: "Galle Teaching Hospital", 
+          address: "Galle", 
+          region: "Southern", 
+          email: "galle@hospital.lk", 
+          bloodCapacity: 60, 
+          isBloodBank: true 
+        },
+        { 
+          id: "establishment-4", 
+          name: "Negombo Base Hospital", 
+          address: "Negombo", 
+          region: "Western", 
+          email: "negombo@hospital.lk", 
+          bloodCapacity: 40, 
+          isBloodBank: true 
+        },
+        { 
+          id: "establishment-5", 
+          name: "Matara General Hospital", 
+          address: "Matara", 
+          region: "Southern", 
+          email: "matara@hospital.lk", 
+          bloodCapacity: 50, 
+          isBloodBank: true 
+        },
+      ];
+      
+      setMedicalEstablishments(fallbackEstablishments);
     } catch (error) {
       console.error("Failed to load medical establishments:", error);
-      // Set fallback establishments
+      
+      // Even if everything fails, provide some basic options
       setMedicalEstablishments([
-        { id: "establishment-1", name: "Central Hospital Colombo", address: "Colombo", region: "Western", email: "central@hospital.lk", bloodCapacity: 100, isBloodBank: true },
-        { id: "establishment-2", name: "Kandy General Hospital", address: "Kandy", region: "Central", email: "kandy@hospital.lk", bloodCapacity: 80, isBloodBank: true },
-        { id: "establishment-3", name: "Galle Teaching Hospital", address: "Galle", region: "Southern", email: "galle@hospital.lk", bloodCapacity: 60, isBloodBank: true },
+        { 
+          id: "default-1", 
+          name: "Central Hospital", 
+          address: "Colombo", 
+          region: "Western", 
+          email: "central@hospital.lk", 
+          bloodCapacity: 100, 
+          isBloodBank: true 
+        },
       ]);
+    } finally {
+      setLoadingEstablishments(false);
     }
   };
 
@@ -326,7 +405,7 @@ export default function CreateCampaignScreen({
               label: `${est.name} - ${est.address}`,
               value: est.id
             }))}
-            placeholder="Select medical establishment"
+            placeholder={loadingEstablishments ? "Loading establishments..." : "Select medical establishment"}
             error={errors.medicalEstablishmentId}
             required
           />

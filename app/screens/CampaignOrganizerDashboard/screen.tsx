@@ -24,6 +24,9 @@ import { qrService, QRScanResult } from "../../services/qrService";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 
+// Import utilities
+import { getDatabaseUserId } from "../../utils/userIdUtils";
+
 interface CampaignOrganizerDashboardProps {
   navigation?: any;
   route?: {
@@ -33,9 +36,9 @@ interface CampaignOrganizerDashboardProps {
   };
 }
 
-export default function CampaignOrganizerDashboard({ 
-  navigation, 
-  route 
+export default function CampaignOrganizerDashboard({
+  navigation,
+  route,
 }: CampaignOrganizerDashboardProps) {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
     route?.params?.campaignId || null
@@ -56,11 +59,9 @@ export default function CampaignOrganizerDashboard({
 
   useEffect(() => {
     if (!hasRole(USER_ROLES.CAMP_ORGANIZER)) {
-      Alert.alert(
-        t("dashboard.access_denied"),
-        t("dashboard.organizer_only"),
-        [{ text: t("common.ok"), onPress: () => navigation?.goBack() }]
-      );
+      Alert.alert(t("dashboard.access_denied"), t("dashboard.organizer_only"), [
+        { text: t("common.ok"), onPress: () => navigation?.goBack() },
+      ]);
       return;
     }
 
@@ -70,43 +71,39 @@ export default function CampaignOrganizerDashboard({
   const loadMyCampaigns = async () => {
     try {
       setLoading(true);
-      // This would be a call to campaignService.getMyCampaigns()
-      // For now, using mock data
-      const mockCampaigns = [
-        {
-          id: "1",
-          title: "Blood Drive at University",
-          location: "UCSC Auditorium",
-          startTime: "2024-12-15T09:00:00Z",
-          endTime: "2024-12-15T17:00:00Z",
-          expectedDonors: 100,
-          actualDonors: 45,
-          isActive: true,
-        },
-        {
-          id: "2", 
-          title: "Community Blood Campaign",
-          location: "Community Center",
-          startTime: "2024-12-20T08:00:00Z",
-          endTime: "2024-12-20T16:00:00Z",
-          expectedDonors: 150,
-          actualDonors: 20,
-          isActive: true,
-        },
-      ];
-      
-      setMyCampaigns(mockCampaigns);
-      
-      if (!selectedCampaignId && mockCampaigns.length > 0) {
-        setSelectedCampaignId(mockCampaigns[0].id);
+
+      // Get the actual database user ID instead of auth sub
+      const databaseUserId = await getDatabaseUserId();
+
+      if (!databaseUserId) {
+        console.warn("No database user ID available for campaign retrieval");
+        console.log("Auth user sub for reference:", user?.sub);
+        setMyCampaigns([]);
+        return;
+      }
+
+      console.log("Loading campaigns for database user ID:", databaseUserId);
+      console.log("Auth user sub for reference:", user?.sub);
+
+      const campaigns = await campaignService.getOrganizerCampaigns(
+        databaseUserId
+      );
+      console.log("Received campaigns:", campaigns);
+
+      // Ensure we have an array
+      const campaignArray = Array.isArray(campaigns) ? campaigns : [];
+      setMyCampaigns(campaignArray);
+
+      // Auto-select first campaign if none selected
+      if (!selectedCampaignId && campaignArray.length > 0) {
+        setSelectedCampaignId(campaignArray[0].id);
       }
     } catch (error) {
       console.error("Failed to load campaigns:", error);
-      Alert.alert(
-        t("dashboard.error"),
-        t("dashboard.load_campaigns_error"),
-        [{ text: t("common.ok") }]
-      );
+      Alert.alert(t("dashboard.error"), t("dashboard.load_campaigns_error"), [
+        { text: t("common.ok") },
+      ]);
+      setMyCampaigns([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -135,7 +132,7 @@ export default function CampaignOrganizerDashboard({
     setShowQRScanner(true);
   };
 
-  const selectedCampaign = myCampaigns.find(c => c.id === selectedCampaignId);
+  const selectedCampaign = myCampaigns.find((c) => c.id === selectedCampaignId);
 
   if (!hasRole(USER_ROLES.CAMP_ORGANIZER)) {
     return null;
@@ -144,24 +141,26 @@ export default function CampaignOrganizerDashboard({
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#667eea" />
-      
+
       {/* Header */}
       <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity 
-            style={styles.backButton} 
+          <TouchableOpacity
+            style={styles.backButton}
             onPress={() => navigation?.goBack()}
           >
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          
+
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>{t("dashboard.organizer_dashboard")}</Text>
+            <Text style={styles.headerTitle}>
+              {t("dashboard.organizer_dashboard")}
+            </Text>
             <Text style={styles.headerSubtitle}>
               {selectedCampaign?.title || t("dashboard.no_campaign_selected")}
             </Text>
           </View>
-          
+
           <TouchableOpacity style={styles.menuButton}>
             <Ionicons name="menu" size={24} color="#FFFFFF" />
           </TouchableOpacity>
@@ -171,34 +170,46 @@ export default function CampaignOrganizerDashboard({
       {/* Campaign Selector */}
       {myCampaigns.length > 1 && (
         <View style={styles.campaignSelector}>
-          <Text style={styles.selectorTitle}>{t("dashboard.select_campaign")}</Text>
+          <Text style={styles.selectorTitle}>
+            {t("dashboard.select_campaign")}
+          </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {myCampaigns.map((campaign) => (
               <TouchableOpacity
                 key={campaign.id}
                 style={[
                   styles.campaignCard,
-                  selectedCampaignId === campaign.id && styles.campaignCardSelected,
+                  selectedCampaignId === campaign.id &&
+                    styles.campaignCardSelected,
                 ]}
                 onPress={() => setSelectedCampaignId(campaign.id)}
               >
-                <Text style={[
-                  styles.campaignCardTitle,
-                  selectedCampaignId === campaign.id && styles.campaignCardTitleSelected,
-                ]}>
+                <Text
+                  style={[
+                    styles.campaignCardTitle,
+                    selectedCampaignId === campaign.id &&
+                      styles.campaignCardTitleSelected,
+                  ]}
+                >
                   {campaign.title}
                 </Text>
-                <Text style={[
-                  styles.campaignCardLocation,
-                  selectedCampaignId === campaign.id && styles.campaignCardLocationSelected,
-                ]}>
+                <Text
+                  style={[
+                    styles.campaignCardLocation,
+                    selectedCampaignId === campaign.id &&
+                      styles.campaignCardLocationSelected,
+                  ]}
+                >
                   {campaign.location}
                 </Text>
                 <View style={styles.campaignCardStats}>
-                  <Text style={[
-                    styles.campaignCardStat,
-                    selectedCampaignId === campaign.id && styles.campaignCardStatSelected,
-                  ]}>
+                  <Text
+                    style={[
+                      styles.campaignCardStat,
+                      selectedCampaignId === campaign.id &&
+                        styles.campaignCardStatSelected,
+                    ]}
+                  >
                     {campaign.actualDonors}/{campaign.expectedDonors}
                   </Text>
                 </View>
@@ -220,13 +231,19 @@ export default function CampaignOrganizerDashboard({
       {!loading && myCampaigns.length === 0 && (
         <View style={styles.emptyState}>
           <Ionicons name="calendar-outline" size={64} color="#999" />
-          <Text style={styles.emptyStateTitle}>{t("dashboard.no_campaigns")}</Text>
-          <Text style={styles.emptyStateText}>{t("dashboard.create_campaign_prompt")}</Text>
-          <TouchableOpacity 
+          <Text style={styles.emptyStateTitle}>
+            {t("dashboard.no_campaigns")}
+          </Text>
+          <Text style={styles.emptyStateText}>
+            {t("dashboard.create_campaign_prompt")}
+          </Text>
+          <TouchableOpacity
             style={styles.createButton}
             onPress={() => navigation?.navigate("CreateCampaign")}
           >
-            <Text style={styles.createButtonText}>{t("dashboard.create_campaign")}</Text>
+            <Text style={styles.createButtonText}>
+              {t("dashboard.create_campaign")}
+            </Text>
           </TouchableOpacity>
         </View>
       )}

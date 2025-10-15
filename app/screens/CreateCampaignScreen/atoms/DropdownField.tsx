@@ -49,7 +49,7 @@ export default function DropdownField({
       <Modal
         visible={isVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setIsVisible(false)}
       >
         <Pressable
@@ -70,6 +70,7 @@ export default function DropdownField({
               showsVerticalScrollIndicator={true}
               maxToRenderPerBatch={20}
               initialNumToRender={20}
+              style={styles.optionsList}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
@@ -145,23 +146,31 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
   },
   modalContent: {
     backgroundColor: "#FFFFFF",
-    maxHeight: "70%",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 20,
+    width: "100%",
+    height: "60%", // 3/5th of the view
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
+    backgroundColor: "#FAFBFC",
   },
   modalTitle: {
     fontSize: 18,
@@ -169,9 +178,13 @@ const styles = StyleSheet.create({
     color: "#374151",
   },
   closeButton: {
-    fontSize: 18,
+    fontSize: 20,
     color: "#6B7280",
-    padding: 4,
+    padding: 8,
+    fontWeight: "bold",
+  },
+  optionsList: {
+    flex: 1,
   },
   option: {
     paddingHorizontal: 20,
