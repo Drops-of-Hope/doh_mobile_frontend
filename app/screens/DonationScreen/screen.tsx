@@ -26,6 +26,7 @@ import { TabType, UserProfile, Appointment } from "./types";
 import { getUserAppointments } from "./utils";
 import { useAuth } from "../../context/AuthContext";
 import { donationService } from "../../services/donationService";
+import { registerForPushNotifications, registerPushTokenWithBackend, setupNotificationHandlers } from "../../services/pushService";
 
 interface DonationScreenProps {
   navigation?: any;
@@ -90,6 +91,16 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
     (async () => {
       try {
         await refreshAuthState();
+        // Register push token and set up notification handler once
+        const token = await registerForPushNotifications();
+        if (token) await registerPushTokenWithBackend(token);
+        const cleanup = setupNotificationHandlers((payload) => {
+          if (payload?.type === "CAMPAIGN_ATTENDANCE") {
+            setAttendanceMarked(true);
+            setQrScanned(true);
+          }
+        });
+        return () => cleanup?.();
       } catch (e) {
         // ignore
       }
