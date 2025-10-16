@@ -355,7 +355,27 @@ class CampaignService {
           method: "GET",
         }
       );
-      return response.data;
+      
+      // Backend returns: { stats: { campaign: { actualDonors, expectedDonors }, participation: { ATTENDED } } }
+      // Transform to match our interface
+      const apiData = response.data || response;
+      const statsData = apiData.stats || apiData;
+      const campaignData = statsData.campaign || {};
+      const participationData = statsData.participation || {};
+      
+      const transformedStats: CampaignStats = {
+        totalAttendance: participationData.ATTENDED || 0,
+        screenedPassed: participationData.screenedPassed || 0,
+        walkInsScreened: participationData.walkInsScreened || 0,
+        goalProgress: campaignData.actualDonors && campaignData.expectedDonors
+          ? Math.round((campaignData.actualDonors / campaignData.expectedDonors) * 100)
+          : 0,
+        currentDonations: campaignData.actualDonors || 0,
+        donationGoal: campaignData.expectedDonors || 0,
+      };
+      
+      console.log("Transformed campaign stats:", transformedStats);
+      return transformedStats;
     } catch (error) {
       console.error("Failed to fetch campaign stats:", error);
       throw new Error("Failed to fetch campaign statistics");
@@ -475,15 +495,15 @@ class CampaignService {
       const transformedCampaign: Campaign = {
         id: apiData.id,
         title: apiData.title || "",
-        type: "MOBILE", // Default type since API doesn't specify
+        type: apiData.type || "MOBILE",
         location: apiData.location || "",
-        organizerId: apiData.organizer?.id || "",
-        motivation: apiData.description || "",
+        organizerId: apiData.organizer?.id || apiData.organizerId || "",
+        motivation: apiData.motivation || "",
         description: apiData.description || "",
 
         // Transform date/time fields
-        startTime: apiData.startDate || new Date().toISOString(),
-        endTime: apiData.endDate || new Date().toISOString(),
+        startTime: apiData.startTime || apiData.startDate || new Date().toISOString(),
+        endTime: apiData.endTime || apiData.endDate || new Date().toISOString(),
 
         // Transform numeric fields
         expectedDonors: apiData.goalBloodUnits || 0,
@@ -751,6 +771,136 @@ class CampaignService {
     } catch (error) {
       console.error("Failed to fetch campaign notifications:", error);
       throw new Error("Failed to fetch notifications");
+    }
+  }
+
+  // Join a campaign (user registration for campaigns)
+  async joinCampaign(campaignId: string, registrationData?: {
+    contactNumber?: string;
+    specialRequests?: string;
+    emergencyContact?: string;
+  }): Promise<{
+    success: boolean;
+    participationId: string;
+    message: string;
+    registrationDetails: {
+      campaignId: string;
+      userId: string;
+      registeredAt: string;
+      status: "registered" | "waitlisted";
+    };
+  }> {
+    try {
+      console.log("🏥 Joining campaign:", campaignId, "with data:", registrationData);
+      
+      const payload = {
+        campaignId,
+        contactNumber: registrationData?.contactNumber || "",
+        specialRequests: registrationData?.specialRequests || "",
+        emergencyContact: registrationData?.emergencyContact || "",
+        registrationSource: "MOBILE_APP",
+        timestamp: new Date().toISOString(),
+      };
+
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.JOIN_CAMPAIGN.replace(":id", campaignId),
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        }
+      );
+
+      console.log("✅ Campaign registration successful:", response);
+      
+      return {
+        success: true,
+        participationId: response.data?.participationId || response.data?.id,
+        message: response.data?.message || "Successfully registered for campaign",
+        registrationDetails: {
+          campaignId,
+          userId: response.data?.userId || "",
+          registeredAt: response.data?.registeredAt || new Date().toISOString(),
+          status: response.data?.status || "registered",
+        },
+      };
+    } catch (error) {
+      console.error("❌ Failed to join campaign:", error);
+      
+      // Handle specific error cases
+      if (error instanceof Error) {
+        if (error.message.includes("409") || error.message.includes("already registered")) {
+          return {
+            success: false,
+            participationId: "",
+            message: "You are already registered for this campaign",
+            registrationDetails: {
+              campaignId,
+              userId: "",
+              registeredAt: "",
+              status: "registered",
+            },
+          };
+        }
+        
+        if (error.message.includes("404")) {
+          throw new Error("Campaign not found or no longer available");
+        }
+        
+        if (error.message.includes("403") || error.message.includes("full")) {
+          throw new Error("Campaign is full. You have been added to the waitlist.");
+        }
+      }
+      
+      throw new Error("Failed to register for campaign. Please try again later.");
+    }
+  }
+
+  // Check user's registration status for a campaign
+  async getCampaignRegistrationStatus(campaignId: string): Promise<{
+    isRegistered: boolean;
+    registrationId?: string;
+    status?: "registered" | "waitlisted" | "cancelled";
+    registeredAt?: string;
+  }> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}/my-registration`,
+        {
+          method: "GET",
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error("Failed to check registration status:", error);
+      // If 404, user is not registered
+      if (error instanceof Error && error.message.includes("404")) {
+        return { isRegistered: false };
+      }
+      throw error;
+    }
+  }
+
+  // Cancel campaign registration
+  async cancelCampaignRegistration(campaignId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}/cancel-registration`,
+        {
+          method: "DELETE",
+        }
+      );
+      
+      return {
+        success: true,
+        message: "Registration cancelled successfully",
+      };
+    } catch (error) {
+      console.error("Failed to cancel registration:", error);
+      throw new Error("Failed to cancel registration");
     }
   }
 }

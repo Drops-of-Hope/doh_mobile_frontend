@@ -12,9 +12,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { District } from '../../../constants/districts';
 import ValidationUtils from '../../utils/ValidationUtils';
+import { COLORS, SPACING } from '../../../constants/theme';
 
 interface ProfileCompletionScreenProps {
   userId: string;
@@ -145,18 +147,19 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <View style={styles.header}>
-        <Text style={styles.title}>Complete Your Profile</Text>
-        <Text style={styles.subtitle}>
-          Please provide additional information to complete your blood donation profile
-        </Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      >
+        <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <View style={styles.header}>
+          <Text style={styles.title}>Complete Your Profile</Text>
+          <Text style={styles.subtitle}>
+            Please provide additional information to complete your blood donation profile
+          </Text>
+        </View>
 
       <View style={styles.form}>
         <View style={styles.fieldContainer}>
@@ -362,53 +365,60 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
       </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND_SECONDARY,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.BACKGROUND_SECONDARY,
   },
   content: {
-    padding: 20,
+    padding: SPACING.LG,
+    paddingTop: SPACING.MD, // Additional top padding for better spacing
   },
   header: {
-    marginBottom: 30,
+    marginBottom: SPACING.XL,
+    paddingTop: SPACING.MD, // Extra spacing from status bar
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SM,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.TEXT_SECONDARY,
     lineHeight: 22,
   },
   form: {
-    marginBottom: 20,
+    marginBottom: SPACING.LG,
   },
   fieldContainer: {
-    marginBottom: 20,
+    marginBottom: SPACING.LG,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SM,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: COLORS.BORDER,
     borderRadius: 8,
     padding: 15,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.BACKGROUND,
   },
   inputError: {
-    borderColor: '#cc0000',
+    borderColor: COLORS.ERROR,
     borderWidth: 2,
   },
   textArea: {
@@ -433,13 +443,13 @@ const styles = StyleSheet.create({
     borderColor: '#ffcccc',
   },
   errorText: {
-    color: '#cc0000',
+    color: COLORS.ERROR,
     fontSize: 12,
     marginTop: 4,
     marginLeft: 4,
   },
   globalErrorText: {
-    color: '#cc0000',
+    color: COLORS.ERROR,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -452,20 +462,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   completeButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: COLORS.PRIMARY,
   },
   skipButton: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#FF6B6B',
+    borderColor: COLORS.PRIMARY,
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.BACKGROUND,
     fontSize: 16,
     fontWeight: '600',
   },
   skipButtonText: {
-    color: '#FF6B6B',
+    color: COLORS.PRIMARY,
   },
   pickerButton: {
     borderWidth: 1,

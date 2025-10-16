@@ -14,49 +14,126 @@ export default function NextDonationCard({
   nextEligibleDate,
   eligibleToDonate,
 }: NextDonationCardProps) {
+  
+  // Debug logging
+  console.log("🎯 NextDonationCard props:", {
+    lastDonationDate,
+    nextEligibleDate,
+    eligibleToDonate
+  });
+
   const calculateNextDonationInfo = (): { text: string; canDonate: boolean } => {
     // Use API data for eligibility if available
     if (eligibleToDonate !== undefined) {
+      console.log("📊 Using API eligibility data:", { eligibleToDonate, nextEligibleDate });
+      
       if (eligibleToDonate) {
         return { text: "You can donate now!", canDonate: true };
       }
       
       // If not eligible, show next eligible date from API
       if (nextEligibleDate) {
-        const nextDate = new Date(nextEligibleDate);
-        const formattedDate = nextDate.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
-        return { text: formattedDate, canDonate: false };
+        try {
+          const nextDate = new Date(nextEligibleDate);
+          
+          // Validate the date
+          if (isNaN(nextDate.getTime())) {
+            console.warn("⚠️ Invalid nextEligibleDate from API:", nextEligibleDate);
+            // Fallback to calculation
+            return calculateFallbackDonationInfo();
+          }
+          
+          // Check if the date is in the future
+          const now = new Date();
+          if (nextDate <= now) {
+            console.log("📅 Next eligible date has passed, user can donate now");
+            return { text: "You can donate now!", canDonate: true };
+          }
+          
+          const formattedDate = nextDate.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long", 
+            day: "numeric",
+          });
+          
+          const daysUntil = Math.ceil((nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          
+          console.log("🗓️ Next donation date:", {
+            formattedDate,
+            daysUntil,
+            rawDate: nextEligibleDate
+          });
+          
+          return { 
+            text: `${formattedDate} (${daysUntil} days)`, 
+            canDonate: false 
+          };
+        } catch (error) {
+          console.error("❌ Error parsing nextEligibleDate:", error);
+          return calculateFallbackDonationInfo();
+        }
       }
     }
 
     // Fallback calculation if API data is not available
-    if (!lastDonationDate) {
-      return { text: "You can donate now!", canDonate: true };
-    }
+    return calculateFallbackDonationInfo();
+  };
 
-    const last = new Date(lastDonationDate);
-    const nextDate = new Date(last);
-    nextDate.setMonth(nextDate.getMonth() + 4); // Add 4 months
-
-    const now = new Date();
-    if (nextDate <= now) {
-      return { text: "You can donate now!", canDonate: true };
-    }
-
-    const formattedDate = nextDate.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const calculateFallbackDonationInfo = (): { text: string; canDonate: boolean } => {
+    console.log("🔄 Using fallback calculation with lastDonationDate:", lastDonationDate);
     
-    return { text: formattedDate, canDonate: false };
+    if (!lastDonationDate) {
+      console.log("🆕 No last donation date, user can donate");
+      return { text: "You can donate now!", canDonate: true };
+    }
+
+    try {
+      const last = new Date(lastDonationDate);
+      
+      // Validate the date
+      if (isNaN(last.getTime())) {
+        console.warn("⚠️ Invalid lastDonationDate:", lastDonationDate);
+        return { text: "You can donate now!", canDonate: true };
+      }
+      
+      const nextDate = new Date(last);
+      nextDate.setMonth(nextDate.getMonth() + 4); // Add 4 months
+
+      const now = new Date();
+      const daysSinceLastDonation = Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+      
+      console.log("📊 Fallback calculation:", {
+        lastDonation: last.toISOString(),
+        nextEligible: nextDate.toISOString(),
+        daysSince: daysSinceLastDonation,
+        canDonate: nextDate <= now
+      });
+      
+      if (nextDate <= now) {
+        return { text: "You can donate now!", canDonate: true };
+      }
+
+      const formattedDate = nextDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      
+      const daysUntil = Math.ceil((nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      
+      return { 
+        text: `${formattedDate} (${daysUntil} days)`, 
+        canDonate: false 
+      };
+    } catch (error) {
+      console.error("❌ Error in fallback calculation:", error);
+      return { text: "You can donate now!", canDonate: true };
+    }
   };
 
   const { text: nextDonationText, canDonate: canDonateNow } = calculateNextDonationInfo();
+  
+  console.log("🎯 Final result:", { nextDonationText, canDonateNow });
 
   return (
     <View style={styles.container}>

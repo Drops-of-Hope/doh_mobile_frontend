@@ -17,7 +17,8 @@ export interface AppointmentSlot {
   id: string;
   startTime: string;
   endTime: string;
-  tokenNumber: number;
+  tokenNumber?: number;
+  donorsPerSlot?: number; // Alternative field name from API
   isAvailable: boolean;
   medicalEstablishmentId: string;
 }
@@ -104,25 +105,54 @@ export const appointmentService = {
 
   // Get available appointment slots for a medical establishment on a specific date
   getAvailableSlots: async (
-    medicalEstablishmentId: string
+    medicalEstablishmentId: string,
+    selectedDate?: string
   ): Promise<AppointmentSlot[]> => {
     try {
-      const response = await apiRequestWithAuth(
-        `${API_ENDPOINTS.APPOINTMENT_SLOTS}/getSlots?establishmentId=${medicalEstablishmentId}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      let url = `${API_ENDPOINTS.APPOINTMENT_SLOTS}/getSlots?establishmentId=${medicalEstablishmentId}`;
+      
+      // Add date parameter if provided
+      if (selectedDate) {
+        url += `&date=${selectedDate}`;
+      }
+      
+      const response = await apiRequestWithAuth(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
 
-      // Return only available slots
       console.log("AppointmentSlot response:", response);
-      return response as AppointmentSlot[];
+      
+      // Handle different response formats
+      let slots: AppointmentSlot[] = [];
+      
+      if (Array.isArray(response)) {
+        slots = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        slots = response.data;
+      } else if (response?.slots && Array.isArray(response.slots)) {
+        slots = response.slots;
+      }
+      
+      // Filter only available slots and ensure they have required fields
+      const availableSlots = slots.filter(slot => 
+        slot.isAvailable && 
+        slot.startTime && 
+        slot.endTime && 
+        slot.medicalEstablishmentId
+      ).map(slot => ({
+        ...slot,
+        // Ensure tokenNumber exists, use donorsPerSlot as fallback
+        tokenNumber: slot.tokenNumber || slot.donorsPerSlot || 0,
+      }));
+      
+      console.log("✅ Processed available slots:", availableSlots);
+      return availableSlots;
     } catch (error) {
-      console.error("Error fetching appointment slots:", error);
+      console.error("❌ Error fetching appointment slots:", error);
       throw error;
     }
   },
@@ -164,17 +194,72 @@ export const appointmentService = {
   // Get user's appointments
   getUserAppointments: async (userId: string): Promise<Appointment[]> => {
     try {
+      console.log("🔍 Fetching appointments for user:", userId);
+      console.log("🌐 API Base URL:", API_ENDPOINTS.USER_APPOINTMENTS);
+      
+      // Try without userId first (backend might get user from auth token)
       const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.USER_APPOINTMENTS}`,
         {
           method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user appointments:", error);
-      throw error;
+      console.log("📋 User appointments response:", response);
+      console.log("📋 Response type:", typeof response);
+      console.log("📋 Response is array:", Array.isArray(response));
+      
+      // Handle different response formats and empty data gracefully
+      let appointments: Appointment[] = [];
+      
+      if (Array.isArray(response)) {
+        appointments = response;
+        console.log("📋 Using direct array response");
+      } else if (response?.data && Array.isArray(response.data)) {
+        appointments = response.data;
+        console.log("📋 Using response.data array");
+      } else if (response?.appointments && Array.isArray(response.appointments)) {
+        appointments = response.appointments;
+        console.log("📋 Using response.appointments array");
+      } else if (response?.success && response?.data === null) {
+        // API returned success with null data (no appointments)
+        console.log("📋 User has no appointments yet (success with null data)");
+        return [];
+      } else if (response === null || response === undefined) {
+        // API returned null/undefined (no appointments)
+        console.log("📋 User has no appointments yet (null/undefined response)");
+        return [];
+      } else {
+        console.warn("📋 Unexpected response format for user appointments:", response);
+        console.warn("📋 Keys in response:", Object.keys(response || {}));
+        return [];
+      }
+      
+      console.log(`✅ Found ${appointments.length} appointments for user`);
+      return appointments;
+      
+    } catch (error: any) {
+      console.error("❌ Error fetching user appointments:", error);
+      console.error("❌ Error type:", typeof error);
+      console.error("❌ Error message:", error?.message);
+      console.error("❌ Error status:", error?.status);
+      
+      // For new users who don't have appointments yet, don't throw an error
+      if (error.message?.includes("404") || 
+          error.message?.includes("not found") ||
+          error.message?.includes("Network request failed") ||
+          error.status === 404) {
+        console.log("ℹ️ User likely has no appointments yet, returning empty array");
+        return [];
+      }
+      
+      // For other errors, still return empty array but log it
+      console.warn("⚠️ Returning empty appointments array due to error:", error.message);
+      return [];
     }
   },
 

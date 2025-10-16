@@ -587,7 +587,7 @@ export default function AppointmentBookingForm({
                     selectedSlot?.id === slot.id && styles.selectedTokenText,
                   ]}
                 >
-                  {slot.tokenNumber} slots available
+                  {(slot.tokenNumber || slot.donorsPerSlot || 0)} slots available
                 </Text>
               </View>
             </TouchableOpacity>

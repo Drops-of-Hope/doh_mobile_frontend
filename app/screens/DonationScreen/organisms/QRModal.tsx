@@ -7,12 +7,14 @@ interface QRModalProps {
   visible: boolean;
   onClose: () => void;
   userProfile: UserProfile | null;
+  onSuccess?: () => void;
 }
 
 export default function QRModal({
   visible,
   onClose,
   userProfile,
+  onSuccess,
 }: QRModalProps) {
   if (!userProfile) return null;
 
