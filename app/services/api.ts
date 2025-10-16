@@ -2,7 +2,7 @@
 // Choose the correct host depending on platform/emulator and allow override.
 import { Platform } from "react-native";
 
-const ANDROID_EMULATOR_HOST = "http://192.168.1.52:5000/api";
+const ANDROID_EMULATOR_HOST = "http://192.168.1.53:5000/api";
 const DEFAULT_LOCALHOST = "http://localhost:5000/api";
 
 // Allow an environment or runtime override (set EXPO_PUBLIC_API_URL in your .env or app config)
@@ -77,6 +77,8 @@ export const API_ENDPOINTS = {
 
   // Notification endpoints
   NOTIFICATIONS: "/notifications",
+  // Device push token registration
+  PUSH_TOKEN: "/devices/push-token",
 } as const;
 
 // Generic API request function

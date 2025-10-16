@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "../../shared/atoms/Button";
 import DonationAdviceCarousel from "./DonationAdviceCarousel";
@@ -16,6 +16,12 @@ interface QRSectionProps {
   qrScanned?: boolean;
   onStartTimer?: () => void;
   isTimerStarted?: boolean;
+  isPolling?: boolean;
+  pollingAttempts?: number;
+  pollingComplete?: boolean;
+  canRetry?: boolean;
+  retryCountdown?: number;
+  onRetryPolling?: () => void;
 }
 
 export default function QRSection({ 
@@ -26,12 +32,29 @@ export default function QRSection({
   qrScanned = false,
   onStartTimer,
   isTimerStarted = false,
+  isPolling = false,
+  pollingAttempts = 0,
+  pollingComplete = false,
+  canRetry = false,
+  retryCountdown = 0,
+  onRetryPolling,
 }: QRSectionProps) {
+  // Debug log to see state
+  console.log("🎯 QRSection render state:", {
+    attendanceMarked,
+    isPolling,
+    pollingComplete,
+    pollingAttempts,
+    qrScanned,
+    canRetry,
+    retryCountdown
+  });
+
   return (
     <View style={styles.container}>
       {!attendanceMarked ? (
         <>
-          {/* Main QR Card */}
+          {/* Main QR Card - Always visible until attendance marked */}
           <View style={styles.card}>
             <View style={styles.iconContainer}>
               <Ionicons name="qr-code-outline" size={120} color={COLORS.PRIMARY} />
@@ -43,7 +66,56 @@ export default function QRSection({
             <Button title="Show QR Code" onPress={onShowQR} />
           </View>
 
-          {/* Donation Advice Carousel */}
+          {/* Verification Status - Shows between QR card and tips */}
+          {isPolling && (
+            <View style={styles.statusCard}>
+              <ActivityIndicator size="small" color={COLORS.PRIMARY} style={styles.statusSpinner} />
+              <View style={styles.statusTextContainer}>
+                <Text style={styles.statusTitle}>Verifying Attendance...</Text>
+                <Text style={styles.statusSubtitle}>
+                  Checking for attendance confirmation (Attempt {pollingAttempts}/3)
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {pollingComplete && (
+            <View style={styles.statusCard}>
+              <Ionicons name="time-outline" size={40} color={COLORS.WARNING} style={styles.statusIcon} />
+              <View style={styles.statusTextContainer}>
+                <Text style={styles.statusTitle}>Attendance Not Confirmed Yet</Text>
+                <Text style={styles.statusSubtitle}>
+                  Please ensure the staff has scanned your QR code
+                </Text>
+                <View style={styles.statusButtonGroup}>
+                  {canRetry ? (
+                    <Button 
+                      title="Retry Verification" 
+                      onPress={onRetryPolling || (() => {})}
+                    />
+                  ) : (
+                    <View style={styles.disabledButtonContainer}>
+                      <Button 
+                        title={`Retry in ${retryCountdown}s`}
+                        onPress={() => {}}
+                        disabled={true}
+                      />
+                    </View>
+                  )}
+                  
+                  {/* Testing: Allow skipping for development */}
+                  <View style={styles.skipButtonContainer}>
+                    <Button 
+                      title="Skip (Testing)" 
+                      onPress={onShowForm}
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Donation Advice Carousel - Always visible */}
           <View style={styles.adviceSection}>
             <Text style={styles.adviceTitle}>Tips for a Successful Donation</Text>
             <DonationAdviceCarousel />
@@ -58,7 +130,7 @@ export default function QRSection({
             </View>
             <Text style={styles.title}>Attendance Marked!</Text>
             <Text style={styles.subtitle}>
-              Your attendance has been successfully verified
+              Your attendance has been successfully verified. You can now complete the donation form.
             </Text>
           </View>
 
@@ -66,20 +138,21 @@ export default function QRSection({
           {qrScanned && (
             <View style={styles.postQRContainer}>
               <NICCard nicNumber={userProfile?.id || ""} />
+              
+              {/* Complete Donation Form Button - Between NIC and Timer */}
+              <View style={styles.formButtonContainer}>
+                <Button 
+                  title="Complete Donation Form" 
+                  onPress={onShowForm}
+                />
+              </View>
+              
               <DonationTimerCard 
                 onStartTimer={onStartTimer || (() => {})}
                 isTimerStarted={isTimerStarted}
               />
             </View>
           )}
-
-          {/* Complete Donation Form Button */}
-          <View style={styles.formButton}>
-            <Button 
-              title="Complete Donation Form" 
-              onPress={onShowForm}
-            />
-          </View>
         </>
       )}
     </View>
@@ -146,7 +219,73 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.LG,
     gap: SPACING.MD,
   },
+  formButtonContainer: {
+    width: "100%",
+    paddingVertical: SPACING.SM, // Makes button vertically fatter
+  },
   formButton: {
     marginTop: SPACING.MD,
+  },
+  spinner: {
+    marginBottom: SPACING.MD,
+  },
+  pollingStatus: {
+    fontSize: 14,
+    color: COLORS.TEXT_SECONDARY,
+    marginTop: SPACING.SM,
+    fontWeight: "600",
+  },
+  // Status card - appears between QR card and tips
+  statusCard: {
+    backgroundColor: COLORS.BACKGROUND,
+    padding: SPACING.MD,
+    borderRadius: BORDER_RADIUS.LG,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_LIGHT,
+    marginBottom: SPACING.LG,
+    width: "100%",
+    maxWidth: 320,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  statusSpinner: {
+    marginRight: SPACING.SM,
+  },
+  statusIcon: {
+    marginRight: SPACING.SM,
+  },
+  statusTextContainer: {
+    flex: 1,
+  },
+  statusTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.XS,
+  },
+  statusSubtitle: {
+    fontSize: 13,
+    color: COLORS.TEXT_SECONDARY,
+    lineHeight: 18,
+  },
+  statusButtonGroup: {
+    marginTop: SPACING.SM,
+    gap: SPACING.XS,
+  },
+  disabledButtonContainer: {
+    opacity: 0.6,
+  },
+  buttonGroup: {
+    width: "100%",
+    gap: SPACING.SM,
+  },
+  skipButtonContainer: {
+    marginTop: SPACING.XS,
+    opacity: 0.7,
   },
 });

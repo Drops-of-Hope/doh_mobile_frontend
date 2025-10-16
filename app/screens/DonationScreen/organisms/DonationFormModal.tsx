@@ -20,7 +20,7 @@ export default function DonationFormModal({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <DonationForm />
+      <DonationForm onSubmitSuccess={onSubmit} />
     </Modal>
   );
 }

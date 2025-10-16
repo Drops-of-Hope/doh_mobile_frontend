@@ -287,6 +287,72 @@ class NotificationService {
       throw new Error("Failed to get notification stats");
     }
   }
+
+  // Get user notifications (for donors)
+  async getUserNotifications(userId: string, filters?: {
+    type?: string[];
+    isRead?: boolean;
+    limit?: number;
+  }): Promise<{
+    notifications: Array<{
+      id: string;
+      type: string;
+      title: string;
+      message: string;
+      isRead: boolean;
+      createdAt: string;
+      metadata?: any;
+    }>;
+    unreadCount: number;
+  }> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters?.type) queryParams.append("type", filters.type.join(","));
+      if (filters?.isRead !== undefined) queryParams.append("isRead", filters.isRead.toString());
+      if (filters?.limit) queryParams.append("limit", filters.limit.toString());
+
+      const endpoint = `${API_ENDPOINTS.USER_NOTIFICATIONS}?${queryParams.toString()}`;
+      console.log("🌐 Fetching notifications from:", endpoint);
+      console.log("🌐 Filters:", JSON.stringify(filters));
+
+      const response = await apiRequestWithAuth(
+        endpoint,
+        {
+          method: "GET",
+        }
+      );
+      
+      // apiRequestWithAuth already returns the parsed JSON data directly
+      console.log("🌐 Response data:", JSON.stringify(response, null, 2));
+      
+      return response || { notifications: [], unreadCount: 0 };
+    } catch (error) {
+      console.error("Failed to fetch user notifications:", error);
+      // Return empty array instead of throwing to allow graceful degradation
+      return { notifications: [], unreadCount: 0 };
+    }
+  }
+
+  // Get latest notification of a specific type
+  async getLatestNotificationByType(userId: string, type: string): Promise<any | null> {
+    try {
+      console.log(`🔔 Getting latest notification for user ${userId}, type: ${type}`);
+      const result = await this.getUserNotifications(userId, {
+        type: [type],
+        limit: 1,
+      });
+      
+      console.log(`🔔 Result notifications count: ${result.notifications.length}`);
+      if (result.notifications.length > 0) {
+        console.log(`🔔 Latest notification:`, JSON.stringify(result.notifications[0], null, 2));
+      }
+      
+      return result.notifications.length > 0 ? result.notifications[0] : null;
+    } catch (error) {
+      console.error("Failed to fetch latest notification:", error);
+      return null;
+    }
+  }
 }
 
 export const notificationService = new NotificationService();

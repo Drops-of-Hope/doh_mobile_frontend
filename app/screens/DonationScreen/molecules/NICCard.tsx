@@ -17,12 +17,6 @@ export default function NICCard({ nicNumber }: NICCardProps) {
       <Text style={styles.subtitle}>
         Present your National Identity Card to the camp organizer for verification
       </Text>
-      {nicNumber && (
-        <View style={styles.nicContainer}>
-          <Text style={styles.nicLabel}>Your NIC:</Text>
-          <Text style={styles.nicNumber}>{nicNumber}</Text>
-        </View>
-      )}
     </View>
   );
 }
