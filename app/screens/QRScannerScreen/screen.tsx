@@ -5,7 +5,6 @@ import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { qrService, QRScanRequest } from "../../services/qrService";
-import { campaignService } from "../../services/campaignService";
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // Define the param list for the stack navigator
@@ -162,19 +161,14 @@ export default function QRScannerScreen({
     try {
       setIsProcessing(true);
       
-      const attendanceData = {
+      // Use QR attendance endpoint: backend needs only campaignId + qrData (raw UUID is recommended)
+      await qrService.markAttendance({
         campaignId: campaignId!,
         userId: userId,
-        userName: scannedUser?.name || "Unknown",
-        userEmail: "", // Will be provided by backend
-        bloodType: scannedUser?.bloodGroup || "Unknown",
-        isWalkIn: false, // Since it's QR scanned, not a walk-in
-        screeningPassed: scannedUser?.eligibleToDonate || false,
-        timestamp: new Date().toISOString(),
-        markedBy: user?.sub || "",
-      };
-
-      await campaignService.markAttendance(attendanceData);
+        notes: `QR scan by ${user?.sub || "unknown"}`,
+        // Send raw userId as qrData; backend accepts raw UUID or JSON string with uid/userId/scannedUserId
+        qrData: userId,
+      });
       
       Alert.alert(
         "Success", 

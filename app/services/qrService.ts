@@ -52,8 +52,10 @@ export interface QRScanResult {
 export interface AttendanceMarkRequest {
   userId: string;
   campaignId: string;
-  scanType: "CHECK_IN" | "CHECK_OUT" | "DONATION_COMPLETED";
+  scanType?: "CHECK_IN" | "CHECK_OUT" | "DONATION_COMPLETED";
   notes?: string;
+  autoRegister?: boolean; // Allow automatic registration if not already registered
+  qrData?: string; // Raw QR data string when available (backend expects this)
 }
 
 export interface AttendanceMarkResult {
@@ -154,13 +156,55 @@ export const qrService = {
   // Mark attendance for a user
   async markAttendance(request: AttendanceMarkRequest): Promise<AttendanceMarkResult> {
     try {
+      // Backend expects only campaignId and qrData (qrData can be raw UUID or a JSON string containing uid/userId/scannedUserId)
+      const payload: { campaignId: string; qrData: string; notes?: string } = {
+        campaignId: request.campaignId,
+        qrData: request.qrData || request.userId, // fallback to raw userId as raw qrData
+        ...(request.notes ? { notes: request.notes } : {}),
+      };
+
       const response = await apiRequestWithAuth(API_ENDPOINTS.MARK_ATTENDANCE, {
         method: "POST",
-        body: JSON.stringify(request),
+        body: JSON.stringify(payload),
       });
       return response.data;
     } catch (error) {
       console.error("Failed to mark attendance:", error);
+      throw error;
+    }
+  },
+
+  // Auto-register user for campaign and mark attendance (for unregistered participants)
+  async autoRegisterAndMarkAttendance(request: AttendanceMarkRequest): Promise<AttendanceMarkResult> {
+    try {
+      // First, try to register the user for the campaign
+      const registrationResponse = await apiRequestWithAuth(
+        API_ENDPOINTS.JOIN_CAMPAIGN.replace(":id", request.campaignId),
+        {
+          method: "POST",
+          body: JSON.stringify({
+            userId: request.userId,
+            autoRegister: true,
+            source: "QR_SCAN",
+          }),
+        }
+      );
+
+      if (registrationResponse.success) {
+        // Now mark attendance
+        const attendanceResponse = await apiRequestWithAuth(API_ENDPOINTS.MARK_ATTENDANCE, {
+          method: "POST",
+          body: JSON.stringify({
+            ...request,
+            notes: `${request.notes} - Auto-registered via QR scan`,
+          }),
+        });
+        return attendanceResponse.data;
+      } else {
+        throw new Error(registrationResponse.message || "Auto-registration failed");
+      }
+    } catch (error) {
+      console.error("Failed to auto-register and mark attendance:", error);
       throw error;
     }
   },

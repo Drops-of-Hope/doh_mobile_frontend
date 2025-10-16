@@ -188,6 +188,7 @@ export default function QRScannerModal({
         campaignId,
         scanType: "CHECK_IN",
         notes: donorData ? `Donor: ${donorData.name} (${donorData.email})` : undefined,
+        autoRegister: true, // Allow automatic registration if not already registered
       });
 
       if (result.success) {
@@ -210,16 +211,67 @@ export default function QRScannerModal({
     } catch (error: any) {
       console.error("Mark attendance error:", error);
       
-      // Provide more specific error messages based on the error type
+      // Handle the case where participation doesn't exist - offer to auto-register
+      if (error.message?.includes("Participation not found") || error.message?.includes("not registered")) {
+        const userName = donorData?.name || "This user";
+        Alert.alert(
+          "Auto-Register for Campaign",
+          `${userName} is not registered for this campaign. Would you like to automatically register them and mark attendance?`,
+          [
+            {
+              text: "Cancel",
+              onPress: resetScanner,
+              style: "cancel",
+            },
+            {
+              text: "Register & Mark Attendance",
+              onPress: async () => {
+                try {
+                  // Try to auto-register and mark attendance
+                  const autoRegisterResult = await qrService.autoRegisterAndMarkAttendance({
+                    userId,
+                    campaignId,
+                    scanType: "CHECK_IN",
+                    notes: donorData ? `Auto-registered: ${donorData.name} (${donorData.email})` : "Auto-registered participant",
+                  });
+                  
+                  if (autoRegisterResult.success) {
+                    Alert.alert(
+                      "Success",
+                      `${userName} has been registered for the campaign and attendance has been marked.`,
+                      [
+                        {
+                          text: t("common.ok"),
+                          onPress: () => {
+                            onScanSuccess?.(autoRegisterResult as any);
+                            resetScanner();
+                          },
+                        },
+                      ]
+                    );
+                  } else {
+                    throw new Error(autoRegisterResult.message || "Auto-registration failed");
+                  }
+                } catch (autoRegError: any) {
+                  Alert.alert(
+                    "Registration Failed",
+                    autoRegError.message || "Failed to auto-register participant. Please register manually.",
+                    [{ text: t("common.ok"), onPress: resetScanner }]
+                  );
+                }
+              },
+              style: "default",
+            },
+          ]
+        );
+        return;
+      }
+      
+      // Handle other errors
       let errorMessage = error.message || t("qr_scanner.attendance_failed");
       let errorTitle = t("qr_scanner.error");
       
-      if (error.message?.includes("Participation not found")) {
-        errorTitle = "Registration Required";
-        errorMessage = donorData 
-          ? `${donorData.name} is not registered for this campaign. Please register for the campaign first before marking attendance.`
-          : "This user is not registered for this campaign. Please register for the campaign first before marking attendance.";
-      } else if (error.message?.includes("404")) {
+      if (error.message?.includes("404")) {
         errorTitle = "User Not Found";
         errorMessage = "This user could not be found in the system. Please verify the QR code.";
       }

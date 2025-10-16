@@ -126,7 +126,7 @@ export default function ManualSearchScreen({
         markedBy: user?.sub || "",
       };
 
-      await campaignService.markAttendance(attendanceData);
+      await campaignService.markAttendance(attendanceData as any);
 
       Alert.alert(
         "Success",

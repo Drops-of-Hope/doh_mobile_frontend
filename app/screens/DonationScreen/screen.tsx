@@ -46,22 +46,38 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
     history: Appointment[];
   }>({ upcoming: [], history: [] });
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+  const [qrScanned, setQrScanned] = useState(false);
+  const [isTimerStarted, setIsTimerStarted] = useState(false);
 
   // Load user appointments
   const loadUserAppointments = async () => {
-    if (!userProfile?.id) return;
+    if (!userProfile?.id) {
+      console.log("No user profile ID available, skipping appointment load");
+      return;
+    }
     
     try {
       setAppointmentsLoading(true);
+      console.log("Loading appointments for user:", userProfile.id);
       const appointmentData = await getUserAppointments(userProfile.id);
+      console.log("Appointment data loaded:", appointmentData);
       setAppointments(appointmentData);
     } catch (error) {
       console.error("Error loading user appointments:", error);
-      Alert.alert(
-        "Error",
-        "Failed to load appointments. Please try again.",
-        [{ text: "OK" }]
-      );
+      // Set empty appointments instead of showing error for new users
+      setAppointments({ upcoming: [], history: [] });
+      
+      // Only show error if it's a real network/server issue
+      if (error instanceof Error && 
+          !error.message.includes("404") && 
+          !error.message.includes("not found") &&
+          !error.message.includes("Network request failed")) {
+        Alert.alert(
+          "Error",
+          "Failed to load appointments. Please try again later.",
+          [{ text: "OK" }]
+        );
+      }
     } finally {
       setAppointmentsLoading(false);
     }
@@ -161,6 +177,18 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
     );
   };
 
+  const handleStartTimer = () => {
+    setIsTimerStarted(true);
+    // Navigate to the timer screen
+    navigation?.navigate('DonationTimer');
+  };
+
+  const handleQRSuccess = () => {
+    setAttendanceMarked(true);
+    setQrScanned(true);
+    setShowQRModal(false);
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -187,6 +215,9 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
             attendanceMarked={attendanceMarked}
             onShowQR={handleShowQR}
             onShowForm={handleShowForm}
+            qrScanned={qrScanned}
+            onStartTimer={handleStartTimer}
+            isTimerStarted={isTimerStarted}
           />
         ) : (
           <AppointmentSection
@@ -207,6 +238,7 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
         visible={showQRModal}
         onClose={() => setShowQRModal(false)}
         userProfile={userProfile}
+        onSuccess={handleQRSuccess}
       />
 
       <DonationFormModal
