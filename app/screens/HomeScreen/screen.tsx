@@ -277,6 +277,14 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               {homeData?.userStats && (
                 <StatsCard
                   totalDonations={homeData?.userStats?.totalDonations || 0}
+                  statusTitle={homeData?.userStats?.eligibleToDonate ? "Ready to Donate" : "Not Eligible"}
+                  statusSubtitle={homeData?.userStats?.eligibleToDonate 
+                    ? "You are eligible to donate" 
+                    : homeData?.userStats?.nextEligibleDate 
+                      ? `Next eligible: ${new Date(homeData.userStats.nextEligibleDate).toLocaleDateString()}`
+                      : "Check your donation history"
+                  }
+                  statusIcon={homeData?.userStats?.eligibleToDonate ? "checkmark-circle" : "time-outline"}
                 />
               )}
 

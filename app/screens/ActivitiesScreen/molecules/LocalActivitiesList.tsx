@@ -45,39 +45,54 @@ function LocalActivityCard({ activity, onPress }: LocalActivityCardProps) {
   };
 
   const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    
-    // Check if the date is valid
-    if (isNaN(date.getTime())) {
-      return 'Invalid date';
-    }
-    
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime()) || !timestamp) {
+        return 'Unknown time';
+      }
+      
+      const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor(diffInHours * 60);
-      // Ensure diffInMinutes is a valid number
-      if (isNaN(diffInMinutes)) {
+      // Additional validation for negative dates (future dates)
+      if (diffInHours < 0) {
         return 'Just now';
       }
-      return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
-    } else if (diffInHours < 24) {
-      const hours = Math.floor(diffInHours);
-      // Ensure hours is a valid number
-      if (isNaN(hours)) {
-        return 'Recently';
+
+      if (diffInHours < 1) {
+        const diffInMinutes = Math.floor(diffInHours * 60);
+        // Ensure diffInMinutes is a valid number and positive
+        if (isNaN(diffInMinutes) || diffInMinutes < 0) {
+          return 'Just now';
+        }
+        return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+      } else if (diffInHours < 24) {
+        const hours = Math.floor(diffInHours);
+        // Ensure hours is a valid number and positive
+        if (isNaN(hours) || hours < 0) {
+          return 'Recently';
+        }
+        return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+      } else if (diffInHours < 168) {
+        const days = Math.floor(diffInHours / 24);
+        // Ensure days is a valid number and positive
+        if (isNaN(days) || days < 0) {
+          return 'Recently';
+        }
+        return `${days} day${days !== 1 ? 's' : ''} ago`;
+      } else {
+        // Additional validation for date formatting
+        try {
+          return date.toLocaleDateString();
+        } catch (error) {
+          return 'Some time ago';
+        }
       }
-      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-    } else if (diffInHours < 168) {
-      const days = Math.floor(diffInHours / 24);
-      // Ensure days is a valid number
-      if (isNaN(days)) {
-        return 'Recently';
-      }
-      return `${days} day${days !== 1 ? 's' : ''} ago`;
-    } else {
-      return date.toLocaleDateString();
+    } catch (error) {
+      console.warn('Error formatting date:', timestamp, error);
+      return 'Unknown time';
     }
   };
 
