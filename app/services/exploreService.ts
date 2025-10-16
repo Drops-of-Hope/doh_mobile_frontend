@@ -22,7 +22,8 @@ export interface Campaign {
   actualDonors: number;
   contactPersonName: string;
   contactPersonPhone: string;
-  isApproved: boolean;
+  // Backend may return boolean or enum (PENDING | ACCEPTED | CANCELLED)
+  isApproved: boolean | "PENDING" | "ACCEPTED" | "CANCELLED";
   isActive: boolean;
   imageUrl?: string;
   requirements?: any;
@@ -128,6 +129,7 @@ export interface ExploreSearchParams {
   sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
+  featured?: boolean;
 }
 
 export interface CampaignJoinRequest {
@@ -189,13 +191,118 @@ export const exploreService = {
   // Get upcoming campaigns
   async getUpcomingCampaigns(params?: ExploreSearchParams): Promise<Campaign[]> {
     try {
-      const queryString = params ? new URLSearchParams(params as any).toString() : "";
-      const response = await apiRequestWithAuth(
-        `${API_ENDPOINTS.UPCOMING_CAMPAIGNS}${queryString ? `?${queryString}` : ""}`
-      );
-      return response.data.campaigns;
+      // Normalize and sanitize params to match backend expectations
+      const normalizedParams: Record<string, string> = {};
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === "") return;
+          // Map UI sort key "date" -> backend field "startTime"
+          if (key === "sortBy" && value === "date") {
+            normalizedParams[key] = "startTime";
+          } else {
+            normalizedParams[key] = String(value);
+          }
+        });
+      }
+
+      const queryString = Object.keys(normalizedParams).length
+        ? new URLSearchParams(normalizedParams).toString()
+        : "";
+
+      const primaryUrl = `${API_ENDPOINTS.UPCOMING_CAMPAIGNS}${queryString ? `?${queryString}` : ""}`;
+
+      // Try primary endpoint first
+      let response = await apiRequestWithAuth(primaryUrl);
+
+      // Support multiple possible response shapes
+      const primaryData = response?.data?.campaigns || response?.campaigns || response?.data || response;
+      if (Array.isArray(primaryData)) return primaryData as Campaign[];
+
+      // If not an array, continue to fallbacks
+      throw new Error("Unexpected response shape for upcoming campaigns");
     } catch (error) {
-      console.error("Failed to fetch upcoming campaigns:", error);
+      console.warn("Primary upcoming campaigns endpoint failed, attempting fallbacks...", error);
+
+      // Fallback strategies for compatibility with backend changes
+      const fallbackUrls: string[] = [];
+
+      // 1) Try querying the general campaigns endpoint with an explicit status filter
+      //    Preserve any existing params
+      const baseParams = params ? { ...params } : undefined;
+      const qsParts: string[] = [];
+      // Always ask for upcoming
+      qsParts.push("status=upcoming");
+      if (baseParams) {
+        Object.entries(baseParams).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === "") return;
+          if (key === "sortBy" && value === "date") {
+            qsParts.push(`${key}=startTime`);
+          } else {
+            qsParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+          }
+        });
+      }
+      fallbackUrls.push(`${API_ENDPOINTS.CAMPAIGNS}?${qsParts.join("&")}`);
+
+      // 2) Try a generic filter parameter some backends use
+      fallbackUrls.push(
+        `${API_ENDPOINTS.CAMPAIGNS}?filter=upcoming${qsParts.length ? `&${qsParts.filter(p => !p.startsWith("status=")).join("&")}` : ""}`
+      );
+
+      // 3) Try the bare upcoming endpoint without params
+      fallbackUrls.push(API_ENDPOINTS.UPCOMING_CAMPAIGNS);
+
+      for (const url of fallbackUrls) {
+        try {
+          const res = await apiRequestWithAuth(url);
+          const data = res?.data?.campaigns || res?.campaigns || res?.data || res;
+          if (Array.isArray(data)) return data as Campaign[];
+        } catch (e) {
+          // Continue to next fallback
+        }
+      }
+
+      // 4) As a last resort: fetch all campaigns and filter on client to upcoming
+      try {
+        const res = await apiRequestWithAuth(API_ENDPOINTS.CAMPAIGNS);
+        const data = res?.data?.campaigns || res?.campaigns || res?.data || res;
+        if (Array.isArray(data)) {
+          const now = Date.now();
+          const parsed = (data as any[]).filter((c) => {
+            try {
+              const start = new Date(c.startTime || c.startDate || c.start_time).getTime();
+              const active = c.isActive !== undefined ? !!c.isActive : true;
+              const approved = typeof c.isApproved === "boolean"
+                ? c.isApproved
+                : typeof c.isApproved === "string"
+                ? c.isApproved === "ACCEPTED"
+                : typeof c.approvalStatus === "string"
+                ? c.approvalStatus === "ACCEPTED"
+                : true;
+              return Number.isFinite(start) && start >= now && active && approved;
+            } catch {
+              return false;
+            }
+          });
+
+          // Sort by start time ascending
+          parsed.sort((a, b) => {
+            const sa = new Date(a.startTime || a.startDate || a.start_time).getTime();
+            const sb = new Date(b.startTime || b.startDate || b.start_time).getTime();
+            return sa - sb;
+          });
+
+          // Apply limit if provided
+          const limit = params?.limit ? Number(params.limit) : undefined;
+          const result = limit ? parsed.slice(0, limit) : parsed;
+          return result as Campaign[];
+        }
+      } catch (e) {
+        // fall through to rethrow original error
+      }
+
+      // If all attempts failed, rethrow the original error
+      console.error("Failed to fetch upcoming campaigns after fallbacks.", error);
       throw error;
     }
   },

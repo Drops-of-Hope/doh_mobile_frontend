@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import BottomTabBar from "../shared/organisms/BottomTabBar";
 import { exploreService } from "../../services/exploreService";
+import { campaignService } from "../../services/campaignService";
+import { useAuth } from "../../context/AuthContext";
 import ExploreScreenSkeleton from "../shared/molecules/skeletons/ExploreScreenSkeleton";
 
 // Import refactored components
@@ -45,6 +47,10 @@ const ExploreScreen: React.FC = () => {
     null
   );
   const [campaignDetailsVisible, setCampaignDetailsVisible] = useState(false);
+  const [joiningCampaign, setJoiningCampaign] = useState(false);
+
+  // Auth context
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     loadCampaigns();
@@ -109,48 +115,78 @@ const ExploreScreen: React.FC = () => {
   };
 
   const handleJoinCampaign = async (campaign: Campaign) => {
+    // Check if user is authenticated
+    if (!isAuthenticated || !user) {
+      Alert.alert(
+        "Authentication Required",
+        "Please log in to join campaigns.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Login", 
+            onPress: () => {
+              // Navigation to login would go here
+              console.log("Navigate to login");
+            }
+          },
+        ]
+      );
+      return;
+    }
+
     try {
-      // Close the details modal
+      // Close the details modal for better UX
       setCampaignDetailsVisible(false);
+      setJoiningCampaign(true);
 
-      // Show loading state
-      setLoading(true);
-
-      // Try to join the campaign
-      await exploreService.joinCampaign({
-        campaignId: campaign.id,
-        contactNumber: "", // Could be collected from user input
-        specialRequests: ""
+      // Use the updated campaign service
+      const result = await campaignService.joinCampaign(campaign.id, {
+        contactNumber: user.phone_number || "",
+        specialRequests: "",
+        emergencyContact: "",
       });
 
-      Alert.alert(
-        "Registration Successful!",
-        `You have successfully registered for "${campaign.title}". You will receive a notification with details.\n\nLocation: ${campaign.location}\nDate: ${campaign.date}\nTime: ${campaign.time}`,
-        [{ text: "OK" }]
-      );
+      if (result.success) {
+        Alert.alert(
+          "🎉 Registration Successful!",
+          `You have successfully registered for "${campaign.title}".\n\nParticipation ID: ${result.participationId}\n\nLocation: ${campaign.location}\nDate: ${campaign.date}\nTime: ${campaign.time}\n\nYou will receive notifications with campaign updates and instructions.`,
+          [{ text: "OK" }]
+        );
 
-      // Update participant count
-      const updatedCampaigns = campaigns.map((c) =>
-        c.id === campaign.id ? { ...c, participants: c.participants + 1 } : c
-      );
-      setCampaigns(updatedCampaigns);
+        // Update participant count locally
+        const updatedCampaigns = campaigns.map((c) =>
+          c.id === campaign.id ? { ...c, participants: c.participants + 1 } : c
+        );
+        setCampaigns(updatedCampaigns);
+        setFilteredCampaigns(updatedCampaigns);
+        
+        // Store registration details for future reference
+        console.log("Campaign registration details:", result.registrationDetails);
+      } else {
+        Alert.alert(
+          "Registration Info",
+          result.message,
+          [{ text: "OK" }]
+        );
+      }
     } catch (error) {
       console.error("Join campaign error:", error);
 
-      // For demo purposes, show success even if API fails
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      
       Alert.alert(
-        "Registration Successful!",
-        `You have successfully registered for "${campaign.title}". You will receive a notification with details.\n\nLocation: ${campaign.location}\nDate: ${campaign.date}\nTime: ${campaign.time}`,
-        [{ text: "OK" }]
+        "Registration Failed",
+        `Failed to register for campaign: ${errorMessage}\n\nPlease try again later.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Retry", 
+            onPress: () => handleJoinCampaign(campaign)
+          },
+        ]
       );
-
-      // Update participant count locally for demo
-      const updatedCampaigns = campaigns.map((c) =>
-        c.id === campaign.id ? { ...c, participants: c.participants + 1 } : c
-      );
-      setCampaigns(updatedCampaigns);
     } finally {
-      setLoading(false);
+      setJoiningCampaign(false);
     }
   };
 
@@ -255,6 +291,16 @@ const ExploreScreen: React.FC = () => {
         onJoin={handleJoinCampaign}
       />
 
+      {/* Loading Overlay for Campaign Registration */}
+      {joiningCampaign && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#DC2626" />
+            <Text style={styles.loadingText}>Joining Campaign...</Text>
+          </View>
+        </View>
+      )}
+
       <BottomTabBar activeTab="explore" />
     </SafeAreaView>
   );
@@ -283,6 +329,34 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     textAlign: "center",
     lineHeight: 24,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  loadingCard: {
+    backgroundColor: "white",
+    padding: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
   },
 });
 

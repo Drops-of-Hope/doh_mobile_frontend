@@ -753,6 +753,136 @@ class CampaignService {
       throw new Error("Failed to fetch notifications");
     }
   }
+
+  // Join a campaign (user registration for campaigns)
+  async joinCampaign(campaignId: string, registrationData?: {
+    contactNumber?: string;
+    specialRequests?: string;
+    emergencyContact?: string;
+  }): Promise<{
+    success: boolean;
+    participationId: string;
+    message: string;
+    registrationDetails: {
+      campaignId: string;
+      userId: string;
+      registeredAt: string;
+      status: "registered" | "waitlisted";
+    };
+  }> {
+    try {
+      console.log("🏥 Joining campaign:", campaignId, "with data:", registrationData);
+      
+      const payload = {
+        campaignId,
+        contactNumber: registrationData?.contactNumber || "",
+        specialRequests: registrationData?.specialRequests || "",
+        emergencyContact: registrationData?.emergencyContact || "",
+        registrationSource: "MOBILE_APP",
+        timestamp: new Date().toISOString(),
+      };
+
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.JOIN_CAMPAIGN.replace(":id", campaignId),
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        }
+      );
+
+      console.log("✅ Campaign registration successful:", response);
+      
+      return {
+        success: true,
+        participationId: response.data?.participationId || response.data?.id,
+        message: response.data?.message || "Successfully registered for campaign",
+        registrationDetails: {
+          campaignId,
+          userId: response.data?.userId || "",
+          registeredAt: response.data?.registeredAt || new Date().toISOString(),
+          status: response.data?.status || "registered",
+        },
+      };
+    } catch (error) {
+      console.error("❌ Failed to join campaign:", error);
+      
+      // Handle specific error cases
+      if (error instanceof Error) {
+        if (error.message.includes("409") || error.message.includes("already registered")) {
+          return {
+            success: false,
+            participationId: "",
+            message: "You are already registered for this campaign",
+            registrationDetails: {
+              campaignId,
+              userId: "",
+              registeredAt: "",
+              status: "registered",
+            },
+          };
+        }
+        
+        if (error.message.includes("404")) {
+          throw new Error("Campaign not found or no longer available");
+        }
+        
+        if (error.message.includes("403") || error.message.includes("full")) {
+          throw new Error("Campaign is full. You have been added to the waitlist.");
+        }
+      }
+      
+      throw new Error("Failed to register for campaign. Please try again later.");
+    }
+  }
+
+  // Check user's registration status for a campaign
+  async getCampaignRegistrationStatus(campaignId: string): Promise<{
+    isRegistered: boolean;
+    registrationId?: string;
+    status?: "registered" | "waitlisted" | "cancelled";
+    registeredAt?: string;
+  }> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}/my-registration`,
+        {
+          method: "GET",
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error("Failed to check registration status:", error);
+      // If 404, user is not registered
+      if (error instanceof Error && error.message.includes("404")) {
+        return { isRegistered: false };
+      }
+      throw error;
+    }
+  }
+
+  // Cancel campaign registration
+  async cancelCampaignRegistration(campaignId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}/cancel-registration`,
+        {
+          method: "DELETE",
+        }
+      );
+      
+      return {
+        success: true,
+        message: "Registration cancelled successfully",
+      };
+    } catch (error) {
+      console.error("Failed to cancel registration:", error);
+      throw new Error("Failed to cancel registration");
+    }
+  }
 }
 
 export const campaignService = new CampaignService();
