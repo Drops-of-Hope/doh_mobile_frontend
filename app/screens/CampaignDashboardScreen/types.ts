@@ -44,7 +44,7 @@ export interface AnalyticsSectionProps {
 export interface DashboardHeaderProps {
   title: string;
   onBack: () => void;
-  onAdd: () => void;
+  onAdd?: () => void;
 }
 
 export { CampaignType };

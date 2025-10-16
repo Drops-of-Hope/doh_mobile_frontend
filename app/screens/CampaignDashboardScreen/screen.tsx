@@ -48,7 +48,8 @@ export default function CampaignDashboardScreen({
     upcoming: [],
     previous: [],
   });
-  const [activeCampaignStats, setActiveCampaignStats] = useState<DashboardStats | null>(null);
+  const [activeCampaignStats, setActiveCampaignStats] =
+    useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -78,9 +79,17 @@ export default function CampaignDashboardScreen({
     });
 
     // Sort each category
-    categorized.active.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-    categorized.upcoming.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-    categorized.previous.sort((a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime());
+    categorized.active.sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+    categorized.upcoming.sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+    categorized.previous.sort(
+      (a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime()
+    );
 
     return categorized;
   };
@@ -91,11 +100,11 @@ export default function CampaignDashboardScreen({
         console.log("Loading campaigns for user:", user.sub);
         const userCampaigns = await loadUserCampaigns(user.sub);
         console.log("Received campaigns:", userCampaigns);
-        
+
         if (Array.isArray(userCampaigns)) {
           const categorized = categorizeByStatus(userCampaigns);
           setCampaigns(categorized);
-          
+
           // Load stats for the first active campaign
           if (categorized.active.length > 0) {
             await loadStats(categorized.active[0].id);
@@ -111,7 +120,10 @@ export default function CampaignDashboardScreen({
     } catch (error) {
       console.error("Failed to load campaigns:", error);
       setCampaigns({ active: [], upcoming: [], previous: [] });
-      Alert.alert("Error", "Failed to load campaigns. Please check your connection and try again.");
+      Alert.alert(
+        "Error",
+        "Failed to load campaigns. Please check your connection and try again."
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -158,11 +170,14 @@ export default function CampaignDashboardScreen({
     await debugAllUserIds();
     console.log("Auth context user:", user);
     console.log("Auth context user.sub:", user?.sub);
-    
+
     console.log("=== TESTING BACKEND ENDPOINTS ===");
     await testBackendEndpoints();
-    
-    Alert.alert("Debug Complete", "Check console for user ID and endpoint information");
+
+    Alert.alert(
+      "Debug Complete",
+      "Check console for user ID and endpoint information"
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -170,7 +185,10 @@ export default function CampaignDashboardScreen({
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   if (loading) {
@@ -200,8 +218,8 @@ export default function CampaignDashboardScreen({
         onAdd={handleCreateCampaign}
       />
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -212,18 +230,25 @@ export default function CampaignDashboardScreen({
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🔴 Active Campaign</Text>
             {campaigns.active.map((campaign) => (
-              <View key={campaign.id} style={[styles.campaignCard, styles.activeCampaignCard]}>
+              <View
+                key={campaign.id}
+                style={[styles.campaignCard, styles.activeCampaignCard]}
+              >
                 <View style={styles.campaignHeader}>
                   <Text style={styles.campaignTitle}>{campaign.title}</Text>
                   <View style={styles.statusBadge}>
                     <Text style={styles.statusText}>LIVE</Text>
                   </View>
                 </View>
-                
+
                 <View style={styles.campaignInfo}>
-                  <Text style={styles.campaignLocation}>📍 {campaign.location}</Text>
+                  <Text style={styles.campaignLocation}>
+                    {" "}
+                    {campaign.location}
+                  </Text>
                   <Text style={styles.campaignTime}>
-                    🕒 {formatTime(campaign.startTime)} - {formatTime(campaign.endTime)}
+                    {formatTime(campaign.startTime)} -{" "}
+                    {formatTime(campaign.endTime)}
                   </Text>
                 </View>
 
@@ -232,19 +257,27 @@ export default function CampaignDashboardScreen({
                     <Text style={styles.statsTitle}>Real-time Progress</Text>
                     <View style={styles.statsGrid}>
                       <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>{activeCampaignStats.totalAttendance}</Text>
+                        <Text style={styles.statNumber}>
+                          {activeCampaignStats.totalAttendance}
+                        </Text>
                         <Text style={styles.statLabel}>Attendees</Text>
                       </View>
                       <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>{activeCampaignStats.screenedPassed}</Text>
+                        <Text style={styles.statNumber}>
+                          {activeCampaignStats.screenedPassed}
+                        </Text>
                         <Text style={styles.statLabel}>Screened</Text>
                       </View>
                       <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>{activeCampaignStats.currentDonations}</Text>
+                        <Text style={styles.statNumber}>
+                          {activeCampaignStats.currentDonations}
+                        </Text>
                         <Text style={styles.statLabel}>Donations</Text>
                       </View>
                       <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>{Math.round(activeCampaignStats.goalProgress)}%</Text>
+                        <Text style={styles.statNumber}>
+                          {Math.round(activeCampaignStats.goalProgress)}%
+                        </Text>
                         <Text style={styles.statLabel}>Goal</Text>
                       </View>
                     </View>
@@ -259,7 +292,7 @@ export default function CampaignDashboardScreen({
                     <Ionicons name="qr-code" size={20} color="#fff" />
                     <Text style={styles.actionButtonText}>QR Scan</Text>
                   </TouchableOpacity>
-                  
+
                   <TouchableOpacity
                     style={[styles.actionButton, styles.detailsButton]}
                     onPress={() => handleCampaignDetails(campaign.id)}
@@ -276,21 +309,28 @@ export default function CampaignDashboardScreen({
         {/* Upcoming Campaigns Section */}
         {campaigns.upcoming.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>⏰ Upcoming Campaigns</Text>
+            <Text style={styles.sectionTitle}> Upcoming Campaigns</Text>
             {campaigns.upcoming.map((campaign) => (
               <View key={campaign.id} style={styles.campaignCard}>
                 <View style={styles.campaignHeader}>
                   <Text style={styles.campaignTitle}>{campaign.title}</Text>
                   <View style={[styles.statusBadge, styles.upcomingBadge]}>
-                    <Text style={[styles.statusText, styles.upcomingText]}>UPCOMING</Text>
+                    <Text style={[styles.statusText, styles.upcomingText]}>
+                      UPCOMING
+                    </Text>
                   </View>
                 </View>
-                
+
                 <View style={styles.campaignInfo}>
-                  <Text style={styles.campaignLocation}>📍 {campaign.location}</Text>
-                  <Text style={styles.campaignDate}>📅 {formatDate(campaign.startTime)}</Text>
+                  <Text style={styles.campaignLocation}>
+                    {campaign.location}
+                  </Text>
+                  <Text style={styles.campaignDate}>
+                    {formatDate(campaign.startTime)}
+                  </Text>
                   <Text style={styles.campaignTime}>
-                    🕒 {formatTime(campaign.startTime)} - {formatTime(campaign.endTime)}
+                    {formatTime(campaign.startTime)} -{" "}
+                    {formatTime(campaign.endTime)}
                   </Text>
                 </View>
 
@@ -302,7 +342,7 @@ export default function CampaignDashboardScreen({
                     <Ionicons name="create" size={20} color="#fff" />
                     <Text style={styles.actionButtonText}>Edit</Text>
                   </TouchableOpacity>
-                  
+
                   <TouchableOpacity
                     style={[styles.actionButton, styles.detailsButton]}
                     onPress={() => handleCampaignDetails(campaign.id)}
@@ -319,33 +359,44 @@ export default function CampaignDashboardScreen({
         {/* Previous Campaigns Section */}
         {campaigns.previous.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📊 Previous Campaigns (Track Record)</Text>
+            <Text style={styles.sectionTitle}>
+              📊 Previous Campaigns (Track Record)
+            </Text>
             {campaigns.previous.map((campaign) => (
-              <TouchableOpacity 
-                key={campaign.id} 
+              <TouchableOpacity
+                key={campaign.id}
                 style={[styles.campaignCard, styles.previousCampaignCard]}
                 onPress={() => handleCampaignDetails(campaign.id)}
               >
                 <View style={styles.campaignHeader}>
                   <Text style={styles.campaignTitle}>{campaign.title}</Text>
                   <View style={[styles.statusBadge, styles.completedBadge]}>
-                    <Text style={[styles.statusText, styles.completedText]}>COMPLETED</Text>
+                    <Text style={[styles.statusText, styles.completedText]}>
+                      COMPLETED
+                    </Text>
                   </View>
                 </View>
-                
+
                 <View style={styles.campaignInfo}>
-                  <Text style={styles.campaignLocation}>📍 {campaign.location}</Text>
-                  <Text style={styles.campaignDate}>📅 {formatDate(campaign.startTime)}</Text>
+                  <Text style={styles.campaignLocation}>
+                    {campaign.location}
+                  </Text>
+                  <Text style={styles.campaignDate}>
+                    {formatDate(campaign.startTime)}
+                  </Text>
                 </View>
 
                 <View style={styles.campaignSummary}>
                   <Text style={styles.summaryText}>
-                    🎯 Goal: {campaign.donationGoal || 'N/A'} | Actual: {campaign.actualDonors || 0}
+                    Goal: {campaign.donationGoal || "N/A"} | Actual:{" "}
+                    {campaign.actualDonors || 0}
                   </Text>
                 </View>
-                
+
                 <View style={styles.viewMoreIndicator}>
-                  <Text style={styles.viewMoreText}>Tap to view full details</Text>
+                  <Text style={styles.viewMoreText}>
+                    Tap to view full details
+                  </Text>
                   <Ionicons name="chevron-forward" size={16} color="#666" />
                 </View>
               </TouchableOpacity>
@@ -354,29 +405,25 @@ export default function CampaignDashboardScreen({
         )}
 
         {/* No Campaigns State */}
-        {campaigns.active.length === 0 && campaigns.upcoming.length === 0 && campaigns.previous.length === 0 && (
-          <View style={styles.emptyState}>
-            <Ionicons name="calendar-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyStateTitle}>No Campaigns Yet</Text>
-            <Text style={styles.emptyStateText}>
-              Start organizing blood donation campaigns to help save lives
-            </Text>
-            <TouchableOpacity
-              style={styles.createFirstCampaignButton}
-              onPress={handleCreateCampaign}
-            >
-              <Text style={styles.createFirstCampaignText}>Create Your First Campaign</Text>
-            </TouchableOpacity>
-            
-            {/* Debug button - remove in production */}
-            <TouchableOpacity
-              style={[styles.createFirstCampaignButton, { backgroundColor: "#3182CE", marginTop: 12 }]}
-              onPress={handleDebugUserIds}
-            >
-              <Text style={styles.createFirstCampaignText}>Debug User IDs</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {campaigns.active.length === 0 &&
+          campaigns.upcoming.length === 0 &&
+          campaigns.previous.length === 0 && (
+            <View style={styles.emptyState}>
+              <Ionicons name="calendar-outline" size={64} color="#ccc" />
+              <Text style={styles.emptyStateTitle}>No Campaigns Yet</Text>
+              <Text style={styles.emptyStateText}>
+                Start organizing blood donation campaigns to help save lives
+              </Text>
+              <TouchableOpacity
+                style={styles.createFirstCampaignButton}
+                onPress={handleCreateCampaign}
+              >
+                <Text style={styles.createFirstCampaignText}>
+                  Create Your First Campaign
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -536,10 +583,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#E53E3E",
   },
   editButton: {
-    backgroundColor: "#3182CE",
+    backgroundColor: "#E53E3E",
   },
   detailsButton: {
-    backgroundColor: "#38A169",
+    backgroundColor: "#E53E3E",
   },
   actionButtonText: {
     color: "#FFFFFF",

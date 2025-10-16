@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import CampaignCard from "../../../../components/molecules/HomeScreen/CampaignCard";
+import CampaignCard from "../../HomeScreen/molecules/CampaignCard";
 import { Campaign } from "../types";
 
 interface CampaignListProps {

@@ -1,32 +1,73 @@
 import { Appointment, UserProfile } from "./types";
+import { appointmentService } from "../../services/appointmentService";
+import type { Appointment as ServiceAppointment, MedicalEstablishment } from "../../services/appointmentService";
 
-// Mock appointments data
-export const getMockAppointments = (): Appointment[] => [
-  {
-    id: "1",
-    hospital: "City General Hospital",
-    date: "2024-01-15",
-    time: "10:00 AM",
-    location: "Blood Bank Unit, 3rd Floor",
-    status: "upcoming",
-  },
-  {
-    id: "2",
-    hospital: "University Medical Center",
-    date: "2023-12-20",
-    time: "2:00 PM",
-    location: "Donation Center",
-    status: "completed",
-  },
-  {
-    id: "3",
-    hospital: "District Hospital",
-    date: "2023-11-10",
-    time: "9:30 AM",
-    location: "Mobile Unit - Parking Lot",
-    status: "completed",
-  },
-];
+// Transform service appointment to screen appointment format
+const transformAppointmentForDisplay = (
+  serviceAppointment: ServiceAppointment, 
+  medicalEstablishment?: MedicalEstablishment
+): Appointment => {
+  const appointmentDate = new Date(serviceAppointment.appointmentDate);
+  
+  return {
+    id: serviceAppointment.id,
+    hospital: medicalEstablishment?.name || "Unknown Hospital",
+    date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD format
+    time: appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    location: medicalEstablishment?.address || "Location TBD",
+    status: serviceAppointment.scheduled === "PENDING" 
+      ? "upcoming" 
+      : serviceAppointment.scheduled === "COMPLETED" 
+        ? "completed" 
+        : "cancelled"
+  };
+};
+
+// Get user's appointment history (last 5) and upcoming appointments
+export const getUserAppointments = async (userId: string): Promise<{
+  upcoming: Appointment[];
+  history: Appointment[];
+}> => {
+  try {
+    const serviceAppointments = await appointmentService.getUserAppointments(userId);
+    
+    // Sort appointments by date (newest first)
+    const sortedAppointments = serviceAppointments.sort((a, b) => 
+      new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime()
+    );
+    
+    const now = new Date();
+    
+    // Separate upcoming and completed appointments
+    const upcomingAppointments = sortedAppointments
+      .filter(apt => {
+        const aptDate = new Date(apt.appointmentDate);
+        return aptDate >= now && apt.scheduled === "PENDING";
+      })
+      .map(apt => transformAppointmentForDisplay(apt));
+    
+    // Get last 5 completed appointments
+    const historyAppointments = sortedAppointments
+      .filter(apt => {
+        const aptDate = new Date(apt.appointmentDate);
+        return aptDate < now || apt.scheduled === "COMPLETED";
+      })
+      .slice(0, 5) // Last 5 appointments
+      .map(apt => transformAppointmentForDisplay(apt));
+    
+    return {
+      upcoming: upcomingAppointments,
+      history: historyAppointments
+    };
+  } catch (error) {
+    console.error("Error fetching user appointments:", error);
+    // Return empty arrays on error
+    return {
+      upcoming: [],
+      history: []
+    };
+  }
+};
 
 // NOTE: Removed mock user profile helper. The donation screen now uses the
 // authenticated user from AuthContext. If you need a test user while

@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "react-native";
-import AppointmentBookingForm from "../../../../components/organisms/DonationScreen/AppointmentBookingForm";
+import AppointmentBookingForm from "../organisms/AppointmentBookingForm";
 
 interface AppointmentBookingModalProps {
   visible: boolean;

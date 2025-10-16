@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "react-native";
-import LanguageSelectionScreen from "../../LanguageSelectionScreen";
+import LanguageSelectionScreen from "../../LanguageSelectionScreen/screen";
 
 interface LanguageModalProps {
   visible: boolean;

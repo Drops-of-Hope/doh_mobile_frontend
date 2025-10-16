@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Campaign } from "../types";
+import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 
 interface CampaignDetailsModalProps {
   visible: boolean;
@@ -210,13 +211,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.LG,
     alignItems: "center",
-    backgroundColor: "#10B981",
+    backgroundColor: COLORS.PRIMARY,
   },
   joinButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "white",
+    color: COLORS.BACKGROUND,
   },
 });

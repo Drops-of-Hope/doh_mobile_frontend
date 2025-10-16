@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Modal, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
   FlatList,
-  Pressable 
+  Pressable,
 } from "react-native";
 import { DropdownFieldProps } from "../types";
 
@@ -21,7 +21,7 @@ export default function DropdownField({
 }: DropdownFieldProps) {
   const [isVisible, setIsVisible] = useState(false);
 
-  const selectedOption = options.find(option => option.value === value);
+  const selectedOption = options.find((option) => option.value === value);
 
   const handleSelect = (selectedValue: string) => {
     onValueChange(selectedValue);
@@ -33,7 +33,7 @@ export default function DropdownField({
       <Text style={styles.label}>
         {label} {required && <Text style={styles.required}>*</Text>}
       </Text>
-      
+
       <TouchableOpacity
         style={[styles.dropdown, error && styles.dropdownError]}
         onPress={() => setIsVisible(true)}
@@ -49,11 +49,11 @@ export default function DropdownField({
       <Modal
         visible={isVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setIsVisible(false)}
       >
-        <Pressable 
-          style={styles.modalOverlay} 
+        <Pressable
+          style={styles.modalOverlay}
           onPress={() => setIsVisible(false)}
         >
           <View style={styles.modalContent}>
@@ -63,22 +63,26 @@ export default function DropdownField({
                 <Text style={styles.closeButton}>✕</Text>
               </TouchableOpacity>
             </View>
-            
+
             <FlatList
               data={options}
               keyExtractor={(item) => item.value}
+              showsVerticalScrollIndicator={true}
+              maxToRenderPerBatch={20}
+              initialNumToRender={20}
+              style={styles.optionsList}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
                     styles.option,
-                    item.value === value && styles.selectedOption
+                    item.value === value && styles.selectedOption,
                   ]}
                   onPress={() => handleSelect(item.value)}
                 >
                   <Text
                     style={[
                       styles.optionText,
-                      item.value === value && styles.selectedOptionText
+                      item.value === value && styles.selectedOptionText,
                     ]}
                   >
                     {item.label}
@@ -100,29 +104,30 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1F2937",
+    color: "#374151",
     marginBottom: 8,
   },
   required: {
     color: "#DC2626",
   },
   dropdown: {
-    backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#D1D5DB",
     borderRadius: 8,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    minHeight: 50,
+    minHeight: 48,
   },
   dropdownError: {
     borderColor: "#DC2626",
   },
   dropdownText: {
     fontSize: 16,
-    color: "#1F2937",
+    color: "#374151",
     flex: 1,
   },
   placeholderText: {
@@ -131,10 +136,11 @@ const styles = StyleSheet.create({
   arrow: {
     fontSize: 12,
     color: "#6B7280",
+    marginLeft: 8,
   },
   errorText: {
-    color: "#DC2626",
     fontSize: 14,
+    color: "#DC2626",
     marginTop: 4,
   },
   modalOverlay: {
@@ -142,38 +148,47 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 20,
   },
   modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    width: "90%",
-    maxHeight: "60%",
+    backgroundColor: "#FFFFFF",
+    width: "100%",
+    height: "60%", // 3/5th of the view
+    borderRadius: 20,
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowRadius: 10,
+    elevation: 10,
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
+    backgroundColor: "#FAFBFC",
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1F2937",
+    color: "#374151",
   },
   closeButton: {
     fontSize: 20,
     color: "#6B7280",
-    padding: 4,
+    padding: 8,
+    fontWeight: "bold",
+  },
+  optionsList: {
+    flex: 1,
   },
   option: {
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
@@ -183,7 +198,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 16,
-    color: "#1F2937",
+    color: "#374151",
   },
   selectedOptionText: {
     color: "#DC2626",

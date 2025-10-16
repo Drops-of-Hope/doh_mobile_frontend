@@ -22,7 +22,7 @@ export default function CampaignSelector({
             <CampaignInfo campaign={activeCampaign} />
 
             <View style={styles.campaignStatus}>
-              <StatusBadge status={activeCampaign.status} />
+              <StatusBadge status={activeCampaign.status || "unknown"} />
               <Ionicons name="chevron-down" size={20} color="#666" />
             </View>
           </>

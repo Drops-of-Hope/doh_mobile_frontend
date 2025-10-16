@@ -11,15 +11,19 @@ import {
 } from "react-native";
 
 // Import existing components
-import BottomTabBar from "../../../components/organisms/BottomTabBar";
-import StatsCard from "../../../components/molecules/HomeScreen/StatsCard";
-import ComponentRow from "../../../components/molecules/HomeScreen/ComponentRow";
-import EmergenciesSection from "../../../components/organisms/HomeScreen/EmergenciesSection";
-import CampaignsSection from "../../../components/organisms/HomeScreen/CampaignsSection";
-import AppointmentSection from "../../../components/organisms/HomeScreen/AppointmentSection";
+import BottomTabBar from "../shared/organisms/BottomTabBar";
+import StatsCard from "./molecules/StatsCard";
+import ComponentRow from "./molecules/ComponentRow";
+import EmergenciesSection from "./organisms/EmergenciesSection";
+import AppointmentSection from "./organisms/AppointmentSection";
+import HomeHeader from "./organisms/HomeHeader";
+import NextDonationCard from "./molecules/NextDonationCard";
+import ThankYouCard from "./molecules/ThankYouCard";
 
 // Import new components
-import UserQRModal from "../../../components/organisms/UserQRModal";
+import UserQRModal from "../shared/organisms/UserQRModal";
+import HomeScreenSkeleton from "../shared/molecules/skeletons/HomeScreenSkeleton";
+import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
 
 // Import services
 import { homeService, HomeScreenData } from "../../services/homeService";
@@ -28,6 +32,7 @@ import { userService } from "../../services/userService";
 // Import context
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { useAuthUser } from "../../hooks/useAuthUser";
 
 interface HomeScreenProps {
   navigation?: any;
@@ -40,10 +45,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
 
   // Context
   const { user, getFirstName, logout } = useAuth();
   const { t } = useLanguage();
+  const { getStoredUserData } = useAuthUser();
 
   // Helper functions
   const getLastDonationDays = () => {
@@ -56,16 +63,40 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   useEffect(() => {
+    checkProfileCompletion();
     loadHomeData();
   }, []);
 
+  const checkProfileCompletion = async () => {
+    try {
+      const userData = await getStoredUserData();
+      if (userData?.needsProfileCompletion) {
+        setShowProfileCompletion(true);
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking profile completion:", error);
+    }
+  };
+
   const loadHomeData = async () => {
+    // Don't load if profile completion is needed
+    if (showProfileCompletion) return;
+    
     try {
       setLoading(true);
       const data = await homeService.getHomeData();
       setHomeData(data);
     } catch (error) {
       console.error("Failed to load home data:", error);
+      
+      // Check if error is due to user not existing
+      if (error instanceof Error && error.message.includes("User not found")) {
+        // User needs to complete profile setup
+        setShowProfileCompletion(true);
+        return;
+      }
+      
       Alert.alert(
         t("home.error_title"),
         t("home.load_error"),
@@ -74,6 +105,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleProfileComplete = async (userInfo: any) => {
+    setShowProfileCompletion(false);
+    // Reload home data after profile completion
+    await loadHomeData();
   };
 
   const handleRefresh = useCallback(async () => {
@@ -92,14 +129,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     navigation?.navigate("EmergencyDetails", { emergencyId });
   };
 
-  const handleCampaignPress = (campaignId: string) => {
-    navigation?.navigate("CampaignDetails", { campaignId });
-  };
-
-  const handleAppointmentPress = (appointmentId: string) => {
-    navigation?.navigate("AppointmentDetails", { appointmentId });
-  };
-
   const handleQRPress = () => {
     setShowQRModal(true);
   };
@@ -110,10 +139,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   const handleViewAllEmergencies = () => {
     navigation?.navigate("AllEmergencies");
-  };
-
-  const handleViewAllCampaigns = () => {
-    navigation?.navigate("AllCampaigns");
   };
 
   const handleBookAppointment = () => {
@@ -136,43 +161,40 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const getEmergenciesData = () => {
     if (!homeData?.emergencies) return [];
     
-    return homeData.emergencies.map(emergency => ({
-      id: parseInt(emergency.id, 10) || 0,
-      hospital: emergency.hospital.name,
-      bloodType: emergency.bloodTypesNeeded.join(", "),
-      slotsUsed: 0, // Calculate based on responses
-      totalSlots: Object.values(emergency.quantityNeeded).reduce((a, b) => a + b, 0),
-      urgency: emergency.urgencyLevel as any,
-      timeLeft: calculateTimeLeft(emergency.expiresAt),
-      description: emergency.description,
-      contactNumber: emergency.contactNumber,
-      address: emergency.hospital.address,
-      requirements: emergency.specialInstructions,
-    }));
-  };
-
-  const getCampaignsData = () => {
-    if (!homeData?.featuredCampaigns) return [];
-    
-    return homeData.featuredCampaigns.map(campaign => ({
-      id: parseInt(campaign.id, 10) || 0,
-      title: campaign.title,
-      date: formatDate(campaign.startTime),
-      location: campaign.location,
-      slotsUsed: campaign.actualDonors,
-      totalSlots: campaign.expectedDonors,
-      urgency: "Moderate" as any, // Map based on availability
-    }));
+    return homeData.emergencies.map((emergency, index) => {
+      const parsedId = emergency.id ? parseInt(emergency.id, 10) : null;
+      const uniqueId = (parsedId && !isNaN(parsedId)) ? parsedId : index + 1000;
+      
+      return {
+        id: uniqueId,
+        hospital: emergency.hospital?.name || "",
+        bloodType: Array.isArray(emergency.bloodTypesNeeded) 
+          ? emergency.bloodTypesNeeded.join(", ") 
+          : "",
+        slotsUsed: 0, // Calculate based on responses
+        totalSlots: emergency.quantityNeeded 
+          ? Object.values(emergency.quantityNeeded).reduce((a, b) => a + b, 0)
+          : 0,
+        urgency: emergency.urgencyLevel as any,
+        timeLeft: calculateTimeLeft(emergency.expiresAt),
+        description: emergency.description || "",
+        contactNumber: emergency.contactNumber || "",
+        address: emergency.hospital?.address || "",
+        requirements: emergency.specialInstructions || "",
+      };
+    });
   };
 
   const getUpcomingAppointment = () => {
     if (!homeData?.upcomingAppointments?.length) return null;
     
     const appointment = homeData.upcomingAppointments[0];
+    if (!appointment) return null;
+    
     return {
-      id: appointment.id,
-      date: formatDate(appointment.appointmentDateTime),
-      time: formatTime(appointment.appointmentDateTime),
+      id: appointment.id || "",
+      date: appointment.appointmentDateTime ? formatDate(appointment.appointmentDateTime) : "",
+      time: appointment.appointmentDateTime ? formatTime(appointment.appointmentDateTime) : "",
       location: appointment.location || appointment.medicalEstablishment?.name || "",
       hospital: appointment.medicalEstablishment?.name || "",
       status: appointment.scheduled as any,
@@ -180,8 +202,14 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   const calculateTimeLeft = (expiresAt: string): string => {
+    if (!expiresAt) return t("home.expired");
+    
     const now = new Date();
     const expiry = new Date(expiresAt);
+    
+    // Check if the date is valid
+    if (isNaN(expiry.getTime())) return t("home.expired");
+    
     const diff = expiry.getTime() - now.getTime();
     
     if (diff <= 0) return t("home.expired");
@@ -196,11 +224,15 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? "" : date.toLocaleDateString();
   };
 
   const formatTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleTimeString([], { 
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
@@ -208,60 +240,87 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Stats Section */}
-        {homeData?.userStats && (
-          <StatsCard
-            totalDonations={homeData?.userStats?.totalDonations || 0}
-          />
-        )}
-
-        {/* Component Row - Quick Actions */}
-        <ComponentRow 
-          bloodType={user?.bloodType || 'A+'} 
-          lastDonationDays={getLastDonationDays() || 0} 
+      {/* Show Profile Completion Screen if needed */}
+      {showProfileCompletion ? (
+        <ProfileCompletionScreen
+          userId={user?.sub || ""}
+          onComplete={handleProfileComplete}
+          onSkip={() => setShowProfileCompletion(false)}
         />
+      ) : (
+        <>
+          {/* Header Section with Welcome Message */}
+          <View style={styles.headerContainer}>
+            <HomeHeader
+              firstName={getFirstName() || "User"}
+              donorLevel="Bronze Donor" // This could be dynamic based on user stats
+              searchText={searchText}
+              onSearchTextChange={setSearchText}
+              onLogout={logout}
+            />
+          </View>
+          
+          {loading ? (
+            <HomeScreenSkeleton />
+          ) : (
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+              }
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Stats Section */}
+              {homeData?.userStats && (
+                <StatsCard
+                  totalDonations={homeData?.userStats?.totalDonations || 0}
+                />
+              )}
 
-        {/* Upcoming Appointment */}
-        {homeData?.upcomingAppointments && homeData.upcomingAppointments.length > 0 && (
-          <AppointmentSection
-            appointment={getUpcomingAppointment()}
-            onViewDetails={(appointment) => handleAppointmentPress(appointment.id)}
-          />
-        )}
+              {/* Component Row - Quick Actions */}
+              <ComponentRow 
+                bloodType={user?.bloodType || user?.bloodGroup || 'A+'} 
+                lastDonationDays={getLastDonationDays() || 0} 
+              />
 
-        {/* Emergencies Section */}
-        {homeData?.emergencies && homeData.emergencies.length > 0 && (
-          <EmergenciesSection
-            emergencies={getEmergenciesData()}
-            onDonate={(emergency) => handleEmergencyPress(emergency.id.toString())}
-            onViewAll={handleViewAllEmergencies}
-          />
-        )}
+              {/* Upcoming Appointment */}
+              {homeData?.upcomingAppointments && homeData.upcomingAppointments.length > 0 && (
+                <AppointmentSection
+                  appointment={getUpcomingAppointment()}
+                />
+              )}
 
-        {/* Campaigns Section */}
-        {homeData?.featuredCampaigns && homeData.featuredCampaigns.length > 0 && (
-          <CampaignsSection
-            campaigns={getCampaignsData()}
-            onCampaignPress={(campaign) => handleCampaignPress(campaign.id.toString())}
-            onViewAll={handleViewAllCampaigns}
-          />
-        )}
+              {/* Emergencies Section */}
+              {homeData?.emergencies && homeData.emergencies.length > 0 && (
+                <EmergenciesSection
+                  emergencies={getEmergenciesData()}
+                  onDonate={(emergency) => handleEmergencyPress(emergency.id.toString())}
+                  onViewAll={handleViewAllEmergencies}
+                />
+              )}
 
-        {/* Bottom Padding */}
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+              {/* Next Donation Date Card */}
+              <NextDonationCard 
+                lastDonationDate={homeData?.userStats?.lastDonationDate}
+                nextEligibleDate={homeData?.userStats?.nextEligibleDate}
+                eligibleToDonate={homeData?.userStats?.eligibleToDonate}
+              />
 
-      {/* Bottom Tab Bar */}
-      <BottomTabBar activeTab="Home" />
+              {/* Thank You Card */}
+              <ThankYouCard />
+
+              {/* Bottom Padding */}
+              <View style={styles.bottomPadding} />
+            </ScrollView>
+          )}
+
+          {/* Bottom Tab Bar */}
+          <BottomTabBar activeTab="home" />
+        </>
+      )}
 
       {/* QR Code Modal */}
       <UserQRModal
@@ -277,8 +336,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
+  headerContainer: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   bottomPadding: {
     height: 100, // Space for bottom tab bar

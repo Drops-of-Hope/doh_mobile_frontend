@@ -1,6 +1,6 @@
 import React from "react";
 import { FlatList, Text, View, StyleSheet } from "react-native";
-import EmergencyCard from "../../../../components/molecules/HomeScreen/EmergencyCard";
+import EmergencyCard from "../../HomeScreen/molecules/EmergencyCard";
 import { Emergency } from "../types";
 
 interface EmergencyListProps {

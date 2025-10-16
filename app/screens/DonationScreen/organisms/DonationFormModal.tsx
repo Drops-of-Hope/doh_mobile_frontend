@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "react-native";
-import DonationForm from "../../../../components/organisms/DonationForm";
+import DonationForm from "../../shared/organisms/DonationForm";
 
 interface DonationFormModalProps {
   visible: boolean;

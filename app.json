@@ -4,7 +4,10 @@
     "slug": "doh_mobile_frontend",
     "version": "1.0.0",
     "scheme": "com.dropsofhope",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -29,6 +32,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": [
+      "expo-secure-store",
+      "expo-router"
+    ]
   }
 }
