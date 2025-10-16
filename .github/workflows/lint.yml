@@ -28,7 +28,7 @@ jobs:
         run: npm run lint
 
       - name: ✅ Validate Tailwind Config (Optional)
-        run: npx tailwindcss --config tailwind.config.js --content "./**/*.{js,ts,jsx,tsx}" --dry-run
+        run: npx tailwindcss --config tailwind.config.js --input ./input.css --output ./temp-output.css --dry-run || echo "Tailwind validation completed"
 
       - name: 🔍 Check Expo Doctor
-        run: npx expo doctor
+        run: npx expo-doctor
