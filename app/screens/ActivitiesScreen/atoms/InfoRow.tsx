@@ -13,10 +13,13 @@ export default function InfoRow({
   text,
   iconColor = "#6B7280",
 }: InfoRowProps) {
+  // Safety check: ensure text is a valid string
+  const displayText = text != null ? String(text) : '';
+  
   return (
     <View style={styles.infoRow}>
       <Ionicons name={icon} size={16} color={iconColor} />
-      <Text style={styles.infoText}>{text}</Text>
+      <Text style={styles.infoText}>{displayText}</Text>
     </View>
   );
 }

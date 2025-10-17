@@ -24,6 +24,7 @@ import { COLORS, SPACING, BORDER_RADIUS } from "../../../constants/theme";
 
 const ActivitiesScreen: React.FC = () => {
   const [activities, setActivities] = useState<DonationActivity[]>([]);
+  const [filteredActivities, setFilteredActivities] = useState<DonationActivity[]>([]);
   const [localActivities, setLocalActivities] = useState<LocalActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,16 +32,15 @@ const ActivitiesScreen: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [activeTab, setActiveTab] = useState<'donations' | 'local'>('donations');
+  const [activeTab, setActiveTab] = useState<'recent' | 'all'>('recent');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
   const ITEMS_PER_PAGE = 10;
 
   const donationFilters: FilterOption[] = [
-    { label: 'All', value: 'all', icon: 'list' },
     { label: 'Recent', value: 'recent', icon: 'time' },
     { label: 'Donations', value: 'donation', icon: 'heart' },
-    { label: 'Checkups', value: 'checkup', icon: 'medical' },
+    { label: 'Appointments', value: 'checkup', icon: 'medical' },
   ];
 
   const localFilters: FilterOption[] = [
@@ -57,10 +57,32 @@ const ActivitiesScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'local') {
+    if (activeTab === 'all') {
       loadLocalActivities();
     }
   }, [selectedFilter, activeTab]);
+
+  useEffect(() => {
+    // Filter activities based on selected filter
+    applyFilters();
+  }, [activities, selectedFilter]);
+
+  const applyFilters = () => {
+    let filtered = [...activities];
+
+    if (selectedFilter === 'recent') {
+      // Show only the 5 most recent activities
+      filtered = filtered.slice(0, 5);
+    } else if (selectedFilter === 'donation') {
+      // Show only donations
+      filtered = filtered.filter(a => a.type === 'donation');
+    } else if (selectedFilter === 'checkup') {
+      // Show only appointments/checkups
+      filtered = filtered.filter(a => a.type === 'checkup');
+    }
+
+    setFilteredActivities(filtered);
+  };
 
   const loadLocalActivities = async () => {
     try {
@@ -104,20 +126,30 @@ const ActivitiesScreen: React.FC = () => {
           activityType = "checkup";
         }
         
+        // Safely extract date, handle invalid dates
+        let formattedDate = "Unknown Date";
+        try {
+          if (activity.createdAt) {
+            formattedDate = activity.createdAt.split('T')[0];
+          }
+        } catch (error) {
+          console.warn('Error formatting date:', error);
+        }
+        
         return {
-          id: activity.id,
-          campaignTitle: activity.title,
-          campaignLocation: activity.metadata?.location || activity.relatedData?.campaign?.location || "Unknown Location",
-          donationDate: activity.createdAt.split('T')[0], // Format date
+          id: activity.id || String(Math.random()),
+          campaignTitle: String(activity.title || "Untitled Activity"),
+          campaignLocation: String(activity.metadata?.location || activity.relatedData?.campaign?.location || "Unknown Location"),
+          donationDate: formattedDate,
           type: activityType,
           status: "completed" as const,
           details: {
-            bloodType: activity.metadata?.bloodType || "Unknown",
-            volume: activity.metadata?.volume || 450,
-            hemoglobin: activity.metadata?.hemoglobin || 0,
-            bloodPressure: activity.metadata?.bloodPressure || "Unknown",
-            weight: activity.metadata?.weight || 0,
-            notes: activity.description,
+            bloodType: activity.metadata?.bloodType || undefined,
+            volume: activity.metadata?.volume !== undefined ? activity.metadata.volume : undefined,
+            hemoglobin: activity.metadata?.hemoglobin !== undefined ? activity.metadata.hemoglobin : undefined,
+            bloodPressure: activity.metadata?.bloodPressure || undefined,
+            weight: activity.metadata?.weight !== undefined ? activity.metadata.weight : undefined,
+            notes: activity.description || undefined,
           },
         };
       });
@@ -200,7 +232,7 @@ const ActivitiesScreen: React.FC = () => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      if (activeTab === 'donations') {
+      if (activeTab === 'recent') {
         await loadActivities(1, true);
       } else {
         await loadLocalActivities();
@@ -211,23 +243,22 @@ const ActivitiesScreen: React.FC = () => {
   }, [activeTab]);
 
   const handleLoadMore = useCallback(async () => {
-    if (!loadingMore && hasMore && !loading && activeTab === 'donations') {
+    if (!loadingMore && hasMore && !loading && activeTab === 'recent') {
       await loadActivities(currentPage + 1);
     }
   }, [loadingMore, hasMore, loading, currentPage, activeTab]);
 
   const handleFilterChange = (filter: string) => {
     setSelectedFilter(filter);
-    if (activeTab === 'donations') {
-      // Filter donations based on selection
-      // This would need backend support for proper filtering
+    if (activeTab === 'recent') {
+      // Filter recent activities based on selection
       loadActivities(1, true);
     }
   };
 
-  const handleTabChange = (tab: 'donations' | 'local') => {
+  const handleTabChange = (tab: 'recent' | 'all') => {
     setActiveTab(tab);
-    setSelectedFilter('all');
+    setSelectedFilter(tab === 'recent' ? 'recent' : 'all');
   };
 
   const handleLocalActivityPress = (activity: LocalActivity) => {
@@ -244,7 +275,7 @@ const ActivitiesScreen: React.FC = () => {
 
   const handleViewDetails = (activity: DonationActivity) => {
     const typeText =
-      activity.type === "donation" ? "Blood Donation" : "Health Checkup";
+      activity.type === "donation" ? "Blood Donation" : "Appointment";
     let message = `${typeText}\n\nCampaign: ${activity.campaignTitle}\nLocation: ${
       activity.campaignLocation
     }\nDate: ${activity.donationDate}`;
@@ -274,7 +305,7 @@ const ActivitiesScreen: React.FC = () => {
   };
 
   const renderLoadMoreButton = () => {
-    if (!hasMore) return null;
+    if (!hasMore || selectedFilter === 'recent') return null;
     
     return (
       <View style={styles.loadMoreContainer}>
@@ -290,7 +321,7 @@ const ActivitiesScreen: React.FC = () => {
           )}
         </TouchableOpacity>
         <Text style={styles.paginationText}>
-          Showing {activities.length} of {totalItems} activities
+          Showing {filteredActivities.length} of {totalItems} activities
         </Text>
       </View>
     );
@@ -315,19 +346,19 @@ const ActivitiesScreen: React.FC = () => {
       {/* Tab Selector */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'donations' && styles.activeTab]}
-          onPress={() => handleTabChange('donations')}
+          style={[styles.tab, activeTab === 'recent' && styles.activeTab]}
+          onPress={() => handleTabChange('recent')}
         >
-          <Text style={[styles.tabText, activeTab === 'donations' && styles.activeTabText]}>
-            Donations
+          <Text style={[styles.tabText, activeTab === 'recent' && styles.activeTabText]}>
+            Recent Activities
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'local' && styles.activeTab]}
-          onPress={() => handleTabChange('local')}
+          style={[styles.tab, activeTab === 'all' && styles.activeTab]}
+          onPress={() => handleTabChange('all')}
         >
-          <Text style={[styles.tabText, activeTab === 'local' && styles.activeTabText]}>
-            Recent Activity
+          <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
+            All Activities
           </Text>
         </TouchableOpacity>
       </View>
@@ -336,7 +367,7 @@ const ActivitiesScreen: React.FC = () => {
       <ActivityFilterBar
         selectedFilter={selectedFilter}
         onFilterChange={handleFilterChange}
-        filters={activeTab === 'donations' ? donationFilters : localFilters}
+        filters={activeTab === 'recent' ? donationFilters : localFilters}
       />
 
       <ScrollView
@@ -346,10 +377,10 @@ const ActivitiesScreen: React.FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        {activeTab === 'donations' ? (
+        {activeTab === 'recent' ? (
           <>
             <ActivitiesList
-              activities={activities}
+              activities={filteredActivities}
               onViewDetails={handleViewDetails}
             />
             {renderLoadMoreButton()}

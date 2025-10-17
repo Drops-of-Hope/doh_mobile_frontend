@@ -216,10 +216,15 @@ export const exploreService = {
 
       // Support multiple possible response shapes
       const primaryData = response?.data?.campaigns || response?.campaigns || response?.data || response;
-      if (Array.isArray(primaryData)) return primaryData as Campaign[];
+      
+      // Only return if we have a non-empty array, otherwise trigger fallbacks
+      if (Array.isArray(primaryData) && primaryData.length > 0) {
+        return primaryData as Campaign[];
+      }
 
-      // If not an array, continue to fallbacks
-      throw new Error("Unexpected response shape for upcoming campaigns");
+      // If empty array or not an array, continue to fallbacks
+      console.log("Primary endpoint returned empty or invalid data, trying fallbacks...");
+      throw new Error("No campaigns found in primary endpoint");
     } catch (error) {
       console.warn("Primary upcoming campaigns endpoint failed, attempting fallbacks...", error);
 
@@ -256,19 +261,27 @@ export const exploreService = {
         try {
           const res = await apiRequestWithAuth(url);
           const data = res?.data?.campaigns || res?.campaigns || res?.data || res;
-          if (Array.isArray(data)) return data as Campaign[];
+          if (Array.isArray(data) && data.length > 0) {
+            console.log(`Fallback successful: ${url} returned ${data.length} campaigns`);
+            return data as Campaign[];
+          }
         } catch (e) {
           // Continue to next fallback
+          console.log(`Fallback failed: ${url}`, e);
         }
       }
 
-      // 4) As a last resort: fetch all campaigns and filter on client to upcoming
+      // 4) As a last resort: fetch all campaigns and filter on client
+      // For development: show active campaigns even if they're in the past
       try {
+        console.log("Attempting final fallback: fetching all campaigns...");
         const res = await apiRequestWithAuth(API_ENDPOINTS.CAMPAIGNS);
         const data = res?.data?.campaigns || res?.campaigns || res?.data || res;
         if (Array.isArray(data)) {
           const now = Date.now();
-          const parsed = (data as any[]).filter((c) => {
+          
+          // First, try to get truly upcoming campaigns (future, active, approved)
+          let filtered = (data as any[]).filter((c) => {
             try {
               const start = new Date(c.startTime || c.startDate || c.start_time).getTime();
               const active = c.isActive !== undefined ? !!c.isActive : true;
@@ -285,19 +298,36 @@ export const exploreService = {
             }
           });
 
+          // If no upcoming campaigns, for development purposes, show all active campaigns
+          // (even if in the past or pending approval)
+          if (filtered.length === 0) {
+            console.log("No truly upcoming campaigns found. Showing all active campaigns for development.");
+            filtered = (data as any[]).filter((c) => {
+              const active = c.isActive !== undefined ? !!c.isActive : true;
+              return active;
+            });
+          }
+
           // Sort by start time ascending
-          parsed.sort((a, b) => {
-            const sa = new Date(a.startTime || a.startDate || a.start_time).getTime();
-            const sb = new Date(b.startTime || b.startDate || b.start_time).getTime();
-            return sa - sb;
+          filtered.sort((a, b) => {
+            try {
+              const sa = new Date(a.startTime || a.startDate || a.start_time).getTime();
+              const sb = new Date(b.startTime || b.startDate || b.start_time).getTime();
+              return sa - sb;
+            } catch {
+              return 0;
+            }
           });
 
           // Apply limit if provided
           const limit = params?.limit ? Number(params.limit) : undefined;
-          const result = limit ? parsed.slice(0, limit) : parsed;
+          const result = limit ? filtered.slice(0, limit) : filtered;
+          
+          console.log(`Final fallback: returning ${result.length} campaigns`);
           return result as Campaign[];
         }
       } catch (e) {
+        console.error("Final fallback failed:", e);
         // fall through to rethrow original error
       }
 

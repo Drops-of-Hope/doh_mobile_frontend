@@ -63,12 +63,15 @@ const ExploreScreen: React.FC = () => {
   const loadCampaigns = async () => {
     try {
       setLoading(true);
-      // Get upcoming campaigns (active and future)
-      const campaignsData = await exploreService.getUpcomingCampaigns({
+      
+      // Try to get upcoming campaigns first
+      let campaignsData = await exploreService.getUpcomingCampaigns({
         sortBy: "date",
         sortOrder: "asc",
         limit: 50
       });
+      
+      console.log("Campaigns loaded from API:", campaignsData.length);
       
       // Map service Campaign type to screen Campaign type
       const mappedCampaigns = campaignsData.map(campaign => ({
@@ -87,7 +90,7 @@ const ExploreScreen: React.FC = () => {
       setCampaigns(mappedCampaigns);
       
       if (campaignsData.length === 0) {
-        console.log("No upcoming campaigns found");
+        console.log("No upcoming campaigns found - all campaigns may be in the past or not approved");
       }
     } catch (error) {
       console.error("Failed to load campaigns:", error);

@@ -112,9 +112,9 @@ function LocalActivityCard({ activity, onPress }: LocalActivityCardProps) {
         </View>
 
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>{activity.title}</Text>
+          <Text style={styles.title}>{activity.title || 'Untitled Activity'}</Text>
           <Text style={styles.description} numberOfLines={2}>
-            {activity.description}
+            {activity.description || 'No description available'}
           </Text>
           <Text style={styles.timestamp}>{formatDate(activity.timestamp)}</Text>
         </View>

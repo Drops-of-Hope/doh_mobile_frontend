@@ -13,10 +13,13 @@ export default function DetailRow({
   text,
   iconColor = "#6B7280",
 }: DetailRowProps) {
+  // Safety check: ensure text is a valid string
+  const displayText = text != null ? String(text) : '';
+  
   return (
     <View style={styles.detailRow}>
       <Ionicons name={icon} size={16} color={iconColor} />
-      <Text style={styles.detailText}>{text}</Text>
+      <Text style={styles.detailText}>{displayText}</Text>
     </View>
   );
 }

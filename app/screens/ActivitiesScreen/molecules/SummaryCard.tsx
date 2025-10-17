@@ -9,7 +9,7 @@ interface SummaryCardProps {
 
 export default function SummaryCard({ activities }: SummaryCardProps) {
   const donationCount = activities.filter((a) => a.type === "donation").length;
-  const checkupCount = activities.filter((a) => a.type === "checkup").length;
+  const appointmentCount = activities.filter((a) => a.type === "checkup").length;
 
   return (
     <View style={styles.summaryCard}>
@@ -19,7 +19,7 @@ export default function SummaryCard({ activities }: SummaryCardProps) {
       </View>
       <View style={styles.summaryStats}>
         <StatItem number={donationCount} label="Donations" />
-        <StatItem number={checkupCount} label="Checkups" />
+        <StatItem number={appointmentCount} label="Appointments" />
       </View>
     </View>
   );

@@ -46,28 +46,28 @@ export default function ActivityCard({
 
       {activity.details && (
         <View style={styles.detailsContainer}>
-          {activity.details.bloodType && (
+          {activity.details.bloodType != null && activity.details.bloodType !== '' && (
             <DetailRow
               icon="water"
               text={`Blood Type: ${activity.details.bloodType}`}
               iconColor="#FF4757"
             />
           )}
-          {activity.details.volume && (
+          {activity.details.volume != null && (
             <DetailRow
               icon="beaker-outline"
               text={`Volume: ${activity.details.volume}ml`}
               iconColor="#3B82F6"
             />
           )}
-          {activity.details.hemoglobin && (
+          {activity.details.hemoglobin != null && (
             <DetailRow
               icon="pulse"
               text={`Hemoglobin: ${activity.details.hemoglobin} g/dL`}
               iconColor="#00D2D3"
             />
           )}
-          {activity.details.bloodPressure && (
+          {activity.details.bloodPressure != null && activity.details.bloodPressure !== '' && (
             <DetailRow
               icon="heart-outline"
               text={`BP: ${activity.details.bloodPressure} mmHg`}

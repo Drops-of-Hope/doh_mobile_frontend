@@ -41,7 +41,7 @@ export default function StatusBadge({ type }: StatusBadgeProps) {
         style={styles.statusIcon}
       />
       <Text style={[styles.statusText, { color: statusColors.text }]}>
-        {type === "donation" ? "Blood Donation" : "Health Checkup"}
+        {type === "donation" ? "Blood Donation" : "Appointment"}
       </Text>
     </View>
   );

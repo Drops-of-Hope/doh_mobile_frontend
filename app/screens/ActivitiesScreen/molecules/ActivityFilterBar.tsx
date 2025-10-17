@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../../../constants/theme';
 
@@ -23,7 +23,11 @@ export default function ActivityFilterBar({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Filter Activities</Text>
-      <View style={styles.filterContainer}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterContainer}
+      >
         {filters.map((filter) => (
           <TouchableOpacity
             key={filter.value}
@@ -55,7 +59,7 @@ export default function ActivityFilterBar({
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -73,11 +77,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.TEXT_SECONDARY,
     marginBottom: SPACING.SM,
+    paddingHorizontal: SPACING.XS,
   },
   filterContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.SM,
+    paddingHorizontal: SPACING.XS,
   },
   filterButton: {
     flexDirection: 'row',
@@ -88,6 +92,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.BACKGROUND_SECONDARY,
     borderWidth: 1,
     borderColor: COLORS.BORDER,
+    marginRight: SPACING.SM,
   },
   activeFilterButton: {
     backgroundColor: COLORS.PRIMARY,
