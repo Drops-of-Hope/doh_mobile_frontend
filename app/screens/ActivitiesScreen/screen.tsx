@@ -65,9 +65,15 @@ const ActivitiesScreen: React.FC = () => {
   useEffect(() => {
     // Filter activities based on selected filter
     applyFilters();
-  }, [activities, selectedFilter]);
+  }, [activities, selectedFilter, activeTab]);
 
   const applyFilters = () => {
+    // Only apply filters when on 'recent' tab, as 'all' tab uses localActivities
+    if (activeTab !== 'recent') {
+      setFilteredActivities([]);
+      return;
+    }
+
     let filtered = [...activities];
 
     if (selectedFilter === 'recent') {
@@ -258,7 +264,14 @@ const ActivitiesScreen: React.FC = () => {
 
   const handleTabChange = (tab: 'recent' | 'all') => {
     setActiveTab(tab);
-    setSelectedFilter(tab === 'recent' ? 'recent' : 'all');
+    // Set appropriate default filter for each tab
+    if (tab === 'recent') {
+      setSelectedFilter('recent');
+    } else {
+      setSelectedFilter('all');
+      // Load local activities when switching to 'all' tab
+      loadLocalActivities();
+    }
   };
 
   const handleLocalActivityPress = (activity: LocalActivity) => {

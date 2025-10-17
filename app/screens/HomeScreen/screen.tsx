@@ -294,6 +294,13 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 lastDonationDays={getLastDonationDays() || 0} 
               />
 
+              {/* Next Donation Date Card */}
+              <NextDonationCard 
+                lastDonationDate={homeData?.userStats?.lastDonationDate}
+                nextEligibleDate={homeData?.userStats?.nextEligibleDate}
+                eligibleToDonate={homeData?.userStats?.eligibleToDonate}
+              />
+
               {/* Upcoming Appointment */}
               {homeData?.upcomingAppointments && homeData.upcomingAppointments.length > 0 && (
                 <AppointmentSection
@@ -309,13 +316,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                   onViewAll={handleViewAllEmergencies}
                 />
               )}
-
-              {/* Next Donation Date Card */}
-              <NextDonationCard 
-                lastDonationDate={homeData?.userStats?.lastDonationDate}
-                nextEligibleDate={homeData?.userStats?.nextEligibleDate}
-                eligibleToDonate={homeData?.userStats?.eligibleToDonate}
-              />
 
               {/* Thank You Card */}
               <ThankYouCard />

@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import StatusBadge from "../atoms/StatusBadge";
 import InfoRow from "../atoms/InfoRow";
 import DetailRow from "../atoms/DetailRow";
+import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 
 export interface DonationActivity {
   id: string;
@@ -24,13 +25,15 @@ export interface DonationActivity {
 
 interface ActivityCardProps {
   activity: DonationActivity;
-  onViewDetails: (activity: DonationActivity) => void;
+  onViewDetails?: (activity: DonationActivity) => void;
 }
 
 export default function ActivityCard({
   activity,
   onViewDetails,
 }: ActivityCardProps) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <View style={styles.activityCard}>
       <View style={styles.activityHeader}>
@@ -79,11 +82,72 @@ export default function ActivityCard({
 
       <TouchableOpacity
         style={styles.detailsButton}
-        onPress={() => onViewDetails(activity)}
+        onPress={() => setExpanded(!expanded)}
       >
-        <Text style={styles.detailsButtonText}>View Details</Text>
-        <Ionicons name="chevron-forward" size={16} color="#6B7280" />
+        <Text style={styles.detailsButtonText}>
+          {expanded ? 'Hide Details' : 'View Details'}
+        </Text>
+        <Ionicons 
+          name={expanded ? "chevron-up" : "chevron-down"} 
+          size={16} 
+          color={COLORS.TEXT_SECONDARY} 
+        />
       </TouchableOpacity>
+
+      {/* Expandable Details Section */}
+      {expanded && (
+        <View style={styles.expandedDetails}>
+          <View style={styles.expandedDivider} />
+          
+          <View style={styles.expandedSection}>
+            <Text style={styles.expandedTitle}>Activity Details</Text>
+            
+            {activity.details?.bloodType && (
+              <View style={styles.expandedRow}>
+                <Text style={styles.expandedLabel}>Blood Type:</Text>
+                <Text style={styles.expandedValue}>{activity.details.bloodType}</Text>
+              </View>
+            )}
+            
+            {activity.details?.volume != null && (
+              <View style={styles.expandedRow}>
+                <Text style={styles.expandedLabel}>Volume:</Text>
+                <Text style={styles.expandedValue}>{activity.details.volume}ml</Text>
+              </View>
+            )}
+            
+            {activity.details?.hemoglobin != null && (
+              <View style={styles.expandedRow}>
+                <Text style={styles.expandedLabel}>Hemoglobin:</Text>
+                <Text style={styles.expandedValue}>{activity.details.hemoglobin} g/dL</Text>
+              </View>
+            )}
+            
+            {activity.details?.bloodPressure && (
+              <View style={styles.expandedRow}>
+                <Text style={styles.expandedLabel}>Blood Pressure:</Text>
+                <Text style={styles.expandedValue}>{activity.details.bloodPressure} mmHg</Text>
+              </View>
+            )}
+            
+            {activity.details?.weight != null && (
+              <View style={styles.expandedRow}>
+                <Text style={styles.expandedLabel}>Weight:</Text>
+                <Text style={styles.expandedValue}>{activity.details.weight} kg</Text>
+              </View>
+            )}
+            
+            {activity.details?.notes && (
+              <View style={[styles.expandedRow, styles.notesRow]}>
+                <Text style={styles.expandedLabel}>Notes:</Text>
+                <Text style={[styles.expandedValue, styles.notesText]}>
+                  {activity.details.notes}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -141,6 +205,55 @@ const styles = StyleSheet.create({
   detailsButtonText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#6B7280",
+    color: COLORS.TEXT_SECONDARY,
+  },
+  expandedDetails: {
+    marginTop: SPACING.MD,
+  },
+  expandedDivider: {
+    height: 1,
+    backgroundColor: COLORS.BORDER,
+    marginBottom: SPACING.MD,
+  },
+  expandedSection: {
+    backgroundColor: COLORS.BACKGROUND_SECONDARY,
+    borderRadius: BORDER_RADIUS.MD,
+    padding: SPACING.MD,
+  },
+  expandedTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.MD,
+  },
+  expandedRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: SPACING.SM,
+    paddingVertical: SPACING.XS,
+  },
+  notesRow: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  expandedLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.TEXT_SECONDARY,
+    flex: 1,
+  },
+  expandedValue: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: COLORS.TEXT_PRIMARY,
+    flex: 1,
+    textAlign: "right",
+  },
+  notesText: {
+    textAlign: "left",
+    marginTop: SPACING.XS,
+    lineHeight: 20,
   },
 });
+

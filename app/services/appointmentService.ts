@@ -240,6 +240,18 @@ export const appointmentService = {
       }
       
       console.log(`✅ Found ${appointments.length} appointments for user`);
+      
+      // Log each appointment's medicalEstablishment data
+      appointments.forEach((apt, index) => {
+        console.log(`📋 Appointment ${index + 1}:`, {
+          id: apt.id,
+          hasmedicalEstablishment: !!apt.medicalEstablishment,
+          medicalEstablishmentName: apt.medicalEstablishment?.name,
+          medicalEstablishmentAddress: apt.medicalEstablishment?.address,
+          medicalEstablishmentDistrict: apt.medicalEstablishment?.district,
+        });
+      });
+      
       return appointments;
       
     } catch (error: any) {

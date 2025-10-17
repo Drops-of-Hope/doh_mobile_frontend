@@ -4,17 +4,29 @@ import type { Appointment as ServiceAppointment, MedicalEstablishment } from "..
 
 // Transform service appointment to screen appointment format
 const transformAppointmentForDisplay = (
-  serviceAppointment: ServiceAppointment, 
-  medicalEstablishment?: MedicalEstablishment
+  serviceAppointment: ServiceAppointment
 ): Appointment => {
   const appointmentDate = new Date(serviceAppointment.appointmentDate);
   
+  // Extract hospital name and location from medicalEstablishment
+  const hospitalName = serviceAppointment.medicalEstablishment?.name || "Unknown Hospital";
+  const location = serviceAppointment.medicalEstablishment?.address || 
+                   serviceAppointment.medicalEstablishment?.district ||
+                   "Location TBD";
+  
+  console.log("🔄 Transforming appointment:", {
+    id: serviceAppointment.id,
+    rawData: serviceAppointment.medicalEstablishment,
+    extractedHospital: hospitalName,
+    extractedLocation: location,
+  });
+  
   return {
     id: serviceAppointment.id,
-    hospital: medicalEstablishment?.name || "Unknown Hospital",
+    hospital: hospitalName,
     date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD format
     time: appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    location: medicalEstablishment?.address || "Location TBD",
+    location: location,
     status: serviceAppointment.scheduled === "PENDING" 
       ? "upcoming" 
       : serviceAppointment.scheduled === "COMPLETED" 
@@ -29,7 +41,9 @@ export const getUserAppointments = async (userId: string): Promise<{
   history: Appointment[];
 }> => {
   try {
+    console.log("🔍 Getting user appointments for userId:", userId);
     const serviceAppointments = await appointmentService.getUserAppointments(userId);
+    console.log("📦 Received service appointments:", serviceAppointments.length);
     
     // Sort appointments by date (newest first)
     const sortedAppointments = serviceAppointments.sort((a, b) => 
@@ -46,21 +60,25 @@ export const getUserAppointments = async (userId: string): Promise<{
       })
       .map(apt => transformAppointmentForDisplay(apt));
     
+    console.log("📅 Upcoming appointments transformed:", upcomingAppointments.length);
+    
     // Get last 5 completed appointments
     const historyAppointments = sortedAppointments
       .filter(apt => {
         const aptDate = new Date(apt.appointmentDate);
-        return aptDate < now || apt.scheduled === "COMPLETED";
+        return aptDate < now || apt.scheduled === "COMPLETED" || apt.scheduled === "CANCELLED";
       })
       .slice(0, 5) // Last 5 appointments
       .map(apt => transformAppointmentForDisplay(apt));
+    
+    console.log("📜 History appointments transformed:", historyAppointments.length);
     
     return {
       upcoming: upcomingAppointments,
       history: historyAppointments
     };
   } catch (error) {
-    console.error("Error fetching user appointments:", error);
+    console.error("❌ Error fetching user appointments:", error);
     // Return empty arrays on error
     return {
       upcoming: [],
