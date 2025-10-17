@@ -156,20 +156,17 @@ export default function NextDonationCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.BACKGROUND,
-    borderRadius: BORDER_RADIUS.LG,
-    padding: SPACING.MD,
-    marginHorizontal: SPACING.MD,
-    marginBottom: SPACING.MD,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
     elevation: 3,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_LIGHT,
   },
   iconContainer: {
     width: 48,
