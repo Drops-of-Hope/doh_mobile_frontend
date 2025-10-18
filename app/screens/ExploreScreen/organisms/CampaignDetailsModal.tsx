@@ -28,16 +28,20 @@ export default function CampaignDetailsModal({
   const handleJoinPress = () => {
     if (!campaign) return;
 
+    const action = campaign.isRegistered ? "Unregister from" : "Join";
+    const confirmText = campaign.isRegistered ? "Unregister" : "Join";
+
     Alert.alert(
-      "Join Campaign",
-      `Are you sure you want to join "${campaign.title}"?`,
+      `${action} Campaign`,
+      `Are you sure you want to ${action.toLowerCase()} "${campaign.title}"?`,
       [
         {
           text: "Cancel",
           style: "cancel",
         },
         {
-          text: "Join",
+          text: confirmText,
+          style: campaign.isRegistered ? "destructive" : "default",
           onPress: () => onJoin(campaign),
         },
       ],
@@ -112,10 +116,15 @@ export default function CampaignDetailsModal({
               <Text style={styles.closeActionText}>Close</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.joinButton}
+              style={[
+                styles.joinButton,
+                campaign?.isRegistered && styles.unregisterButton
+              ]}
               onPress={handleJoinPress}
             >
-              <Text style={styles.joinButtonText}>Join Campaign</Text>
+              <Text style={styles.joinButtonText}>
+                {campaign?.isRegistered ? "Unregister" : "Join Campaign"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -215,9 +224,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: COLORS.PRIMARY,
   },
+  unregisterButton: {
+    backgroundColor: COLORS.SECONDARY,
+  },
   joinButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.BACKGROUND,
+    color: "white",
   },
 });

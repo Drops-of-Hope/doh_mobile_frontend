@@ -188,6 +188,64 @@ export const exploreService = {
     }
   },
 
+  // Get live campaigns (startTime passed, endTime not reached yet)
+  async getLiveCampaigns(params?: ExploreSearchParams): Promise<{
+    campaigns: Campaign[];
+    hasMore: boolean;
+  }> {
+    try {
+      const normalizedParams: Record<string, string> = {};
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === "") return;
+          if (key === "sortBy" && value === "date") {
+            normalizedParams[key] = "startTime";
+          } else {
+            normalizedParams[key] = String(value);
+          }
+        });
+      }
+
+      const queryString = Object.keys(normalizedParams).length
+        ? new URLSearchParams(normalizedParams).toString()
+        : "";
+
+      try {
+        const response = await apiRequestWithAuth(
+          `${API_ENDPOINTS.CAMPAIGNS}${queryString ? `?${queryString}` : ""}`
+        );
+        
+        const campaigns = response?.data?.campaigns || response?.campaigns || response?.data || [];
+        
+        // Filter for live campaigns (started but not ended)
+        const now = Date.now();
+        const liveCampaigns = campaigns.filter((campaign: any) => {
+          const startTime = new Date(campaign.startTime).getTime();
+          const endTime = new Date(campaign.endTime).getTime();
+          const isApproved = typeof campaign.isApproved === "boolean"
+            ? campaign.isApproved
+            : campaign.isApproved === "ACCEPTED";
+          return startTime <= now && endTime > now && campaign.isActive && isApproved;
+        });
+
+        // Apply limit if specified
+        const limit = params?.limit ? Number(params.limit) : undefined;
+        const result = limit ? liveCampaigns.slice(0, limit) : liveCampaigns;
+        
+        return {
+          campaigns: result,
+          hasMore: limit ? liveCampaigns.length > limit : false,
+        };
+      } catch (error) {
+        console.error("Failed to fetch live campaigns:", error);
+        return { campaigns: [], hasMore: false };
+      }
+    } catch (error) {
+      console.error("Failed to fetch live campaigns:", error);
+      throw error;
+    }
+  },
+
   // Get upcoming campaigns
   async getUpcomingCampaigns(params?: ExploreSearchParams): Promise<Campaign[]> {
     try {

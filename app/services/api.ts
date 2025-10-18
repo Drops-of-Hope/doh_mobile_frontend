@@ -2,7 +2,7 @@
 // Choose the correct host depending on platform/emulator and allow override.
 import { Platform } from "react-native";
 
-const ANDROID_EMULATOR_HOST = "http://10.178.30.17:5000/api";
+const ANDROID_EMULATOR_HOST = "http://192.168.1.56:5000/api";
 const DEFAULT_LOCALHOST = "http://localhost:5000/api";
 
 // Allow an environment or runtime override (set EXPO_PUBLIC_API_URL in your .env or app config)
@@ -47,6 +47,8 @@ export const API_ENDPOINTS = {
   MY_CAMPAIGNS: "/campaigns/organizer/:organizerId", // User's own campaigns
   CAMPAIGN_DETAILS: "/campaigns/:id",
   JOIN_CAMPAIGN: "/campaigns/:id/join",
+  LEAVE_CAMPAIGN: "/campaigns/:id/leave",
+  CAMPAIGN_PARTICIPATION_STATUS: "/campaigns/:id/participation-status",
   CAMPAIGN_PARTICIPANTS: "/campaigns/:id/participants",
   UPCOMING_CAMPAIGNS: "/campaigns/upcoming",
   CAMPAIGN_ANALYTICS: "/campaigns/:id/analytics",

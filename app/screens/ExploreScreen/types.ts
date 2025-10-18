@@ -6,6 +6,9 @@ export interface Campaign {
   location?: string;
   date?: string;
   time?: string;
+  isRegistered?: boolean;
+  participationId?: string;
+  participationStatus?: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "COMPLETED" | "CANCELLED";
 }
 
 export interface FilterCriteria {

@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "#3B82F6",
+    backgroundColor: "#dc2626",
   },
   applyButtonText: {
     fontSize: 16,

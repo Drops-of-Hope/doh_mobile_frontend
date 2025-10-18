@@ -28,18 +28,19 @@ const ExploreScreen: React.FC = () => {
   // State management
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
+  const [displayedCampaigns, setDisplayedCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState<string>("");
+  const [campaignStatus, setCampaignStatus] = useState<"live" | "upcoming">("live");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const ITEMS_PER_PAGE = 8;
 
   // Filter state
   const [filters, setFilters] = useState<FilterCriteria>({
     location: "",
     date: "",
   });
-
-  // Additional filter state for UI display
-  const [locationFilter, setLocationFilter] = useState<string>("");
-  const [dateRangeFilter, setDateRangeFilter] = useState<string>("");
 
   // Modal states
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -54,43 +55,83 @@ const ExploreScreen: React.FC = () => {
 
   useEffect(() => {
     loadCampaigns();
-  }, []);
+  }, [campaignStatus]);
 
   useEffect(() => {
     applyFilters();
   }, [campaigns, searchText, filters]);
 
+  useEffect(() => {
+    // Update displayed campaigns with pagination
+    const endIndex = currentPage * ITEMS_PER_PAGE;
+    setDisplayedCampaigns(filteredCampaigns.slice(0, endIndex));
+    setHasMore(endIndex < filteredCampaigns.length);
+  }, [filteredCampaigns, currentPage]);
+
   const loadCampaigns = async () => {
     try {
       setLoading(true);
+      setCurrentPage(1); // Reset pagination
       
-      // Try to get upcoming campaigns first
-      let campaignsData = await exploreService.getUpcomingCampaigns({
-        sortBy: "date",
-        sortOrder: "asc",
-        limit: 50
-      });
+      let campaignsData;
       
-      console.log("Campaigns loaded from API:", campaignsData.length);
+      if (campaignStatus === "live") {
+        // Get live campaigns
+        const result = await exploreService.getLiveCampaigns({
+          sortBy: "date",
+          sortOrder: "asc",
+          limit: 50
+        });
+        campaignsData = result.campaigns;
+      } else {
+        // Get upcoming campaigns
+        campaignsData = await exploreService.getUpcomingCampaigns({
+          sortBy: "date",
+          sortOrder: "asc",
+          limit: 50
+        });
+      }
       
-      // Map service Campaign type to screen Campaign type
-      const mappedCampaigns = campaignsData.map(campaign => ({
-        id: campaign.id,
-        title: campaign.title,
-        description: campaign.description,
-        participants: campaign.actualDonors,
-        location: campaign.location,
-        date: new Date(campaign.startTime).toLocaleDateString(),
-        time: new Date(campaign.startTime).toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+      console.log(`${campaignStatus} campaigns loaded from API:`, campaignsData.length);
+      
+      // Map service Campaign type to screen Campaign type and fetch participant count
+      const mappedCampaigns = await Promise.all(
+        campaignsData.map(async campaign => {
+          // Fetch participant count using the new endpoint
+          let participantCount = campaign.actualDonors || 0;
+          try {
+            const { count } = await campaignService.getCampaignParticipantCount(campaign.id);
+            if (typeof count === "number" && count >= 0) {
+              participantCount = count;
+              console.log(`✅ Campaign ${campaign.id}: ${count} participants`);
+            }
+          } catch (e) {
+            console.log("Could not fetch participant count for campaign:", campaign.id);
+          }
+          
+          return {
+            id: campaign.id,
+            title: campaign.title,
+            description: campaign.description,
+            participants: participantCount,
+            location: campaign.location,
+            date: new Date(campaign.startTime).toLocaleDateString(),
+            time: new Date(campaign.startTime).toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            }),
+            // Per-user registration status is not available from this endpoint; default to false
+            isRegistered: false,
+            participationId: undefined,
+            participationStatus: undefined,
+          };
         })
-      }));
+      );
       
       setCampaigns(mappedCampaigns);
       
       if (campaignsData.length === 0) {
-        console.log("No upcoming campaigns found - all campaigns may be in the past or not approved");
+        console.log(`No ${campaignStatus} campaigns found`);
       }
     } catch (error) {
       console.error("Failed to load campaigns:", error);
@@ -110,6 +151,11 @@ const ExploreScreen: React.FC = () => {
       filters.date
     );
     setFilteredCampaigns(filtered);
+    setCurrentPage(1); // Reset pagination when filters change
+  };
+
+  const handleViewMore = () => {
+    setCurrentPage(prev => prev + 1);
   };
 
   const handleViewDetails = (campaign: Campaign) => {
@@ -137,6 +183,63 @@ const ExploreScreen: React.FC = () => {
       return;
     }
 
+    // Check if user is already registered
+    if (campaign.isRegistered) {
+      // Show confirmation dialog for unregistering
+      Alert.alert(
+        "Unregister from Campaign",
+        `Are you sure you want to unregister from "${campaign.title}"?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Unregister", 
+            style: "destructive",
+            onPress: async () => {
+              try {
+                setCampaignDetailsVisible(false);
+                setJoiningCampaign(true);
+
+                const result = await campaignService.leaveCampaign(campaign.id);
+
+                if (result.success) {
+                  Alert.alert(
+                    "Unregistered Successfully",
+                    result.message,
+                    [{ text: "OK" }]
+                  );
+
+                  // Update campaign registration status locally
+                  const updatedCampaigns = campaigns.map((c) =>
+                    c.id === campaign.id ? { 
+                      ...c, 
+                      participants: c.participants - 1,
+                      isRegistered: false,
+                      participationId: undefined,
+                      participationStatus: undefined,
+                    } : c
+                  );
+                  setCampaigns(updatedCampaigns);
+                }
+              } catch (error) {
+                console.error("Unregister campaign error:", error);
+                const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+                
+                Alert.alert(
+                  "Unregistration Failed",
+                  errorMessage,
+                  [{ text: "OK" }]
+                );
+              } finally {
+                setJoiningCampaign(false);
+              }
+            }
+          },
+        ]
+      );
+      return;
+    }
+
+    // Handle new registration
     try {
       // Close the details modal for better UX
       setCampaignDetailsVisible(false);
@@ -156,12 +259,17 @@ const ExploreScreen: React.FC = () => {
           [{ text: "OK" }]
         );
 
-        // Update participant count locally
+        // Update participant count and registration status locally
         const updatedCampaigns = campaigns.map((c) =>
-          c.id === campaign.id ? { ...c, participants: c.participants + 1 } : c
+          c.id === campaign.id ? { 
+            ...c, 
+            participants: c.participants + 1,
+            isRegistered: true,
+            participationId: result.participationId,
+            participationStatus: "REGISTERED" as const,
+          } : c
         );
         setCampaigns(updatedCampaigns);
-        setFilteredCampaigns(updatedCampaigns);
         
         // Store registration details for future reference
         console.log("Campaign registration details:", result.registrationDetails);
@@ -198,35 +306,12 @@ const ExploreScreen: React.FC = () => {
   };
 
   const handleSearchPress = () => {
-    // Parse the search text for prefixed searches
-    const parsed = parseSearchText(searchText);
-    
-    // Apply parsed criteria to filters
-    setFilters({
-      location: parsed.location,
-      date: parsed.startDate || parsed.endDate ? `${parsed.startDate}-${parsed.endDate}` : "",
-    });
-
-    // Update display filters
-    setLocationFilter(parsed.location);
-    setDateRangeFilter(formatDateRange(parsed.startDate, parsed.endDate));
-
-    // Update search text to show only general search
-    setSearchText(parsed.generalSearch);
+    // Trigger filter application
+    applyFilters();
   };
 
-  const handleLocationPress = () => {
-    // Add "Location: " prefix to search text
-    if (!searchText.toLowerCase().includes('location:')) {
-      setSearchText(searchText ? `${searchText} Location: ` : 'Location: ');
-    }
-  };
-
-  const handleDateRangePress = () => {
-    // Add date range prefix to search text
-    if (!searchText.toLowerCase().includes('start:') && !searchText.toLowerCase().includes('end:')) {
-      setSearchText(searchText ? `${searchText} Start: dd/mm/yyyy End: dd/mm/yyyy` : 'Start: dd/mm/yyyy End: dd/mm/yyyy');
-    }
+  const handleCampaignStatusChange = (status: "live" | "upcoming") => {
+    setCampaignStatus(status);
   };
 
   const handleClearFilters = () => {
@@ -255,25 +340,25 @@ const ExploreScreen: React.FC = () => {
         onSearchTextChange={setSearchText}
         onSearchPress={handleSearchPress}
         onFilterPress={() => setFilterModalVisible(true)}
-        onLocationPress={handleLocationPress}
-        onDateRangePress={handleDateRangePress}
         hasActiveFilters={hasActiveFilters}
-        locationFilter={locationFilter}
-        dateRangeFilter={dateRangeFilter}
+        campaignStatus={campaignStatus}
+        onCampaignStatusChange={handleCampaignStatusChange}
       />
 
       <CampaignList
-        campaigns={filteredCampaigns}
+        campaigns={displayedCampaigns}
         onCampaignPress={handleViewDetails}
         loading={loading}
+        hasMore={hasMore}
+        onViewMore={handleViewMore}
       />
 
       {/* Show message when no campaigns are available */}
-      {!loading && filteredCampaigns.length === 0 && (
+      {!loading && displayedCampaigns.length === 0 && (
         <View style={styles.noCampaignsContainer}>
           <Text style={styles.noCampaignsText}>
             {campaigns.length === 0 
-              ? "No upcoming campaigns available at the moment."
+              ? `No ${campaignStatus} campaigns available at the moment.`
               : "No campaigns match your search criteria."}
           </Text>
         </View>

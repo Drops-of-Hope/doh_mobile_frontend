@@ -10,11 +10,9 @@ interface SearchAndFilterBarProps {
   onSearchTextChange: (text: string) => void;
   onSearchPress: () => void;
   onFilterPress: () => void;
-  onLocationPress: () => void;
-  onDateRangePress: () => void;
   hasActiveFilters: boolean;
-  locationFilter?: string;
-  dateRangeFilter?: string;
+  campaignStatus: "live" | "upcoming";
+  onCampaignStatusChange: (status: "live" | "upcoming") => void;
 }
 
 export default function SearchAndFilterBar({
@@ -22,11 +20,9 @@ export default function SearchAndFilterBar({
   onSearchTextChange,
   onSearchPress,
   onFilterPress,
-  onLocationPress,
-  onDateRangePress,
   hasActiveFilters,
-  locationFilter,
-  dateRangeFilter,
+  campaignStatus,
+  onCampaignStatusChange,
 }: SearchAndFilterBarProps) {
   return (
     <View style={styles.container}>
@@ -47,22 +43,46 @@ export default function SearchAndFilterBar({
         </View>
       </View>
       
-      {/* Filter Fields Row */}
-      <View style={styles.filterFieldsRow}>
-        <TouchableOpacity style={styles.filterField} onPress={onLocationPress}>
-          <Ionicons name="location-outline" size={16} color={COLORS.PRIMARY} />
-          <Text style={styles.filterFieldText}>
-            {locationFilter ? `Location: ${locationFilter}` : "Location"}
+      {/* Status Toggle Row */}
+      <View style={styles.statusToggleRow}>
+        <TouchableOpacity 
+          style={[
+            styles.statusButton, 
+            campaignStatus === "live" && styles.statusButtonActive
+          ]} 
+          onPress={() => onCampaignStatusChange("live")}
+        >
+          <Ionicons 
+            name="radio-button-on" 
+            size={18} 
+            color={campaignStatus === "live" ? COLORS.BACKGROUND : COLORS.TEXT_SECONDARY} 
+          />
+          <Text style={[
+            styles.statusButtonText,
+            campaignStatus === "live" && styles.statusButtonTextActive
+          ]}>
+            Live
           </Text>
-          <Ionicons name="chevron-down" size={16} color={COLORS.TEXT_SECONDARY} />
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.filterField} onPress={onDateRangePress}>
-          <Ionicons name="calendar-outline" size={16} color={COLORS.PRIMARY} />
-          <Text style={styles.filterFieldText}>
-            {dateRangeFilter ? dateRangeFilter : "Date Range"}
+        <TouchableOpacity 
+          style={[
+            styles.statusButton, 
+            campaignStatus === "upcoming" && styles.statusButtonActive
+          ]} 
+          onPress={() => onCampaignStatusChange("upcoming")}
+        >
+          <Ionicons 
+            name="time-outline" 
+            size={18} 
+            color={campaignStatus === "upcoming" ? COLORS.BACKGROUND : COLORS.TEXT_SECONDARY} 
+          />
+          <Text style={[
+            styles.statusButtonText,
+            campaignStatus === "upcoming" && styles.statusButtonTextActive
+          ]}>
+            Upcoming
           </Text>
-          <Ionicons name="chevron-down" size={16} color={COLORS.TEXT_SECONDARY} />
         </TouchableOpacity>
       </View>
     </View>
@@ -71,14 +91,14 @@ export default function SearchAndFilterBar({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
-    marginTop: 20, // Added top margin for spacing
-    paddingHorizontal: 20, // Added horizontal padding
+    marginBottom: SPACING.MD,
+    marginTop: SPACING.MD,
+    paddingHorizontal: SPACING.MD,
   },
   searchAndFilterRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: SPACING.SM,
   },
   searchContainer: {
     flex: 1,
@@ -86,26 +106,33 @@ const styles = StyleSheet.create({
   filterContainer: {
     // The filter button will have its own styles
   },
-  filterFieldsRow: {
+  statusToggleRow: {
     flexDirection: "row",
-    marginTop: SPACING.SM,
+    marginTop: SPACING.MD,
     gap: SPACING.SM,
   },
-  filterField: {
+  statusButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: COLORS.BACKGROUND,
     borderRadius: BORDER_RADIUS.MD,
     borderWidth: 1,
     borderColor: COLORS.BORDER,
-    paddingHorizontal: SPACING.SM,
-    paddingVertical: SPACING.SM,
-    gap: SPACING.XS,
+    paddingVertical: SPACING.SM + 2,
+    gap: SPACING.XS + 2,
   },
-  filterFieldText: {
-    flex: 1,
+  statusButtonActive: {
+    backgroundColor: COLORS.PRIMARY,
+    borderColor: COLORS.PRIMARY,
+  },
+  statusButtonText: {
     fontSize: 14,
-    color: COLORS.TEXT_PRIMARY,
+    fontWeight: "600",
+    color: COLORS.TEXT_SECONDARY,
+  },
+  statusButtonTextActive: {
+    color: COLORS.BACKGROUND,
   },
 });
