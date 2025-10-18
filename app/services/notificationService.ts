@@ -1,4 +1,4 @@
-import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
+import { apiRequestWithAuth, API_ENDPOINTS, API_BASE_URL } from "./api";
 
 export interface CampaignNotification {
   id: string;
@@ -218,7 +218,19 @@ class NotificationService {
     try {
       // This would typically use WebSocket for real-time notifications
       // Implementation depends on backend WebSocket setup
-      const wsUrl = `ws://localhost:5000/notifications/subscribe?organizerId=${organizerId}&campaigns=${campaignIds.join(',')}`;
+      // Derive WS base from API_BASE_URL (e.g., https://host.tld/api -> wss://host.tld)
+      let wsOrigin: string;
+      try {
+        const httpUrl = new URL(API_BASE_URL);
+        const protocol = httpUrl.protocol === "https:" ? "wss:" : "ws:";
+        // Use host only; most WS endpoints are hosted at root without the /api prefix
+        wsOrigin = `${protocol}//${httpUrl.host}`;
+      } catch (e) {
+        console.warn("Failed to parse API_BASE_URL for WebSocket, falling back to wss://doh-backend.onrender.com");
+        wsOrigin = "wss://doh-backend.onrender.com";
+      }
+
+      const wsUrl = `${wsOrigin}/notifications/subscribe?organizerId=${organizerId}&campaigns=${campaignIds.join(',')}`;
       
       const ws = new WebSocket(wsUrl);
       
