@@ -176,60 +176,10 @@ const ActivitiesScreen: React.FC = () => {
       
     } catch (error) {
       console.error("Failed to load activities:", error);
-      
-      // Fallback to mock data for demo when API fails (only for first page)
-      if (page === 1) {
-        const mockActivities = [
-          {
-            id: "1",
-            campaignTitle: "Emergency Blood Drive - General Hospital",
-            campaignLocation: "General Hospital, Colombo",
-            donationDate: "2025-01-10",
-            type: "donation" as const,
-            status: "completed" as const,
-            details: {
-              bloodType: "O+",
-              volume: 450,
-              hemoglobin: 14.2,
-              bloodPressure: "120/80",
-              weight: 68,
-              notes: "Successful donation, donor in excellent health",
-            },
-          },
-          {
-            id: "2",
-            campaignTitle: "Health Checkup - University Medical Center",
-            campaignLocation: "University of Colombo",
-            donationDate: "2024-12-20",
-            type: "checkup" as const,
-            status: "completed" as const,
-            details: {
-              bloodType: "O+",
-              hemoglobin: 13.8,
-              bloodPressure: "118/78",
-              weight: 67,
-              notes: "Regular health screening completed, all vitals normal",
-            },
-          },
-          {
-            id: "3",
-            campaignTitle: "Mobile Blood Unit - Community Drive",
-            campaignLocation: "One Galle Face Mall",
-            donationDate: "2024-11-15",
-            type: "donation" as const,
-            status: "completed" as const,
-            details: {
-              bloodType: "O+",
-              volume: 450,
-              hemoglobin: 14.5,
-              bloodPressure: "122/82",
-              weight: 69,
-              notes: "Mobile unit donation, excellent facility and staff",
-            },
-          }
-        ];
-        setActivities(mockActivities);
-        setTotalItems(mockActivities.length);
+      // Set empty arrays on error - show "No activities" message
+      if (page === 1 || isRefresh) {
+        setActivities([]);
+        setTotalItems(0);
         setHasMore(false);
       }
     } finally {

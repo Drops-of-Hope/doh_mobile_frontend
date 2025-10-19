@@ -15,6 +15,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { campaignService, Campaign } from "../../services/campaignService";
+import { extractTimeFromISO } from "../../utils/userDataUtils";
 
 interface CampaignManagementScreenProps {
   navigation?: any;
@@ -289,10 +290,14 @@ function CampaignCard({
       <View style={styles.cardContent}>
         <Text style={styles.campaignLocation}>{campaign.location}</Text>
         <Text style={styles.campaignDate}>
-          {new Date(campaign.startTime).toLocaleDateString()}
+          {new Date(campaign.startTime.replace(/\.000Z$/, '')).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          })}
         </Text>
         <Text style={styles.campaignTime}>
-          {new Date(campaign.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(campaign.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {extractTimeFromISO(campaign.startTime)} - {extractTimeFromISO(campaign.endTime)}
         </Text>
 
         {/* Progress */}

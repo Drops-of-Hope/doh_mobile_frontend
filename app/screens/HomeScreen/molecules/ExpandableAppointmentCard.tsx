@@ -40,7 +40,7 @@ export default function ExpandableAppointmentCard({
 
   const expandedHeight = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 200], // Adjust based on content height
+    outputRange: [0, 250], // Increased to fit all instructions clearly
   });
 
   const rotateIcon = animation.interpolate({
@@ -58,14 +58,14 @@ export default function ExpandableAppointmentCard({
           <View style={styles.appointmentContent}>
             <Text style={styles.appointmentTitle}>{title}</Text>
             <Text style={styles.appointmentDateTime}>
-              {appointment.date} at {appointment.time}
+              {appointment.date} {/* at {appointment.time} */}
             </Text>
             <Text style={styles.appointmentLocation}>{appointment.hospital}</Text>
-            <Text style={styles.confirmedText}>
+            {/* <Text style={styles.confirmedText}>
               {appointment.status === "upcoming"
                 ? "Confirmed"
                 : appointment.status}
-            </Text>
+            </Text> */}
           </View>
           <Animated.View style={[styles.expandIcon, { transform: [{ rotate: rotateIcon }] }]}>
             <Ionicons name="chevron-down" size={24} color="#6B7280" />
@@ -81,11 +81,11 @@ export default function ExpandableAppointmentCard({
             <Text style={styles.detailValue}>{appointment.location}</Text>
           </View>
           
-          <View style={styles.detailRow}>
+          {/* <View style={styles.detailRow}>
             <Ionicons name="time-outline" size={18} color="#6B7280" />
             <Text style={styles.detailLabel}>Time:</Text>
             <Text style={styles.detailValue}>{appointment.time}</Text>
-          </View>
+          </View> */}
           
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={18} color="#6B7280" />
@@ -99,13 +99,13 @@ export default function ExpandableAppointmentCard({
             <Text style={styles.detailValue}>{appointment.hospital}</Text>
           </View>
 
-          <View style={styles.detailRow}>
+          {/* <View style={styles.detailRow}>
             <Ionicons name="checkmark-circle-outline" size={18} color="#10B981" />
             <Text style={styles.detailLabel}>Status:</Text>
             <Text style={[styles.detailValue, styles.statusConfirmed]}>
               {appointment.status === "upcoming" ? "Confirmed" : appointment.status}
             </Text>
-          </View>
+          </View> */}
 
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsTitle}>Important Instructions:</Text>
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 16,
     padding: 16,
-    marginBottom: 24,
+    marginBottom: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

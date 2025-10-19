@@ -107,6 +107,13 @@ export default function EditCampaignScreen({
       const permissions = await campaignService.checkCampaignPermissions(campaignId);
       setCanEdit(permissions.canEdit);
 
+      // Extract time from ISO string without timezone conversion
+      const extractTime = (isoString: string) => {
+        if (!isoString) return "";
+        // Extract "HH:MM" from "2025-07-05T09:30:00" or "2025-07-05T09:30:00.000Z"
+        return isoString.split('T')[1]?.substring(0, 5) || "";
+      };
+
       // Populate form with campaign data
       setFormData({
         title: campaignData.title || "",
@@ -114,8 +121,8 @@ export default function EditCampaignScreen({
         location: campaignData.location || "",
         address: campaignData.address || "",
         date: campaignData.date ? new Date(campaignData.date).toISOString().split('T')[0] : "",
-        startTime: campaignData.startTime || "",
-        endTime: campaignData.endTime || "",
+        startTime: extractTime(campaignData.startTime || ""),
+        endTime: extractTime(campaignData.endTime || ""),
         donationGoal: campaignData.donationGoal?.toString() || "",
         contactPerson: campaignData.contactPerson || "",
         contactPhone: campaignData.contactPhone || "",

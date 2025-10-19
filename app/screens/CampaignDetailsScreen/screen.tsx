@@ -18,6 +18,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { campaignService } from "../../services/campaignService";
 import CampaignDetailsSkeleton from "../shared/molecules/skeletons/CampaignDetailsSkeleton";
 import { COLORS, SPACING } from "../../../constants/theme";
+import { extractTimeFromISO } from "../../utils/userDataUtils";
 
 interface CampaignDetailsScreenProps {
   navigation?: any;
@@ -134,7 +135,9 @@ export default function CampaignDetailsScreen({
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Strip .000Z to prevent UTC conversion
+    const cleanString = dateString.replace(/\.000Z$/, '');
+    const date = new Date(cleanString);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
@@ -143,27 +146,21 @@ export default function CampaignDetailsScreen({
   };
 
   const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true 
-    });
+    // Extract time without timezone conversion
+    return extractTimeFromISO(dateString);
   };
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
+    // Strip .000Z to prevent UTC conversion
+    const cleanString = dateString.replace(/\.000Z$/, '');
+    const date = new Date(cleanString);
     return {
       date: date.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric',
         year: 'numeric'
       }),
-      time: date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      })
+      time: extractTimeFromISO(dateString)
     };
   };
 

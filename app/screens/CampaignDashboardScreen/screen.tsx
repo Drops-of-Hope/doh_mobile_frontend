@@ -12,6 +12,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { extractTimeFromISO } from "../../utils/userDataUtils";
 
 // Import refactored components
 import DashboardHeader from "./molecules/DashboardHeader";
@@ -59,6 +60,8 @@ export default function CampaignDashboardScreen({
 
   const categorizeByStatus = (campaigns: CampaignType[]): CampaignSection => {
     const now = new Date();
+    console.log('Current time:', now.toISOString(), '| Local:', now.toLocaleString());
+    
     const categorized: CampaignSection = {
       active: [],
       upcoming: [],
@@ -66,14 +69,28 @@ export default function CampaignDashboardScreen({
     };
 
     campaigns.forEach((campaign) => {
-      const startTime = new Date(campaign.startTime);
-      const endTime = new Date(campaign.endTime);
+      // Strip .000Z suffix to prevent UTC conversion - treat times as local
+      const startTimeStr = campaign.startTime.replace(/\.000Z$/, '');
+      const endTimeStr = campaign.endTime.replace(/\.000Z$/, '');
+      
+      const startTime = new Date(startTimeStr);
+      const endTime = new Date(endTimeStr);
+      
+      console.log('Campaign:', campaign.title);
+      console.log('  Start string:', campaign.startTime, '→ stripped:', startTimeStr);
+      console.log('  End string:', campaign.endTime, '→ stripped:', endTimeStr);
+      console.log('  Start parsed:', startTime.toISOString(), '| Local:', startTime.toLocaleString());
+      console.log('  End parsed:', endTime.toISOString(), '| Local:', endTime.toLocaleString());
+      console.log('  Now >= Start?', now >= startTime, '| Now <= End?', now <= endTime);
 
       if (now >= startTime && now <= endTime) {
+        console.log('  → Categorized as ACTIVE');
         categorized.active.push(campaign);
       } else if (now < startTime) {
+        console.log('  → Categorized as UPCOMING');
         categorized.upcoming.push(campaign);
       } else {
+        console.log('  → Categorized as PREVIOUS');
         categorized.previous.push(campaign);
       }
     });
@@ -181,14 +198,18 @@ export default function CampaignDashboardScreen({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    // Strip .000Z to prevent UTC conversion
+    const cleanString = dateString.replace(/\.000Z$/, '');
+    return new Date(cleanString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    // Use utility function to extract time without timezone conversion
+    return extractTimeFromISO(dateString);
   };
 
   if (loading) {

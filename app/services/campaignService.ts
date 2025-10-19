@@ -557,63 +557,10 @@ class CampaignService {
     } catch (error) {
       console.error("Failed to get campaign details:", error);
 
-      // Check if it's a 404 error (campaign not found)
-      if (error && typeof error === "object" && "message" in error) {
-        const errorMessage = error.message as string;
-        if (
-          errorMessage.includes("404") ||
-          errorMessage.includes("Cannot GET")
-        ) {
-          // Development fallback: Return mock data for testing
-          console.warn(
-            `Campaign ${campaignId} not found in backend, using mock data for development`
-          );
-          return this.getMockCampaignDetails(campaignId);
-        }
-      }
-
+      // Campaign not found or error occurred
+      console.error(`Failed to get campaign details for ${campaignId}:`, error);
       throw new Error("Failed to get campaign details");
     }
-  }
-
-  // Mock campaign data for development/testing when backend is not available
-  private getMockCampaignDetails(campaignId: string): Campaign {
-    return {
-      id: campaignId,
-      title: "Sample Campaign",
-      type: "MOBILE",
-      location: "Colombo General Hospital",
-      organizerId: "user-123",
-      motivation: "Community health support",
-      description: "This is a sample campaign for development testing.",
-      startTime: new Date().toISOString(),
-      endTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(), // 4 hours later
-      expectedDonors: 50,
-      contactPersonName: "Dr. Sample",
-      contactPersonPhone: "0771234567",
-      isApproved: true,
-      medicalEstablishmentId: "hospital-1",
-      actualDonors: 0,
-      createdAt: new Date().toISOString(),
-      isActive: true,
-      updatedAt: new Date().toISOString(),
-
-      // UI computed fields
-      status: "upcoming",
-      hasLinkedDonations: false,
-      canEdit: true,
-      canDelete: true,
-      donationGoal: 50,
-      currentDonations: 0,
-
-      // Backward compatibility fields
-      address: "No. 1, Regent Street, Colombo 07",
-      date: new Date().toISOString().split("T")[0],
-      contactPerson: "Dr. Sample",
-      contactPhone: "0771234567",
-      contactEmail: "dr.sample@hospital.lk",
-      additionalNotes: "This is a development mock campaign.",
-    };
   }
 
   // Get campaign analytics

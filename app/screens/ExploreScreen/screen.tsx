@@ -13,6 +13,7 @@ import { exploreService } from "../../services/exploreService";
 import { campaignService } from "../../services/campaignService";
 import { useAuth } from "../../context/AuthContext";
 import ExploreScreenSkeleton from "../shared/molecules/skeletons/ExploreScreenSkeleton";
+import { extractTimeFromISO } from "../../utils/userDataUtils";
 
 // Import refactored components
 import SearchAndFilterBar from "./molecules/SearchAndFilterBar";
@@ -22,7 +23,7 @@ import CampaignDetailsModal from "./organisms/CampaignDetailsModal";
 
 // Import types and utilities
 import { Campaign, FilterCriteria } from "./types";
-import { getMockCampaigns, filterCampaigns, parseSearchText, formatDateRange } from "./utils";
+import { filterCampaigns, parseSearchText, formatDateRange } from "./utils";
 
 const ExploreScreen: React.FC = () => {
   // State management
@@ -95,9 +96,43 @@ const ExploreScreen: React.FC = () => {
       
       console.log(`${campaignStatus} campaigns loaded from API:`, campaignsData.length);
       
+      // Client-side validation: filter campaigns by actual time to ensure correct categorization
+      const now = new Date();
+      const clientFilteredCampaigns = campaignsData.filter(campaign => {
+        const startTimeStr = campaign.startTime.replace(/\.000Z$/, '');
+        const endTimeStr = campaign.endTime.replace(/\.000Z$/, '');
+        const startTime = new Date(startTimeStr);
+        const endTime = new Date(endTimeStr);
+        
+        if (campaignStatus === "live") {
+          // Live: started but not ended
+          const isLive = now >= startTime && now <= endTime;
+          if (!isLive) {
+            console.log(`⚠️ Filtering out non-live campaign: ${campaign.title}`, {
+              start: startTimeStr,
+              end: endTimeStr,
+              now: now.toISOString()
+            });
+          }
+          return isLive;
+        } else {
+          // Upcoming: not started yet
+          const isUpcoming = now < startTime;
+          if (!isUpcoming) {
+            console.log(`⚠️ Filtering out non-upcoming campaign: ${campaign.title}`, {
+              start: startTimeStr,
+              now: now.toISOString()
+            });
+          }
+          return isUpcoming;
+        }
+      });
+      
+      console.log(`After client-side validation: ${clientFilteredCampaigns.length} campaigns`);
+      
       // Map service Campaign type to screen Campaign type and fetch participant count
       const mappedCampaigns = await Promise.all(
-        campaignsData.map(async campaign => {
+        clientFilteredCampaigns.map(async campaign => {
           // Fetch participant count using the new endpoint
           let participantCount = campaign.actualDonors || 0;
           try {
@@ -116,11 +151,12 @@ const ExploreScreen: React.FC = () => {
             description: campaign.description,
             participants: participantCount,
             location: campaign.location,
-            date: new Date(campaign.startTime).toLocaleDateString(),
-            time: new Date(campaign.startTime).toLocaleTimeString([], { 
-              hour: '2-digit', 
-              minute: '2-digit' 
+            date: new Date(campaign.startTime.replace(/\.000Z$/, '')).toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
             }),
+            time: extractTimeFromISO(campaign.startTime),
             // Per-user registration status is not available from this endpoint; default to false
             isRegistered: false,
             participationId: undefined,
@@ -136,9 +172,8 @@ const ExploreScreen: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to load campaigns:", error);
-      // Use mock data when API fails
-      const mockData = getMockCampaigns();
-      setCampaigns(mockData);
+      // Set empty array on error - show "No campaigns" message
+      setCampaigns([]);
     } finally {
       setLoading(false);
     }

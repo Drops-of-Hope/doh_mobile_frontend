@@ -40,14 +40,14 @@ export const loadCampaignStats = async (
     return await campaignService.getCampaignStats(campaignId);
   } catch (error) {
     console.error("Failed to load campaign stats:", error);
-    // Return mock stats as fallback
+    // Return empty stats on error
     return {
       totalAttendance: 0,
       screenedPassed: 0,
       walkInsScreened: 0,
       goalProgress: 0,
       currentDonations: 0,
-      donationGoal: 100,
+      donationGoal: 0,
     };
   }
 };

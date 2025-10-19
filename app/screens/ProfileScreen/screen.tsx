@@ -27,7 +27,6 @@ import BottomTabBar from "../shared/organisms/BottomTabBar";
 import { UserData, MenuItem } from "./types";
 import {
   createMenuItems,
-  getMockUserData,
   getRoleMembershipType,
 } from "./utils";
 
@@ -147,12 +146,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           );
           await clearAllUserData();
 
-          // Use mock data after clearing
-          const mockData = getMockUserData(user, getFullName);
-          setUserData({
-            ...mockData,
-            membershipType: getRoleMembershipType(userRole),
-          });
+          // Set basic loading state - user needs to complete profile or re-authenticate
+          console.log("ProfileScreen: Data cleared, showing profile completion");
+          setShowProfileCompletion(true);
           return;
         }
 
@@ -176,13 +172,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             // Clear the mismatched data
             await clearAllUserData();
 
-            // Fallback to mock data with correct user info
-            const mockData = getMockUserData(user, getFullName);
-            setUserData({
-              ...mockData,
-              membershipType: getRoleMembershipType(userRole),
-            });
-
+            // Show profile completion for user to re-authenticate or complete profile
+            console.log("ProfileScreen: Data mismatch cleared, showing profile completion");
+            setShowProfileCompletion(true);
             return;
           }
 
@@ -207,25 +199,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             membershipType: getRoleMembershipType(userRole),
           });
         } else {
-          console.log("ProfileScreen: No stored user data, using auth data");
-          // Fallback to mock data if no stored data
-          const mockData = getMockUserData(user, getFullName);
-          setUserData({
-            ...mockData,
-            membershipType: getRoleMembershipType(userRole),
-          });
+          console.log("ProfileScreen: No stored user data, need profile completion");
+          // Show profile completion screen if no stored data
+          setShowProfileCompletion(true);
         }
       }
     } catch (error) {
       console.error("ProfileScreen: Error loading user data:", error);
-      // Fallback to mock data on error
+      // Show profile completion on error
       if (user) {
-        console.log("ProfileScreen: Using fallback mock data due to error");
-        const mockData = getMockUserData(user, getFullName);
-        setUserData({
-          ...mockData,
-          membershipType: getRoleMembershipType(userRole),
-        });
+        console.log("ProfileScreen: Error occurred, showing profile completion");
+        setShowProfileCompletion(true);
       }
     } finally {
       setIsLoadingProfile(false);

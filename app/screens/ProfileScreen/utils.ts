@@ -131,17 +131,3 @@ export const formatMembershipType = (membershipType: string): string => {
     membershipType.slice(1).toLowerCase()
   );
 };
-
-// Generate mock user data
-export const getMockUserData = (
-  user: any,
-  getFullName: () => string,
-): UserData => ({
-  name: getFullName(),
-  email: user?.email || "user@example.com",
-  bloodType: user?.bloodType || "O+",
-  mobileNumber: user?.mobileNumber || "000-000-0000",
-  donationBadge: getDonationBadge(user?.donationCount || 0),
-  imageUri: "https://example.com/profile-image.jpg",
-  membershipType: "DONOR",
-});
