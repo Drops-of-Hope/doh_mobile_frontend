@@ -3,12 +3,32 @@ import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 // Types for home screen data
 export interface HomeScreenData {
   userStats: UserHomeStats;
+  todaysAppointment?: TodaysAppointment;
   upcomingAppointments: Appointment[];
   recentActivities: Activity[];
   emergencies: Emergency[];
   featuredCampaigns: Campaign[];
   notifications: Notification[];
   donationEligibility: DonationEligibility;
+}
+
+export interface TodaysAppointment {
+  id: string;
+  appointmentDateTime?: string;
+  appointmentDate?: string; // Backend might use this instead
+  scheduled: string;
+  medicalEstablishment: {
+    id: string;
+    name: string;
+    address: string;
+    district: string;
+  };
+  slot: {
+    id: string;
+    startTime: string;
+    endTime: string;
+  };
+  location: string;
 }
 
 export interface UserHomeStats {
@@ -279,6 +299,12 @@ export const homeService = {
       
       // Ensure we have the data structure we expect
       let homeData = response.data || response;
+      
+      // Log todaysAppointment specifically
+      console.log("📅 Today's Appointment Check:", {
+        hasTodaysAppointment: !!homeData.todaysAppointment,
+        todaysAppointment: homeData.todaysAppointment
+      });
 
       // Try to fetch authoritative stats from /home/stats and merge
       try {

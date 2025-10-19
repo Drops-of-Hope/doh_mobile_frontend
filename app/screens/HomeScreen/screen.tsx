@@ -19,6 +19,7 @@ import AppointmentSection from "./organisms/AppointmentSection";
 import HomeHeader from "./organisms/HomeHeader";
 import NextDonationCard from "./molecules/NextDonationCard";
 import ThankYouCard from "./molecules/ThankYouCard";
+import TodaysAppointmentCard from "./molecules/TodaysAppointmentCard";
 
 // Import new components
 import UserQRModal from "../shared/organisms/UserQRModal";
@@ -135,7 +136,72 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     try {
       setLoading(true);
       const data = await homeService.getHomeData();
+      
+      // If backend didn't send todaysAppointment, check if first upcoming appointment is today
+      if (!data.todaysAppointment && data.upcomingAppointments?.length > 0) {
+        const firstAppointment = data.upcomingAppointments[0];
+        const appointmentDate = new Date(firstAppointment.appointmentDateTime || firstAppointment.createdAt);
+        const today = new Date();
+        
+        // Compare dates in UTC to avoid timezone issues
+        const appointmentUTCYear = appointmentDate.getUTCFullYear();
+        const appointmentUTCMonth = appointmentDate.getUTCMonth();
+        const appointmentUTCDay = appointmentDate.getUTCDate();
+        
+        const todayUTCYear = today.getUTCFullYear();
+        const todayUTCMonth = today.getUTCMonth();
+        const todayUTCDay = today.getUTCDate();
+        
+        const isToday = appointmentUTCYear === todayUTCYear &&
+                       appointmentUTCMonth === todayUTCMonth &&
+                       appointmentUTCDay === todayUTCDay;
+        
+        console.log("📅 Frontend Today Check (UTC):", {
+          appointmentDate: appointmentDate.toISOString(),
+          today: today.toISOString(),
+          appointmentUTC: `${appointmentUTCYear}-${appointmentUTCMonth + 1}-${appointmentUTCDay}`,
+          todayUTC: `${todayUTCYear}-${todayUTCMonth + 1}-${todayUTCDay}`,
+          isToday
+        });
+        
+        if (isToday) {
+          // Convert upcoming appointment to todaysAppointment format
+          data.todaysAppointment = {
+            id: firstAppointment.id,
+            appointmentDateTime: firstAppointment.appointmentDateTime,
+            appointmentDate: firstAppointment.appointmentDateTime,
+            scheduled: firstAppointment.scheduled,
+            medicalEstablishment: firstAppointment.medicalEstablishment || {
+              id: '',
+              name: firstAppointment.location || 'Medical Center',
+              address: firstAppointment.location || '',
+              district: ''
+            },
+            slot: (firstAppointment as any).slot || {
+              id: 'default-slot',
+              startTime: '09:00',
+              endTime: '17:00'
+            },
+            location: firstAppointment.location || ''
+          };
+          console.log("✅ Created todaysAppointment from upcoming appointment:", data.todaysAppointment);
+        }
+      }
+      
+      console.log("🏠 HomeScreen - Data loaded:", {
+        hasTodaysAppointment: !!data?.todaysAppointment,
+        todaysAppointmentDetails: data?.todaysAppointment,
+        upcomingCount: data?.upcomingAppointments?.length
+      });
       setHomeData(data);
+      
+      // Additional render check
+      setTimeout(() => {
+        console.log("🎨 HomeScreen State Check after setState:", {
+          hasTodaysAppointment: !!data?.todaysAppointment,
+          willRenderCard: !!data?.todaysAppointment
+        });
+      }, 100);
     } catch (error) {
       console.error("Failed to load home data:", error);
       
@@ -322,6 +388,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               }
               showsVerticalScrollIndicator={false}
             >
+              {/* Today's Appointment Card - Shows above stats if user has appointment today */}
+              {homeData?.todaysAppointment && (
+                <TodaysAppointmentCard
+                  appointment={homeData.todaysAppointment}
+                  userName={user?.name || getFirstName() || "User"}
+                  userEmail={user?.email || ""}
+                  userUID={user?.sub || ""}
+                />
+              )}
+
               {/* Stats Section */}
               {homeData?.userStats && (
                 <StatsCard
