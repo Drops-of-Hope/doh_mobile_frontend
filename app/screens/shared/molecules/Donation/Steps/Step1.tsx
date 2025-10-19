@@ -114,6 +114,7 @@ const Step1: React.FC<Step1Props> = ({ formData, onUpdateField }) => {
                 onUpdateField("donationCount", parseInt(text) || 0)
               }
               placeholder="Enter number of times"
+              placeholderTextColor="#9CA3AF"
               keyboardType="numeric"
               style={{
                 borderWidth: 1,
@@ -121,6 +122,7 @@ const Step1: React.FC<Step1Props> = ({ formData, onUpdateField }) => {
                 borderRadius: 8,
                 padding: 12,
                 backgroundColor: "#fff",
+                color: "#111827",
               }}
             />
           </View>
@@ -140,12 +142,14 @@ const Step1: React.FC<Step1Props> = ({ formData, onUpdateField }) => {
               value={formData.lastDonationDate || ""}
               onChangeText={(text) => onUpdateField("lastDonationDate", text)}
               placeholder="DD/MM/YYYY"
+              placeholderTextColor="#9CA3AF"
               style={{
                 borderWidth: 1,
                 borderColor: "#E5E7EB",
                 borderRadius: 8,
                 padding: 12,
                 backgroundColor: "#fff",
+                color: "#111827",
               }}
             />
           </View>
@@ -174,6 +178,7 @@ const Step1: React.FC<Step1Props> = ({ formData, onUpdateField }) => {
                   onUpdateField("difficultyDetails", text)
                 }
                 placeholder="Please describe the difficulty"
+                placeholderTextColor="#9CA3AF"
                 multiline
                 numberOfLines={3}
                 style={{
@@ -183,6 +188,7 @@ const Step1: React.FC<Step1Props> = ({ formData, onUpdateField }) => {
                   padding: 12,
                   backgroundColor: "#fff",
                   textAlignVertical: "top",
+                  color: "#111827",
                 }}
               />
             </View>

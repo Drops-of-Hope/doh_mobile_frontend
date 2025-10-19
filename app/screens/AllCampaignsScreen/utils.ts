@@ -52,3 +52,11 @@ export const getUrgencyColor = (urgency: Campaign["urgency"]): string => {
       return "#6B7280";
   }
 };
+
+// Return all campaigns - placeholder implementation.
+// If your app uses a service, prefer calling the service. This keeps the module safe
+// for builds that import getAllCampaigns synchronously.
+export const getAllCampaigns = (): Campaign[] => {
+  // Default: return empty array to avoid unexpected UI changes.
+  return [];
+};

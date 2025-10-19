@@ -39,6 +39,7 @@ const EnhancedInputField: React.FC<EnhancedInputFieldProps> = ({
         ]}
         value={value}
         onChangeText={onChangeText}
+        placeholderTextColor={COLORS.TEXT_MUTED}
         {...textInputProps}
       />
       

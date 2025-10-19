@@ -93,6 +93,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
         onBlur={handleBlur}
         keyboardType="phone-pad"
         placeholder="0XX XXX XXXX"
+        placeholderTextColor={COLORS.TEXT_MUTED}
         maxLength={12} // Account for spaces in formatting
         {...textInputProps}
       />

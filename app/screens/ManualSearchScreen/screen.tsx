@@ -205,6 +205,7 @@ export default function ManualSearchScreen({
           <TextInput
             style={styles.searchInput}
             placeholder="Enter NIC, name, email, or phone"
+            placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
@@ -340,6 +341,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
+    color: "#111827",
     backgroundColor: "#fff",
     marginBottom: 16,
   },
