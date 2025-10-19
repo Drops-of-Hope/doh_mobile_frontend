@@ -141,7 +141,7 @@ export default function NextDonationCard({
         <Ionicons
           name={canDonateNow ? "heart" : "calendar-outline"}
           size={24}
-          color={canDonateNow ? COLORS.SUCCESS : COLORS.PRIMARY}
+          color={COLORS.PRIMARY} // Always red to maintain blood donation theme
         />
       </View>
       <View style={styles.textContainer}>
@@ -167,12 +167,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 12,
     elevation: 3,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.PRIMARY, // Red accent
   },
   iconContainer: {
     width: 48,
     height: 48,
     borderRadius: BORDER_RADIUS.LG,
-    backgroundColor: COLORS.BACKGROUND_SECONDARY,
+    backgroundColor: `${COLORS.PRIMARY}15`, // Light red background
     alignItems: "center",
     justifyContent: "center",
     marginRight: SPACING.MD,

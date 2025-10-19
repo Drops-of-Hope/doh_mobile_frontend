@@ -80,11 +80,14 @@ const ActivitiesScreen: React.FC = () => {
       // Show only the 5 most recent activities
       filtered = filtered.slice(0, 5);
     } else if (selectedFilter === 'donation') {
-      // Show only donations
-      filtered = filtered.filter(a => a.type === 'donation');
+      // Show only donations (limited to recent for performance)
+      filtered = filtered.filter(a => a.type === 'donation').slice(0, 10);
     } else if (selectedFilter === 'checkup') {
-      // Show only appointments/checkups
-      filtered = filtered.filter(a => a.type === 'checkup');
+      // Show only appointments/checkups (limited to recent for performance)
+      filtered = filtered.filter(a => a.type === 'checkup').slice(0, 10);
+    } else {
+      // Default: show recent 5
+      filtered = filtered.slice(0, 5);
     }
 
     setFilteredActivities(filtered);
@@ -267,6 +270,8 @@ const ActivitiesScreen: React.FC = () => {
     // Set appropriate default filter for each tab
     if (tab === 'recent') {
       setSelectedFilter('recent');
+      // Apply filters immediately to show recent 5
+      setCurrentPage(1);
     } else {
       setSelectedFilter('all');
       // Load local activities when switching to 'all' tab

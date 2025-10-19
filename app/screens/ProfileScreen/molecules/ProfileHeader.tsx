@@ -4,6 +4,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { UserData } from "../types";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 
+// Utility to format blood type from A_POSITIVE to A+
+const formatBloodType = (bloodType: string): string => {
+  if (!bloodType) return "";
+  
+  return bloodType
+    .replace("_POSITIVE", "+")
+    .replace("_NEGATIVE", "-")
+    .replace("_", " ");
+};
+
 interface ProfileHeaderProps {
   userData: UserData;
   onEditProfile?: () => void;
@@ -43,7 +53,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           {bloodType && (
             <View style={styles.bloodTypeContainer}>
               <Ionicons name="water" size={14} color={COLORS.PRIMARY} />
-              <Text style={styles.bloodType}>{bloodType}</Text>
+              <Text style={styles.bloodType}>{formatBloodType(bloodType)}</Text>
             </View>
           )}
         </View>

@@ -17,6 +17,7 @@ interface CampaignDetailsModalProps {
   campaign: Campaign | null;
   onClose: () => void;
   onJoin: (campaign: Campaign) => void;
+  isLiveCampaign?: boolean; // Track if this is a live campaign
 }
 
 export default function CampaignDetailsModal({
@@ -24,6 +25,7 @@ export default function CampaignDetailsModal({
   campaign,
   onClose,
   onJoin,
+  isLiveCampaign = false,
 }: CampaignDetailsModalProps) {
   const handleJoinPress = () => {
     if (!campaign) return;
@@ -110,22 +112,33 @@ export default function CampaignDetailsModal({
 
           <View style={styles.modalButtons}>
             <TouchableOpacity
-              style={styles.closeActionButton}
+              style={[
+                styles.closeActionButton,
+                isLiveCampaign && styles.closeActionButtonFull // Full width if live campaign
+              ]}
               onPress={onClose}
             >
-              <Text style={styles.closeActionText}>Close</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.joinButton,
-                campaign?.isRegistered && styles.unregisterButton
-              ]}
-              onPress={handleJoinPress}
-            >
-              <Text style={styles.joinButtonText}>
-                {campaign?.isRegistered ? "Unregister" : "Join Campaign"}
+              <Text style={[
+                styles.closeActionText,
+                isLiveCampaign && styles.closeActionTextWhite
+              ]}>
+                Close
               </Text>
             </TouchableOpacity>
+            {/* Hide Join button for live campaigns since users can just go there directly */}
+            {!isLiveCampaign && (
+              <TouchableOpacity
+                style={[
+                  styles.joinButton,
+                  campaign?.isRegistered && styles.unregisterButton
+                ]}
+                onPress={handleJoinPress}
+              >
+                <Text style={styles.joinButtonText}>
+                  {campaign?.isRegistered ? "Unregister" : "Join Campaign"}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -211,10 +224,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#D1D5DB",
   },
+  closeActionButtonFull: {
+    backgroundColor: COLORS.PRIMARY,
+    borderColor: COLORS.PRIMARY,
+  },
   closeActionText: {
     fontSize: 16,
     fontWeight: "600",
     color: "#374151",
+  },
+  closeActionTextWhite: {
+    color: "#FFFFFF",
   },
   joinButton: {
     flex: 1,

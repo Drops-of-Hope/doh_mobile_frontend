@@ -195,7 +195,6 @@ export default function ManualSearchScreen({
       <DashboardHeader
         title="Manual Search"
         onBack={handleBack}
-        onAdd={() => {}}
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

@@ -25,8 +25,6 @@ export default function AppointmentDetailsModal({
         // Simple copy using built-in clipboard
         const textToCopy = appointment.id;
         
-        // For Expo/React Native, we'll use a simple workaround
-        // In a real app, you'd use expo-clipboard or @react-native-clipboard/clipboard
         Alert.alert(
           "Appointment ID Copied",
           `ID: ${textToCopy}\n\nThis has been prepared for copying.`,

@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.MD,
   },
   card: {
-    backgroundColor: "#10b981", // Sea green (emerald-500)
+    backgroundColor: "#DC2626", // Sea green (emerald-500)
     borderRadius: BORDER_RADIUS.LG,
     padding: SPACING.MD,
     shadowColor: "#000",
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     padding: SPACING.MD,
     borderWidth: 2,
     borderTopWidth: 0,
-    borderColor: "#10b981",
+    borderColor: "#DC2626",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

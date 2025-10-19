@@ -23,9 +23,27 @@ const transformAppointmentForDisplay = (
                    establishmentData?.district ||
                    "Location TBD";
   
+  // Use slot times if available, fallback to appointment datetime
+  const hasSlot = !!serviceAppointment.slot;
+  const slotData = serviceAppointment.slot;
+  
+  let timeDisplay: string;
+  if (hasSlot && slotData?.startTime && slotData?.endTime) {
+    // Use slot times (already formatted as strings like "09:00" and "10:00")
+    timeDisplay = `${slotData.startTime} - ${slotData.endTime}`;
+    console.log("🔄 Using slot times:", timeDisplay);
+  } else {
+    // Fallback to extracting time from appointmentDate
+    timeDisplay = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    console.log("🔄 Using appointmentDate time (fallback):", timeDisplay);
+  }
+  
   console.log("🔄 Extracted values:");
   console.log("   - Hospital Name:", hospitalName);
   console.log("   - Location:", location);
+  console.log("   - Time Display:", timeDisplay);
+  console.log("   - Has Slot:", hasSlot);
+  console.log("   - Slot data:", slotData);
   console.log("   - Raw name value:", establishmentData?.name);
   console.log("   - Raw address value:", establishmentData?.address);
   console.log("   - Raw district value:", establishmentData?.district);
@@ -34,7 +52,7 @@ const transformAppointmentForDisplay = (
     id: serviceAppointment.id,
     hospital: hospitalName,
     date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD format
-    time: appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    time: timeDisplay,
     location: location,
     status: serviceAppointment.scheduled === "PENDING" 
       ? "upcoming" 

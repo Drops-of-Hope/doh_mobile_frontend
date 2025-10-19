@@ -72,6 +72,7 @@ const ExploreScreen: React.FC = () => {
     try {
       setLoading(true);
       setCurrentPage(1); // Reset pagination
+      // Don't clear campaigns immediately - let them stay visible while loading
       
       let campaignsData;
       
@@ -321,7 +322,10 @@ const ExploreScreen: React.FC = () => {
   const hasActiveFilters =
     filters.location.trim() !== "" || filters.date.trim() !== "";
 
-  if (loading && campaigns.length === 0) {
+  // Only show full skeleton on first load (when campaigns array is empty)
+  const isFirstLoad = loading && campaigns.length === 0;
+
+  if (isFirstLoad) {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
@@ -377,6 +381,7 @@ const ExploreScreen: React.FC = () => {
         campaign={selectedCampaign}
         onClose={() => setCampaignDetailsVisible(false)}
         onJoin={handleJoinCampaign}
+        isLiveCampaign={campaignStatus === "live"}
       />
 
       {/* Loading Overlay for Campaign Registration */}

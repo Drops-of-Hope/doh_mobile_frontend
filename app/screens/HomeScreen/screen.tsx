@@ -30,6 +30,9 @@ import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
 import { homeService, HomeScreenData } from "../../services/homeService";
 import { userService } from "../../services/userService";
 
+// Import theme constants
+import { COLORS } from "../../../constants/theme";
+
 // Import context
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
@@ -366,6 +369,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         />
       ) : (
         <>
+          {/* Subtle Red Theme Accent Bar */}
+          <View style={styles.themeAccentBar} />
+          
           {/* Header Section with Welcome Message */}
           <View style={styles.headerContainer}>
             <HomeHeader
@@ -467,7 +473,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fef6f6", // Very subtle red tint background
+  },
+  themeAccentBar: {
+    height: 3,
+    backgroundColor: COLORS.PRIMARY, // Red accent bar at the very top
+    shadowColor: COLORS.PRIMARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
   },
   headerContainer: {
     backgroundColor: "#FFFFFF",
