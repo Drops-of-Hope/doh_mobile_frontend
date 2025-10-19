@@ -62,18 +62,28 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
   // Load user appointments
   const loadUserAppointments = async () => {
     if (!userProfile?.id) {
-      console.log("No user profile ID available, skipping appointment load");
+      console.log("⚠️ No user profile ID available, skipping appointment load");
       return;
     }
     
     try {
       setAppointmentsLoading(true);
-      console.log("Loading appointments for user:", userProfile.id);
+      console.log("📅 ============ LOADING APPOINTMENTS ============");
+      console.log("📅 User ID:", userProfile.id);
+      console.log("📅 Calling getUserAppointments...");
+      
       const appointmentData = await getUserAppointments(userProfile.id);
-      console.log("Appointment data loaded:", appointmentData);
+      
+      console.log("📅 ============ APPOINTMENTS LOADED ============");
+      console.log("📅 Upcoming count:", appointmentData.upcoming.length);
+      console.log("📅 History count:", appointmentData.history.length);
+      console.log("📅 Upcoming appointments:", JSON.stringify(appointmentData.upcoming, null, 2));
+      console.log("📅 History appointments:", JSON.stringify(appointmentData.history, null, 2));
+      console.log("📅 ============================================\n");
+      
       setAppointments(appointmentData);
     } catch (error) {
-      console.error("Error loading user appointments:", error);
+      console.error("❌ Error loading user appointments:", error);
       // Set empty appointments instead of showing error for new users
       setAppointments({ upcoming: [], history: [] });
       

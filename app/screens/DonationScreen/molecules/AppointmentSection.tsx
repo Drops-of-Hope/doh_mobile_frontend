@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text, ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AppointmentCard from "../molecules/AppointmentCard";
 import NoticeCard from "../atoms/NoticeCard";
@@ -45,6 +45,26 @@ export default function AppointmentSection({
         setRefreshing(false);
       }
     }
+  };
+
+  const handleViewDetails = (appointment: Appointment) => {
+    // Format appointment details for display
+    const details = `
+Hospital: ${appointment.hospital}
+Location: ${appointment.location}
+Date: ${appointment.date}
+Time: ${appointment.time}
+Status: ${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+    `.trim();
+
+    Alert.alert(
+      "Appointment Details",
+      details,
+      [
+        { text: "OK", style: "default" },
+      ],
+      { cancelable: true }
+    );
   };
 
   if (loading && appointments.length === 0) {
@@ -163,6 +183,7 @@ export default function AppointmentSection({
               <AppointmentCard
                 key={appointment.id}
                 appointment={appointment}
+                onViewDetails={appointment.status === "upcoming" ? handleViewDetails : undefined}
               />
             ))
           ) : (

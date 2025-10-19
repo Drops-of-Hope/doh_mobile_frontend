@@ -6,22 +6,31 @@ import type { Appointment as ServiceAppointment, MedicalEstablishment } from "..
 const transformAppointmentForDisplay = (
   serviceAppointment: ServiceAppointment
 ): Appointment => {
+  console.log("\n🔄 ============ TRANSFORMATION START ============");
+  console.log("🔄 Input serviceAppointment:", JSON.stringify(serviceAppointment, null, 2));
+  
   const appointmentDate = new Date(serviceAppointment.appointmentDate);
   
   // Extract hospital name and location from medicalEstablishment
-  const hospitalName = serviceAppointment.medicalEstablishment?.name || "Unknown Hospital";
-  const location = serviceAppointment.medicalEstablishment?.address || 
-                   serviceAppointment.medicalEstablishment?.district ||
+  const hasEstablishment = !!serviceAppointment.medicalEstablishment;
+  const establishmentData = serviceAppointment.medicalEstablishment;
+  
+  console.log("🔄 Has medicalEstablishment:", hasEstablishment);
+  console.log("🔄 Establishment data:", establishmentData);
+  
+  const hospitalName = establishmentData?.name || "Unknown Hospital";
+  const location = establishmentData?.address || 
+                   establishmentData?.district ||
                    "Location TBD";
   
-  console.log("🔄 Transforming appointment:", {
-    id: serviceAppointment.id,
-    rawData: serviceAppointment.medicalEstablishment,
-    extractedHospital: hospitalName,
-    extractedLocation: location,
-  });
+  console.log("🔄 Extracted values:");
+  console.log("   - Hospital Name:", hospitalName);
+  console.log("   - Location:", location);
+  console.log("   - Raw name value:", establishmentData?.name);
+  console.log("   - Raw address value:", establishmentData?.address);
+  console.log("   - Raw district value:", establishmentData?.district);
   
-  return {
+  const transformed: Appointment = {
     id: serviceAppointment.id,
     hospital: hospitalName,
     date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD format
@@ -33,6 +42,11 @@ const transformAppointmentForDisplay = (
         ? "completed" 
         : "cancelled"
   };
+  
+  console.log("🔄 Transformed appointment:", transformed);
+  console.log("🔄 ============ TRANSFORMATION END ============\n");
+  
+  return transformed;
 };
 
 // Get user's appointment history (last 5) and upcoming appointments
@@ -87,7 +101,6 @@ export const getUserAppointments = async (userId: string): Promise<{
   }
 };
 
-// NOTE: Removed mock user profile helper. The donation screen now uses the
 // authenticated user from AuthContext. If you need a test user while
 // developing, use the app's `TestingPanel` or inject a test auth state.
 
