@@ -50,7 +50,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   // Context
   const { user, getFirstName, logout } = useAuth();
   const { t } = useLanguage();
-  const { getStoredUserData } = useAuthUser();
+  const { getStoredUserData, processAuthUser } = useAuthUser();
 
   // Helper functions
   const getLastDonationDays = () => {
@@ -63,14 +63,63 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   useEffect(() => {
-    checkProfileCompletion();
-    loadHomeData();
+    initializeUser();
   }, []);
 
-  const checkProfileCompletion = async () => {
+  const initializeUser = async () => {
     try {
-      const userData = await getStoredUserData();
-      if (userData?.needsProfileCompletion) {
+      // First check if we have stored user data
+      let userData = await getStoredUserData();
+      
+      // If no stored user data but we have an authenticated user, 
+      // we need to process/create the user in the backend
+      if (!userData && user?.sub) {
+        console.log("🔄 No stored user data found, processing auth user...");
+        
+        // Create AuthUserData from the current user
+        const authData = {
+          sub: user.sub,
+          email: user.email,
+          given_name: user.given_name || user.name?.split(" ")[0] || "User",
+          family_name: user.family_name || user.name?.split(" ").slice(1).join(" ") || "",
+          name: user.name || `${user.given_name} ${user.family_name}`,
+          roles: user.roles || [],
+          birthdate: user.birthdate || "",
+          username: user.username || user.email,
+          updated_at: Math.floor(Date.now() / 1000),
+        };
+        
+        // Process the user (creates in backend if needed)
+        userData = await processAuthUser(authData);
+        console.log("✅ User processed successfully:", userData);
+      }
+      
+      // Now check if profile completion is needed
+      await checkProfileCompletion(userData);
+      
+      // Load home data
+      await loadHomeData();
+    } catch (error) {
+      console.error("❌ Error initializing user:", error);
+      Alert.alert(
+        "Initialization Error",
+        "Failed to initialize user data. Please try logging out and back in.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const checkProfileCompletion = async (userData?: any) => {
+    try {
+      const userDataToCheck = userData || await getStoredUserData();
+      
+      if (!userDataToCheck) {
+        console.log("⚠️ No user data available for profile check");
+        return;
+      }
+      
+      if (userDataToCheck?.needsProfileCompletion) {
+        console.log("📋 User needs profile completion");
         setShowProfileCompletion(true);
         return;
       }
