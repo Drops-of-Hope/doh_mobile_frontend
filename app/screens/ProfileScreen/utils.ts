@@ -63,7 +63,7 @@ export const getBadgeIcon = (badge: UserData["donationBadge"]): string => {
   }
 };
 
-// Create default menu items
+// Create menu items separated by sections
 export const createMenuItems = (
   userRole: string | null,
   hasRole: (role: string) => boolean,
@@ -76,8 +76,9 @@ export const createMenuItems = (
     onFAQs: () => void;
     onLogout: () => void;
   },
-): MenuItem[] => {
-  const baseItems: MenuItem[] = [
+): { accountItems: MenuItem[]; settingsItems: MenuItem[] } => {
+  // Account section items (always include Edit Profile and Activities)
+  const accountItems: MenuItem[] = [
     {
       id: "edit-profile",
       title: t("profile.edit_profile"),
@@ -92,9 +93,9 @@ export const createMenuItems = (
     },
   ];
 
-  // Add role-specific items
+  // Add Campaign Dashboard for organizers/admins (in Account section)
   if (hasRole(USER_ROLES.CAMP_ORGANIZER) || hasRole(USER_ROLES.ADMIN)) {
-    baseItems.push({
+    accountItems.push({
       id: "campaign-dashboard",
       title: t("profile.campaign_dashboard"),
       icon: "analytics-outline",
@@ -102,30 +103,25 @@ export const createMenuItems = (
     });
   }
 
-  // Add settings items
-  baseItems.push(
+  // Add FAQs to Account section
+  accountItems.push({
+    id: "faq",
+    title: t("profile.faqs"),
+    icon: "help-circle-outline",
+    onPress: handlers.onFAQs,
+  });
+
+  // Settings section items (only Language)
+  const settingsItems: MenuItem[] = [
     {
       id: "language",
       title: t("profile.language"),
       icon: "language-outline",
       onPress: handlers.onLanguageSettings,
     },
-    {
-      id: "faq",
-      title: t("profile.faqs"),
-      icon: "help-circle-outline",
-      onPress: handlers.onFAQs,
-    },
-    {
-      id: "logout",
-      title: t("profile.log_out"),
-      icon: "log-out-outline",
-      onPress: handlers.onLogout,
-      showArrow: false,
-    },
-  );
+  ];
 
-  return baseItems;
+  return { accountItems, settingsItems };
 };
 
 // Format membership type for display
@@ -135,17 +131,3 @@ export const formatMembershipType = (membershipType: string): string => {
     membershipType.slice(1).toLowerCase()
   );
 };
-
-// Generate mock user data
-export const getMockUserData = (
-  user: any,
-  getFullName: () => string,
-): UserData => ({
-  name: getFullName(),
-  email: user?.email || "user@example.com",
-  bloodType: user?.bloodType || "O+",
-  mobileNumber: user?.mobileNumber || "000-000-0000",
-  donationBadge: getDonationBadge(user?.donationCount || 0),
-  imageUri: "https://example.com/profile-image.jpg",
-  membershipType: "DONOR",
-});

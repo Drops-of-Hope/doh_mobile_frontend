@@ -1,6 +1,7 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 
 interface FilterButtonProps {
   onPress: () => void;
@@ -21,14 +22,9 @@ export default function FilterButton({
     >
       <Ionicons
         name="filter"
-        size={20}
-        color={hasActiveFilters ? "white" : "#6B7280"}
+        size={18}
+        color={hasActiveFilters ? COLORS.BACKGROUND : COLORS.TEXT_SECONDARY}
       />
-      <Text
-        style={[styles.filterText, hasActiveFilters && styles.filterTextActive]}
-      >
-        Filter
-      </Text>
     </TouchableOpacity>
   );
 }
@@ -37,27 +33,21 @@ const styles = StyleSheet.create({
   filterButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginRight: 20,
+    justifyContent: "center",
+    backgroundColor: COLORS.BACKGROUND,
+    borderRadius: BORDER_RADIUS.MD,
+    paddingHorizontal: SPACING.SM + 4,
+    paddingVertical: SPACING.SM + 4,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   filterButtonActive: {
-    backgroundColor: "#3B82F6",
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6B7280",
-    marginLeft: 8,
-  },
-  filterTextActive: {
-    color: "white",
+    backgroundColor: COLORS.PRIMARY,
+    borderColor: COLORS.PRIMARY,
   },
 });

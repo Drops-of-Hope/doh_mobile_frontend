@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   statsNumber: {
     fontSize: 64,
     fontWeight: "900",
-    color: "#3B82F6",
+    color: "#dc2626", // Red color for blood donation theme
     marginRight: 20,
     lineHeight: 70,
   },

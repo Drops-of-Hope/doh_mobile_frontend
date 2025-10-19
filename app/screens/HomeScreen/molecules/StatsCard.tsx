@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import StatsNumber from "../atoms/StatsNumber";
 import StatusIndicator from "../atoms/StatusIndicator";
 import { useLanguage } from "../../../context/LanguageContext";
+import { COLORS } from "../../../../constants/theme";
 
 interface StatsCardProps {
   totalDonations: number;
@@ -47,5 +48,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 4,
+    borderLeftWidth: 4, // Red accent border on the left
+    borderLeftColor: COLORS.PRIMARY,
   },
 });

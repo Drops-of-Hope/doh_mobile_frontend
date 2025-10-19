@@ -188,6 +188,76 @@ export const exploreService = {
     }
   },
 
+  // Get live campaigns (startTime passed, endTime not reached yet)
+  async getLiveCampaigns(params?: ExploreSearchParams): Promise<{
+    campaigns: Campaign[];
+    hasMore: boolean;
+  }> {
+    try {
+      const normalizedParams: Record<string, string> = {};
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === "") return;
+          if (key === "sortBy" && value === "date") {
+            normalizedParams[key] = "startTime";
+          } else {
+            normalizedParams[key] = String(value);
+          }
+        });
+      }
+
+      const queryString = Object.keys(normalizedParams).length
+        ? new URLSearchParams(normalizedParams).toString()
+        : "";
+
+      try {
+        const response = await apiRequestWithAuth(
+          `${API_ENDPOINTS.CAMPAIGNS}${queryString ? `?${queryString}` : ""}`
+        );
+        
+        const campaigns = response?.data?.campaigns || response?.campaigns || response?.data || [];
+        
+        // Filter for live campaigns (started but not ended)
+        const now = Date.now();
+        const liveCampaigns = campaigns.filter((campaign: any) => {
+          // Strip .000Z to prevent UTC conversion - treat times as local
+          const startTimeStr = (campaign.startTime || '').replace(/\.000Z$/, '');
+          const endTimeStr = (campaign.endTime || '').replace(/\.000Z$/, '');
+          const startTime = new Date(startTimeStr).getTime();
+          const endTime = new Date(endTimeStr).getTime();
+          const isApproved = typeof campaign.isApproved === "boolean"
+            ? campaign.isApproved
+            : campaign.isApproved === "ACCEPTED";
+          
+          const isLive = startTime <= now && endTime > now && campaign.isActive && isApproved;
+          if (isLive) {
+            console.log(`✅ Live campaign found: ${campaign.title}`, {
+              startTime: startTimeStr,
+              endTime: endTimeStr,
+              now: new Date(now).toISOString()
+            });
+          }
+          return isLive;
+        });
+
+        // Apply limit if specified
+        const limit = params?.limit ? Number(params.limit) : undefined;
+        const result = limit ? liveCampaigns.slice(0, limit) : liveCampaigns;
+        
+        return {
+          campaigns: result,
+          hasMore: limit ? liveCampaigns.length > limit : false,
+        };
+      } catch (error) {
+        console.error("Failed to fetch live campaigns:", error);
+        return { campaigns: [], hasMore: false };
+      }
+    } catch (error) {
+      console.error("Failed to fetch live campaigns:", error);
+      throw error;
+    }
+  },
+
   // Get upcoming campaigns
   async getUpcomingCampaigns(params?: ExploreSearchParams): Promise<Campaign[]> {
     try {
@@ -283,7 +353,9 @@ export const exploreService = {
           // First, try to get truly upcoming campaigns (future, active, approved)
           let filtered = (data as any[]).filter((c) => {
             try {
-              const start = new Date(c.startTime || c.startDate || c.start_time).getTime();
+              // Strip .000Z to prevent UTC conversion - treat times as local
+              const startTimeStr = (c.startTime || c.startDate || c.start_time || '').replace(/\.000Z$/, '');
+              const start = new Date(startTimeStr).getTime();
               const active = c.isActive !== undefined ? !!c.isActive : true;
               const approved = typeof c.isApproved === "boolean"
                 ? c.isApproved
@@ -292,7 +364,15 @@ export const exploreService = {
                 : typeof c.approvalStatus === "string"
                 ? c.approvalStatus === "ACCEPTED"
                 : true;
-              return Number.isFinite(start) && start >= now && active && approved;
+              
+              const isUpcoming = Number.isFinite(start) && start > now && active && approved;
+              if (isUpcoming) {
+                console.log(`✅ Upcoming campaign found: ${c.title}`, {
+                  startTime: startTimeStr,
+                  now: new Date(now).toISOString()
+                });
+              }
+              return isUpcoming;
             } catch {
               return false;
             }
@@ -311,8 +391,11 @@ export const exploreService = {
           // Sort by start time ascending
           filtered.sort((a, b) => {
             try {
-              const sa = new Date(a.startTime || a.startDate || a.start_time).getTime();
-              const sb = new Date(b.startTime || b.startDate || b.start_time).getTime();
+              // Strip .000Z to prevent UTC conversion
+              const saStr = (a.startTime || a.startDate || a.start_time || '').replace(/\.000Z$/, '');
+              const sbStr = (b.startTime || b.startDate || b.start_time || '').replace(/\.000Z$/, '');
+              const sa = new Date(saStr).getTime();
+              const sb = new Date(sbStr).getTime();
               return sa - sb;
             } catch {
               return 0;

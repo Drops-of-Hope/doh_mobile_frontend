@@ -176,6 +176,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
               }
             }}
             placeholder="Enter your NIC number"
+            placeholderTextColor="#9CA3AF"
             maxLength={12}
           />
           {validationErrors.nic && (
@@ -228,6 +229,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
             value={address}
             onChangeText={setAddress}
             placeholder="Enter your address"
+            placeholderTextColor="#9CA3AF"
             multiline
             numberOfLines={3}
           />
@@ -240,6 +242,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
             value={city}
             onChangeText={setCity}
             placeholder="Enter your city"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -300,6 +303,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
               }
             }}
             placeholder="0771234567"
+            placeholderTextColor="#9CA3AF"
             keyboardType="phone-pad"
           />
           {validationErrors.phoneNumber && (
@@ -326,6 +330,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
               }
             }}
             placeholder="0771234567"
+            placeholderTextColor="#9CA3AF"
             keyboardType="phone-pad"
           />
           {validationErrors.emergencyContact && (
@@ -415,6 +420,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     fontSize: 16,
+    color: COLORS.TEXT_PRIMARY,
     backgroundColor: COLORS.BACKGROUND,
   },
   inputError: {

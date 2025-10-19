@@ -29,6 +29,7 @@ export default function QRModal({
         userName={userProfile.name}
         userEmail={userProfile.email || ""}
         userUID={userProfile.id}
+        onClose={onClose}
       />
     </Modal>
   );

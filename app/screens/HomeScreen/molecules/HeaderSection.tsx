@@ -54,6 +54,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     letterSpacing: -0.5,
   },
+  greetingHighlight: {
+    color: "#dc2626", // Red highlight for name
+  },
   subGreeting: {
     fontSize: 16,
     color: "#6B7280",
@@ -67,13 +70,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(75, 85, 99, 0.2)",
+    borderWidth: 1.5,
+    borderColor: "#dc2626", // Red border for blood theme
   },
   donorDot: {
     width: 8,
     height: 8,
-    backgroundColor: "#A0A0A0",
+    backgroundColor: "#dc2626", // Red dot for blood theme
     borderRadius: 4,
     marginRight: 8,
   },

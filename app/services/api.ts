@@ -2,7 +2,7 @@
 // Choose the correct host depending on platform/emulator and allow override.
 import { Platform } from "react-native";
 
-const ANDROID_EMULATOR_HOST = "http://10.178.30.17:5000/api";
+const ANDROID_EMULATOR_HOST = "http://192.168.1.58:5000/api";
 const DEFAULT_LOCALHOST = "http://localhost:5000/api";
 
 // Allow an environment or runtime override (set EXPO_PUBLIC_API_URL in your .env or app config)
@@ -47,6 +47,8 @@ export const API_ENDPOINTS = {
   MY_CAMPAIGNS: "/campaigns/organizer/:organizerId", // User's own campaigns
   CAMPAIGN_DETAILS: "/campaigns/:id",
   JOIN_CAMPAIGN: "/campaigns/:id/join",
+  LEAVE_CAMPAIGN: "/campaigns/:id/leave",
+  CAMPAIGN_PARTICIPATION_STATUS: "/campaigns/:id/participation-status",
   CAMPAIGN_PARTICIPANTS: "/campaigns/:id/participants",
   UPCOMING_CAMPAIGNS: "/campaigns/upcoming",
   CAMPAIGN_ANALYTICS: "/campaigns/:id/analytics",
@@ -79,6 +81,9 @@ export const API_ENDPOINTS = {
   NOTIFICATIONS: "/notifications",
   // Device push token registration
   PUSH_TOKEN: "/devices/push-token",
+
+  // Role management endpoints
+  REQUEST_CAMPAIGN_ORGANIZER_ROLE: "/users/request-campaign-organizer-role",
 } as const;
 
 // Generic API request function
@@ -87,7 +92,8 @@ export const apiRequest = async (
   options: RequestInit = {}
 ): Promise<any> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  console.log("API Request:", { url, options });
+  console.log("🌐 API Request:", url);
+  console.log("🌐 Request method:", options.method || "GET");
 
   const defaultHeaders = {
     "Content-Type": "application/json",
@@ -102,23 +108,55 @@ export const apiRequest = async (
       },
     });
 
-    console.log("API Response status:", response.status);
-    console.log("API Response headers:", response.headers);
+    console.log("📡 API Response status:", response.status);
+    const contentType = response.headers.get("content-type");
+    console.log("📡 API Response content-type:", contentType);
+
+    // Check if response is HTML (common error scenario)
+    if (contentType && contentType.includes("text/html")) {
+      const htmlText = await response.text();
+      console.error("❌ API returned HTML instead of JSON!");
+      console.error("❌ URL:", url);
+      console.error("❌ Status:", response.status);
+      console.error(
+        "❌ HTML preview (first 500 chars):",
+        htmlText.substring(0, 500)
+      );
+
+      throw new Error(
+        `API returned HTML instead of JSON. This usually means:\n` +
+          `1. The backend URL is incorrect (${API_BASE_URL})\n` +
+          `2. The endpoint doesn't exist (${endpoint})\n` +
+          `3. The backend server is down or not responding\n` +
+          `4. CORS or authentication issues\n` +
+          `Status: ${response.status}`
+      );
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("API Error Response:", errorText);
+      console.error("❌ API Error Response:", errorText);
       throw new Error(
         `HTTP error! status: ${response.status}, message: ${errorText}`
       );
     }
 
     const data = await response.json();
-    console.log("API Response data:", data);
+    console.log("✅ API Response data received");
     return data;
-  } catch (error) {
-    console.error("API request failed:", error);
-    console.error("URL attempted:", url);
+  } catch (error: any) {
+    console.error("❌ API request failed!");
+    console.error("❌ URL attempted:", url);
+    console.error("❌ Error type:", error?.name);
+    console.error("❌ Error message:", error?.message);
+
+    // Check if it's a JSON parsing error
+    if (error?.message?.includes("JSON")) {
+      console.error(
+        "❌ JSON parsing failed - backend likely returned HTML or invalid JSON"
+      );
+    }
+
     throw error;
   }
 };
@@ -138,14 +176,30 @@ export const getAuthToken = async (): Promise<string | null> => {
   try {
     // First try to get from accessToken (legacy)
     let token = await SecureStore.getItemAsync("accessToken");
+    console.log("🔑 Token from accessToken:", token ? "EXISTS" : "NULL");
 
     if (!token) {
       // If not found, get from authState (current auth system)
       const authState = await SecureStore.getItemAsync("authState");
+      console.log("🔑 AuthState from storage:", authState ? "EXISTS" : "NULL");
+
       if (authState) {
         const parsedAuthState = JSON.parse(authState);
         token = parsedAuthState.accessToken;
+        console.log(
+          "🔑 Token extracted from authState:",
+          token ? "EXISTS" : "NULL"
+        );
+
+        // Also log user info from token if it exists
+        if (parsedAuthState.idToken) {
+          console.log("🔑 User has idToken:", !!parsedAuthState.idToken);
+        }
       }
+    }
+
+    if (!token) {
+      console.warn("⚠️ NO AUTH TOKEN FOUND! User might not be authenticated.");
     }
 
     return token;

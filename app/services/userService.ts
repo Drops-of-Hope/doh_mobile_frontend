@@ -199,6 +199,30 @@ export const userService = {
       throw error;
     }
   },
+
+  // Request Campaign Organizer Role
+  // This endpoint communicates with Asgardeo to assign the "Internal/CampaignOrg" role
+  async requestCampaignOrganizerRole(): Promise<{
+    success: boolean;
+    message: string;
+    role?: string;
+  }> {
+    try {
+      console.log("📞 Requesting Campaign Organizer role from backend...");
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.REQUEST_CAMPAIGN_ORGANIZER_ROLE,
+        {
+          method: "POST",
+        }
+      );
+      
+      console.log("✅ Role request response:", response);
+      return response.data || response;
+    } catch (error: any) {
+      console.error("❌ Failed to request campaign organizer role:", error);
+      throw error;
+    }
+  },
 };
 
 export default userService;

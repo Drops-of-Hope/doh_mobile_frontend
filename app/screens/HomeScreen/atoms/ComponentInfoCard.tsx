@@ -44,6 +44,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 12,
     elevation: 3,
+    borderLeftWidth: 3,
+    borderLeftColor: "#dc2626", // Red accent
   },
   componentIcon: {
     width: 40,

@@ -1,10 +1,32 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, SafeAreaView, StatusBar } from "react-native";
 import Skeleton from "../../atoms/Skeleton";
+import { COLORS, SPACING } from "../../../../../constants/theme";
 
 export default function ActivitiesScreenSkeleton() {
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.BACKGROUND_SECONDARY} />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Header Skeleton */}
+      <View style={styles.headerSkeleton}>
+        <Skeleton height={32} width="60%" />
+        <Skeleton height={16} width="40%" style={styles.marginTop} />
+      </View>
+
+      {/* Tab Skeleton */}
+      <View style={styles.tabSkeleton}>
+        <Skeleton height={40} width="48%" borderRadius={8} />
+        <Skeleton height={40} width="48%" borderRadius={8} />
+      </View>
+
+      {/* Filter Bar Skeleton */}
+      <View style={styles.filterSkeleton}>
+        <Skeleton height={36} width={80} borderRadius={18} />
+        <Skeleton height={36} width={100} borderRadius={18} />
+        <Skeleton height={36} width={120} borderRadius={18} />
+      </View>
+
       {/* Activity Item 1 */}
       <View style={styles.activityCard}>
         <View style={styles.cardHeader}>
@@ -89,52 +111,44 @@ export default function ActivitiesScreenSkeleton() {
         </View>
       </View>
 
-      {/* Activity Item 4 */}
-      <View style={styles.activityCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.iconContainer}>
-            <Skeleton width={24} height={24} borderRadius={12} />
-          </View>
-          <View style={styles.headerContent}>
-            <Skeleton height={18} width="90%" />
-            <Skeleton height={14} width="50%" style={styles.marginTop} />
-          </View>
-          <Skeleton width={55} height={20} borderRadius={10} />
-        </View>
-        <View style={styles.cardBody}>
-          <Skeleton height={14} width="80%" />
-          <Skeleton height={14} width="60%" style={styles.marginTop} />
-        </View>
-        <View style={styles.cardDetails}>
-          <View style={styles.detailRow}>
-            <Skeleton height={12} width="33%" />
-            <Skeleton height={12} width="43%" />
-          </View>
-          <View style={[styles.detailRow, styles.marginTop]}>
-            <Skeleton height={12} width="27%" />
-            <Skeleton height={12} width="37%" />
-          </View>
-        </View>
-      </View>
-
       {/* Bottom Padding */}
       <View style={styles.bottomPadding} />
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND_SECONDARY,
+    paddingTop: SPACING.MD,
+  },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    backgroundColor: "#f5f5f5",
+    paddingHorizontal: SPACING.LG,
+    backgroundColor: COLORS.BACKGROUND_SECONDARY,
+  },
+  headerSkeleton: {
+    marginBottom: SPACING.MD,
+  },
+  tabSkeleton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SPACING.MD,
+    paddingHorizontal: SPACING.XS,
+  },
+  filterSkeleton: {
+    flexDirection: "row",
+    gap: SPACING.SM,
+    marginBottom: SPACING.MD,
+    paddingHorizontal: SPACING.XS,
   },
   activityCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: COLORS.BACKGROUND,
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    padding: SPACING.MD,
+    marginBottom: SPACING.SM + SPACING.XS,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -144,27 +158,27 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: SPACING.SM + SPACING.XS,
   },
   iconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: COLORS.BACKGROUND_TERTIARY,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: SPACING.SM + SPACING.XS,
   },
   headerContent: {
     flex: 1,
   },
   cardBody: {
-    marginBottom: 12,
+    marginBottom: SPACING.SM + SPACING.XS,
   },
   cardDetails: {
-    paddingTop: 8,
+    paddingTop: SPACING.SM,
     borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
+    borderTopColor: COLORS.BACKGROUND_TERTIARY,
   },
   detailRow: {
     flexDirection: "row",
@@ -172,7 +186,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   marginTop: {
-    marginTop: 6,
+    marginTop: SPACING.XS + 2,
   },
   bottomPadding: {
     height: 100,

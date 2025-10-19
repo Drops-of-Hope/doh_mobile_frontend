@@ -79,24 +79,8 @@ export default function UpcomingAppointmentScreen({
       setAppointments(transformedAppointments);
     } catch (error) {
       console.error("❌ Failed to load appointments:", error);
-      
-      // For debugging purposes, let's create a mock appointment to test the UI
-      const mockAppointments: Appointment[] = [
-        {
-          id: "mock-1",
-          hospital: "General Hospital",
-          date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
-          time: "10:00",
-          location: "Blood Donation Center, Ward 3",
-          confirmationId: "CONF-123",
-          status: "upcoming",
-          type: "blood_donation",
-          notes: "Please bring your ID and eat well before donation"
-        }
-      ];
-      
-      console.log("🔧 Using mock appointments for testing:", mockAppointments);
-      setAppointments(mockAppointments);
+      // Set empty array on error - show "No appointments" message
+      setAppointments([]);
     } finally {
       setLoading(false);
     }

@@ -35,6 +35,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "800",
     color: "#1F2937",
+    borderLeftWidth: 4,
+    borderLeftColor: "#dc2626", // Red accent
+    paddingLeft: 12,
   },
   viewAllButton: {
     color: "#5F27CD",

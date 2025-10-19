@@ -28,7 +28,7 @@ export default function ComponentRow({
         subtitle="Time since last visit"
         value={t("home.days_ago", { days: lastDonationDays })}
         icon="calendar"
-        iconColor="#5F27CD"
+        iconColor="#dc2626"
       />
     </View>
   );

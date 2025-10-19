@@ -19,6 +19,7 @@ import AppointmentSection from "./organisms/AppointmentSection";
 import HomeHeader from "./organisms/HomeHeader";
 import NextDonationCard from "./molecules/NextDonationCard";
 import ThankYouCard from "./molecules/ThankYouCard";
+import TodaysAppointmentCard from "./molecules/TodaysAppointmentCard";
 
 // Import new components
 import UserQRModal from "../shared/organisms/UserQRModal";
@@ -28,6 +29,9 @@ import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
 // Import services
 import { homeService, HomeScreenData } from "../../services/homeService";
 import { userService } from "../../services/userService";
+
+// Import theme constants
+import { COLORS } from "../../../constants/theme";
 
 // Import context
 import { useAuth } from "../../context/AuthContext";
@@ -50,7 +54,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   // Context
   const { user, getFirstName, logout } = useAuth();
   const { t } = useLanguage();
-  const { getStoredUserData } = useAuthUser();
+  const { getStoredUserData, processAuthUser } = useAuthUser();
 
   // Helper functions
   const getLastDonationDays = () => {
@@ -63,14 +67,63 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   useEffect(() => {
-    checkProfileCompletion();
-    loadHomeData();
+    initializeUser();
   }, []);
 
-  const checkProfileCompletion = async () => {
+  const initializeUser = async () => {
     try {
-      const userData = await getStoredUserData();
-      if (userData?.needsProfileCompletion) {
+      // First check if we have stored user data
+      let userData = await getStoredUserData();
+      
+      // If no stored user data but we have an authenticated user, 
+      // we need to process/create the user in the backend
+      if (!userData && user?.sub) {
+        console.log("🔄 No stored user data found, processing auth user...");
+        
+        // Create AuthUserData from the current user
+        const authData = {
+          sub: user.sub,
+          email: user.email,
+          given_name: user.given_name || user.name?.split(" ")[0] || "User",
+          family_name: user.family_name || user.name?.split(" ").slice(1).join(" ") || "",
+          name: user.name || `${user.given_name} ${user.family_name}`,
+          roles: user.roles || [],
+          birthdate: user.birthdate || "",
+          username: user.username || user.email,
+          updated_at: Math.floor(Date.now() / 1000),
+        };
+        
+        // Process the user (creates in backend if needed)
+        userData = await processAuthUser(authData);
+        console.log("✅ User processed successfully:", userData);
+      }
+      
+      // Now check if profile completion is needed
+      await checkProfileCompletion(userData);
+      
+      // Load home data
+      await loadHomeData();
+    } catch (error) {
+      console.error("❌ Error initializing user:", error);
+      Alert.alert(
+        "Initialization Error",
+        "Failed to initialize user data. Please try logging out and back in.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const checkProfileCompletion = async (userData?: any) => {
+    try {
+      const userDataToCheck = userData || await getStoredUserData();
+      
+      if (!userDataToCheck) {
+        console.log("⚠️ No user data available for profile check");
+        return;
+      }
+      
+      if (userDataToCheck?.needsProfileCompletion) {
+        console.log("📋 User needs profile completion");
         setShowProfileCompletion(true);
         return;
       }
@@ -86,7 +139,72 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     try {
       setLoading(true);
       const data = await homeService.getHomeData();
+      
+      // If backend didn't send todaysAppointment, check if first upcoming appointment is today
+      if (!data.todaysAppointment && data.upcomingAppointments?.length > 0) {
+        const firstAppointment = data.upcomingAppointments[0];
+        const appointmentDate = new Date(firstAppointment.appointmentDateTime || firstAppointment.createdAt);
+        const today = new Date();
+        
+        // Compare dates in UTC to avoid timezone issues
+        const appointmentUTCYear = appointmentDate.getUTCFullYear();
+        const appointmentUTCMonth = appointmentDate.getUTCMonth();
+        const appointmentUTCDay = appointmentDate.getUTCDate();
+        
+        const todayUTCYear = today.getUTCFullYear();
+        const todayUTCMonth = today.getUTCMonth();
+        const todayUTCDay = today.getUTCDate();
+        
+        const isToday = appointmentUTCYear === todayUTCYear &&
+                       appointmentUTCMonth === todayUTCMonth &&
+                       appointmentUTCDay === todayUTCDay;
+        
+        console.log("📅 Frontend Today Check (UTC):", {
+          appointmentDate: appointmentDate.toISOString(),
+          today: today.toISOString(),
+          appointmentUTC: `${appointmentUTCYear}-${appointmentUTCMonth + 1}-${appointmentUTCDay}`,
+          todayUTC: `${todayUTCYear}-${todayUTCMonth + 1}-${todayUTCDay}`,
+          isToday
+        });
+        
+        if (isToday) {
+          // Convert upcoming appointment to todaysAppointment format
+          data.todaysAppointment = {
+            id: firstAppointment.id,
+            appointmentDateTime: firstAppointment.appointmentDateTime,
+            appointmentDate: firstAppointment.appointmentDateTime,
+            scheduled: firstAppointment.scheduled,
+            medicalEstablishment: firstAppointment.medicalEstablishment || {
+              id: '',
+              name: firstAppointment.location || 'Medical Center',
+              address: firstAppointment.location || '',
+              district: ''
+            },
+            slot: (firstAppointment as any).slot || {
+              id: 'default-slot',
+              startTime: '09:00',
+              endTime: '17:00'
+            },
+            location: firstAppointment.location || ''
+          };
+          console.log("✅ Created todaysAppointment from upcoming appointment:", data.todaysAppointment);
+        }
+      }
+      
+      console.log("🏠 HomeScreen - Data loaded:", {
+        hasTodaysAppointment: !!data?.todaysAppointment,
+        todaysAppointmentDetails: data?.todaysAppointment,
+        upcomingCount: data?.upcomingAppointments?.length
+      });
       setHomeData(data);
+      
+      // Additional render check
+      setTimeout(() => {
+        console.log("🎨 HomeScreen State Check after setState:", {
+          hasTodaysAppointment: !!data?.todaysAppointment,
+          willRenderCard: !!data?.todaysAppointment
+        });
+      }, 100);
     } catch (error) {
       console.error("Failed to load home data:", error);
       
@@ -251,6 +369,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         />
       ) : (
         <>
+          {/* Subtle Red Theme Accent Bar */}
+          <View style={styles.themeAccentBar} />
+          
           {/* Header Section with Welcome Message */}
           <View style={styles.headerContainer}>
             <HomeHeader
@@ -273,6 +394,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               }
               showsVerticalScrollIndicator={false}
             >
+              {/* Today's Appointment Card - Shows above stats if user has appointment today */}
+              {homeData?.todaysAppointment && (
+                <TodaysAppointmentCard
+                  appointment={homeData.todaysAppointment}
+                  userName={user?.name || getFirstName() || "User"}
+                  userEmail={user?.email || ""}
+                  userUID={user?.sub || ""}
+                />
+              )}
+
               {/* Stats Section */}
               {homeData?.userStats && (
                 <StatsCard
@@ -294,6 +425,13 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 lastDonationDays={getLastDonationDays() || 0} 
               />
 
+              {/* Next Donation Date Card */}
+              <NextDonationCard 
+                lastDonationDate={homeData?.userStats?.lastDonationDate}
+                nextEligibleDate={homeData?.userStats?.nextEligibleDate}
+                eligibleToDonate={homeData?.userStats?.eligibleToDonate}
+              />
+
               {/* Upcoming Appointment */}
               {homeData?.upcomingAppointments && homeData.upcomingAppointments.length > 0 && (
                 <AppointmentSection
@@ -309,13 +447,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                   onViewAll={handleViewAllEmergencies}
                 />
               )}
-
-              {/* Next Donation Date Card */}
-              <NextDonationCard 
-                lastDonationDate={homeData?.userStats?.lastDonationDate}
-                nextEligibleDate={homeData?.userStats?.nextEligibleDate}
-                eligibleToDonate={homeData?.userStats?.eligibleToDonate}
-              />
 
               {/* Thank You Card */}
               <ThankYouCard />
@@ -342,7 +473,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fef6f6", // Very subtle red tint background
+  },
+  themeAccentBar: {
+    height: 3,
+    backgroundColor: COLORS.PRIMARY, // Red accent bar at the very top
+    shadowColor: COLORS.PRIMARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
   },
   headerContainer: {
     backgroundColor: "#FFFFFF",

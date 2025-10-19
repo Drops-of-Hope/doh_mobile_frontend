@@ -13,6 +13,7 @@ import {
 import ProfileHeader from "./molecules/ProfileHeader";
 import MenuSection from "./molecules/MenuSection";
 import LogoutButton from "./atoms/LogoutButton";
+import BecomeCampaignOrganizerButton from "./atoms/BecomeCampaignOrganizerButton";
 
 // Import modal organisms
 import LanguageModal from "./organisms/LanguageModal";
@@ -26,7 +27,6 @@ import BottomTabBar from "../shared/organisms/BottomTabBar";
 import { UserData, MenuItem } from "./types";
 import {
   createMenuItems,
-  getMockUserData,
   getRoleMembershipType,
 } from "./utils";
 
@@ -146,12 +146,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           );
           await clearAllUserData();
 
-          // Use mock data after clearing
-          const mockData = getMockUserData(user, getFullName);
-          setUserData({
-            ...mockData,
-            membershipType: getRoleMembershipType(userRole),
-          });
+          // Set basic loading state - user needs to complete profile or re-authenticate
+          console.log("ProfileScreen: Data cleared, showing profile completion");
+          setShowProfileCompletion(true);
           return;
         }
 
@@ -175,13 +172,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             // Clear the mismatched data
             await clearAllUserData();
 
-            // Fallback to mock data with correct user info
-            const mockData = getMockUserData(user, getFullName);
-            setUserData({
-              ...mockData,
-              membershipType: getRoleMembershipType(userRole),
-            });
-
+            // Show profile completion for user to re-authenticate or complete profile
+            console.log("ProfileScreen: Data mismatch cleared, showing profile completion");
+            setShowProfileCompletion(true);
             return;
           }
 
@@ -206,25 +199,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             membershipType: getRoleMembershipType(userRole),
           });
         } else {
-          console.log("ProfileScreen: No stored user data, using auth data");
-          // Fallback to mock data if no stored data
-          const mockData = getMockUserData(user, getFullName);
-          setUserData({
-            ...mockData,
-            membershipType: getRoleMembershipType(userRole),
-          });
+          console.log("ProfileScreen: No stored user data, need profile completion");
+          // Show profile completion screen if no stored data
+          setShowProfileCompletion(true);
         }
       }
     } catch (error) {
       console.error("ProfileScreen: Error loading user data:", error);
-      // Fallback to mock data on error
+      // Show profile completion on error
       if (user) {
-        console.log("ProfileScreen: Using fallback mock data due to error");
-        const mockData = getMockUserData(user, getFullName);
-        setUserData({
-          ...mockData,
-          membershipType: getRoleMembershipType(userRole),
-        });
+        console.log("ProfileScreen: Error occurred, showing profile completion");
+        setShowProfileCompletion(true);
       }
     } finally {
       setIsLoadingProfile(false);
@@ -298,15 +283,42 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     ]);
   };
 
+  // Handler for successful campaign organizer role assignment
+  const handleCampaignOrganizerSuccess = async () => {
+    console.log("🎉 Campaign Organizer role assigned successfully!");
+    console.log("🚪 Logging out user to refresh roles...");
+    
+    // Directly call logout without confirmation since user already confirmed
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout after role assignment failed:", error);
+      // Still try to show message even if logout fails
+      Alert.alert(
+        "Please Re-login",
+        "Please close and reopen the app to see your new permissions."
+      );
+    }
+  };
+
+  // Check if user should see the "Become Campaign Organizer" button
+  const shouldShowCampaignOrganizerButton = (): boolean => {
+    // Only show for donors who don't already have the campaign organizer role
+    const isDonor = hasRole(USER_ROLES.DONOR) || hasRole(USER_ROLES.SELFSIGNUP);
+    const isAlreadyCampaignOrganizer = hasRole(USER_ROLES.CAMP_ORGANIZER);
+    
+    return isDonor && !isAlreadyCampaignOrganizer;
+  };
+
   // Menu item handlers
-  const menuItems = createMenuItems(userRole, hasRole, t, {
+  const { accountItems, settingsItems } = createMenuItems(userRole, hasRole, t, {
     onEditProfile: handleEditProfile,
     onActivities: handleActivities,
     onCampaignDashboard: handleCampaignDashboard,
     onLanguageSettings: handleLanguageSettings,
     onFAQs: handleFAQs,
     onLogout: handleLogout,
-  }).filter(item => item.id !== "logout"); // Remove logout from menu items
+  });
 
   const handleMenuItemPress = (item: MenuItem) => {
     item.onPress();
@@ -357,15 +369,22 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
             <MenuSection
               title="Account"
-              menuItems={menuItems.slice(0, 3)} // First 3 items
+              menuItems={accountItems}
               onItemPress={handleMenuItemPress}
             />
 
             <MenuSection
               title="Settings"
-              menuItems={menuItems.slice(3)} // Remaining items (without logout)
+              menuItems={settingsItems}
               onItemPress={handleMenuItemPress}
             />
+
+            {/* Become Campaign Organizer Button - Only for Donors */}
+            {shouldShowCampaignOrganizerButton() && (
+              <BecomeCampaignOrganizerButton
+                onSuccess={handleCampaignOrganizerSuccess}
+              />
+            )}
 
             {/* Separate Logout Button */}
             <LogoutButton onPress={handleLogout} title={t("profile.log_out")} />

@@ -1,6 +1,10 @@
 import * as SecureStore from "expo-secure-store";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
+import Constants from "expo-constants";
+
+// Ensure auth sessions are properly completed on iOS (and generally safe to call once in module scope)
+WebBrowser.maybeCompleteAuthSession();
 
 const authConfig = {
   issuer:
@@ -10,11 +14,23 @@ const authConfig = {
   scopes: ["openid", "NIC", "profile", "email", "roles"],
 };
 
-// Create proper redirect URI for Expo
-const redirectUri = AuthSession.makeRedirectUri({
-  scheme: process.env.EXPO_PUBLIC_APP_SCHEME || "com.dropsofhope",
-  path: "auth",
-});
+// Determine environment to select correct redirect behavior
+// Expo Go -> proxy redirect (https://auth.expo.io/...)
+// Dev/Prod native build (including expo-dev-client) -> custom scheme redirect
+const appOwnership = Constants.appOwnership; // 'expo' | 'standalone' | 'guest'
+const isExpoGo = appOwnership === "expo"; // treat 'guest' (dev client) and 'standalone' as native
+
+// Create proper redirect URI for current runtime
+const redirectUri = isExpoGo
+  ? AuthSession.makeRedirectUri({
+      // In Expo Go, omit scheme to use the Expo AuthSession proxy URL
+      path: "auth",
+    })
+  : AuthSession.makeRedirectUri({
+      // In native/dev builds, use the app scheme for deep linking
+      scheme: process.env.EXPO_PUBLIC_APP_SCHEME || "com.dropsofhope",
+      path: "auth",
+    });
 
 console.log("Redirect URI:", redirectUri);
 
@@ -110,7 +126,7 @@ export const authenticate = async (
       revocationEndpoint: `${authConfig.issuer}/oauth2/revoke`,
     };
 
-    const result = await authRequest.promptAsync(discovery);
+  const result = await authRequest.promptAsync(discovery);
 
     console.log("Auth result:", result);
 

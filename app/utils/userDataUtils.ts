@@ -134,3 +134,17 @@ export const validateUserDataConsistency = async (): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * Extract time from ISO datetime string without timezone conversion
+ * @param isoString - ISO datetime string like "2025-07-05T09:30:00" or "2025-07-05T09:30:00.000Z"
+ * @returns Time string in "HH:MM" format, or original string if parsing fails
+ */
+export const extractTimeFromISO = (isoString: string | undefined | null): string => {
+  if (!isoString) return "";
+  // Strip timezone suffix (.000Z) to prevent UTC conversion
+  const cleanString = isoString.replace(/\.000Z$/, '');
+  // Extract "HH:MM" from ISO string without timezone conversion
+  const timePart = cleanString.split('T')[1]?.substring(0, 5);
+  return timePart || isoString;
+};

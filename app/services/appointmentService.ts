@@ -195,7 +195,7 @@ export const appointmentService = {
   getUserAppointments: async (userId: string): Promise<Appointment[]> => {
     try {
       console.log("🔍 Fetching appointments for user:", userId);
-      console.log("🌐 API Base URL:", API_ENDPOINTS.USER_APPOINTMENTS);
+      console.log("🌐 API Endpoint:", API_ENDPOINTS.USER_APPOINTMENTS);
       
       // Try without userId first (backend might get user from auth token)
       const response = await apiRequestWithAuth(
@@ -209,14 +209,25 @@ export const appointmentService = {
         }
       );
 
-      console.log("📋 User appointments response:", response);
+      console.log("📋 Raw API response:", JSON.stringify(response, null, 2));
       console.log("📋 Response type:", typeof response);
       console.log("📋 Response is array:", Array.isArray(response));
+      console.log("📋 Response.success:", response?.success);
+      console.log("📋 Response.data:", response?.data);
       
       // Handle different response formats and empty data gracefully
       let appointments: Appointment[] = [];
       
-      if (Array.isArray(response)) {
+      // Backend format: { success: true, data: [...] }
+      if (response?.success === true && response?.data) {
+        if (Array.isArray(response.data)) {
+          appointments = response.data;
+          console.log("📋 Using response.data array (success format)");
+        } else {
+          console.warn("📋 Response has success=true but data is not an array:", response.data);
+          return [];
+        }
+      } else if (Array.isArray(response)) {
         appointments = response;
         console.log("📋 Using direct array response");
       } else if (response?.data && Array.isArray(response.data)) {
@@ -240,6 +251,34 @@ export const appointmentService = {
       }
       
       console.log(`✅ Found ${appointments.length} appointments for user`);
+      
+      // Log each appointment's medicalEstablishment data in detail
+      appointments.forEach((apt, index) => {
+        console.log(`\n📋 ============ Appointment ${index + 1} ============`);
+        console.log(`   ID: ${apt.id}`);
+        console.log(`   Appointment Date: ${apt.appointmentDate}`);
+        console.log(`   Scheduled Status: ${apt.scheduled}`);
+        console.log(`   Has medicalEstablishment: ${!!apt.medicalEstablishment}`);
+        
+        if (apt.medicalEstablishment) {
+          console.log(`   Medical Establishment Details:`);
+          console.log(`     - ID: ${apt.medicalEstablishment.id}`);
+          console.log(`     - Name: ${apt.medicalEstablishment.name || 'MISSING'}`);
+          console.log(`     - Address: ${apt.medicalEstablishment.address || 'MISSING'}`);
+          console.log(`     - District: ${apt.medicalEstablishment.district || 'N/A'}`);
+        } else {
+          console.warn(`   ⚠️ NO medicalEstablishment data for appointment ${apt.id}`);
+        }
+        
+        if (apt.slot) {
+          console.log(`   Slot Details:`);
+          console.log(`     - ID: ${apt.slot.id}`);
+          console.log(`     - Start: ${apt.slot.startTime}`);
+          console.log(`     - End: ${apt.slot.endTime}`);
+        }
+        console.log(`   ==========================================\n`);
+      });
+      
       return appointments;
       
     } catch (error: any) {
@@ -247,6 +286,7 @@ export const appointmentService = {
       console.error("❌ Error type:", typeof error);
       console.error("❌ Error message:", error?.message);
       console.error("❌ Error status:", error?.status);
+      console.error("❌ Full error object:", JSON.stringify(error, null, 2));
       
       // For new users who don't have appointments yet, don't throw an error
       if (error.message?.includes("404") || 

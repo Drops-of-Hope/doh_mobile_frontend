@@ -20,6 +20,8 @@ import FormSection from "./molecules/FormSection";
 import InputField from "./atoms/InputField";
 import DropdownField from "./atoms/DropdownField";
 import DateSelector from "./atoms/DateSelector";
+import TimePicker from "./atoms/TimePicker";
+import NumberSpinner from "./atoms/NumberSpinner";
 import SubmitButton from "./atoms/SubmitButton";
 
 // Import types
@@ -92,72 +94,13 @@ export default function CreateCampaignScreen({
         return;
       }
       
-      // Fallback to mock data if no establishments loaded
-      console.log("Using fallback medical establishments");
-      const fallbackEstablishments: MedicalEstablishment[] = [
-        { 
-          id: "establishment-1", 
-          name: "Central Hospital Colombo", 
-          address: "Colombo 08", 
-          region: "Western", 
-          email: "central@hospital.lk", 
-          bloodCapacity: 100, 
-          isBloodBank: true 
-        },
-        { 
-          id: "establishment-2", 
-          name: "Kandy General Hospital", 
-          address: "Kandy", 
-          region: "Central", 
-          email: "kandy@hospital.lk", 
-          bloodCapacity: 80, 
-          isBloodBank: true 
-        },
-        { 
-          id: "establishment-3", 
-          name: "Galle Teaching Hospital", 
-          address: "Galle", 
-          region: "Southern", 
-          email: "galle@hospital.lk", 
-          bloodCapacity: 60, 
-          isBloodBank: true 
-        },
-        { 
-          id: "establishment-4", 
-          name: "Negombo Base Hospital", 
-          address: "Negombo", 
-          region: "Western", 
-          email: "negombo@hospital.lk", 
-          bloodCapacity: 40, 
-          isBloodBank: true 
-        },
-        { 
-          id: "establishment-5", 
-          name: "Matara General Hospital", 
-          address: "Matara", 
-          region: "Southern", 
-          email: "matara@hospital.lk", 
-          bloodCapacity: 50, 
-          isBloodBank: true 
-        },
-      ];
-      
-      setMedicalEstablishments(fallbackEstablishments);
+      // No establishments found
+      console.log("No medical establishments found");
+      setMedicalEstablishments([]);
     } catch (error) {
       console.error("Failed to load medical establishments:", error);
-      
-      // Even if everything fails, provide some basic options
-      setMedicalEstablishments([
-        { 
-          id: "default-1", 
-          name: "Central Hospital", 
-          address: "Colombo", 
-          region: "Western", 
-          email: "central@hospital.lk", 
-          bloodCapacity: 100, 
-          isBloodBank: true 
-        },
-      ]);
+      // Set empty array on error
+      setMedicalEstablishments([]);
     } finally {
       setLoadingEstablishments(false);
     }
@@ -209,22 +152,22 @@ export default function CreateCampaignScreen({
       }
     }
 
-    // Time validation (24-hour format)
+    // Time validation (24-hour format HH:mm)
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     
     if (!formData.startTime) {
       newErrors.startTime = "Start time is required";
     } else if (!timeRegex.test(formData.startTime)) {
-      newErrors.startTime = "Use 24-hour format (HH:MM)";
+      newErrors.startTime = "Invalid time format (HH:mm expected)";
     }
 
     if (!formData.endTime) {
       newErrors.endTime = "End time is required";
     } else if (!timeRegex.test(formData.endTime)) {
-      newErrors.endTime = "Use 24-hour format (HH:MM)";
+      newErrors.endTime = "Invalid time format (HH:mm expected)";
     }
 
-    // Check if end time is after start time
+    // Check if end time is after start time (at least 1 hour difference)
     if (formData.startTime && formData.endTime && timeRegex.test(formData.startTime) && timeRegex.test(formData.endTime)) {
       const [startHour, startMin] = formData.startTime.split(':').map(Number);
       const [endHour, endMin] = formData.endTime.split(':').map(Number);
@@ -233,6 +176,8 @@ export default function CreateCampaignScreen({
       
       if (endMinutes <= startMinutes) {
         newErrors.endTime = "End time must be after start time";
+      } else if (endMinutes - startMinutes < 60) {
+        newErrors.endTime = "Campaign must be at least 1 hour long";
       }
     }
 
@@ -274,22 +219,20 @@ export default function CreateCampaignScreen({
       console.log('Creating campaign with database user ID:', databaseUserId);
       console.log('Auth sub was:', user?.sub);
 
-      // Create proper date objects for startTime and endTime
-      const campaignDate = new Date(
-        parseInt(formData.year),
-        parseInt(formData.month) - 1,
-        parseInt(formData.day)
-      );
-
-      // Parse time and create proper datetime objects
-      const [startHour, startMin] = formData.startTime.split(':').map(Number);
-      const [endHour, endMin] = formData.endTime.split(':').map(Number);
+      // Create date string in YYYY-MM-DD format
+      const dateStr = `${formData.year}-${formData.month.padStart(2, '0')}-${formData.day.padStart(2, '0')}`;
       
-      const startDateTime = new Date(campaignDate);
-      startDateTime.setHours(startHour, startMin, 0, 0);
+      // Combine date and time without timezone conversion
+      // Store as ISO string but in local time (no UTC conversion)
+      const startDateTime = `${dateStr}T${formData.startTime}:00`;
+      const endDateTime = `${dateStr}T${formData.endTime}:00`;
       
-      const endDateTime = new Date(campaignDate);
-      endDateTime.setHours(endHour, endMin, 0, 0);
+      console.log('Creating campaign with:');
+      console.log('  Date:', dateStr);
+      console.log('  Start Time:', formData.startTime);
+      console.log('  End Time:', formData.endTime);
+      console.log('  Full Start DateTime:', startDateTime);
+      console.log('  Full End DateTime:', endDateTime);
       
       const campaignData = {
         title: formData.title.trim(),
@@ -297,8 +240,8 @@ export default function CreateCampaignScreen({
         description: formData.description.trim(),
         motivation: formData.motivation.trim(),
         location: formData.location.trim(),
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString(),
+        startTime: startDateTime,
+        endTime: endDateTime,
         expectedDonors: Number(formData.expectedDonors),
         contactPersonName: formData.contactPersonName.trim(),
         contactPersonPhone: formData.contactPersonPhone.trim(),
@@ -311,12 +254,25 @@ export default function CreateCampaignScreen({
       console.log('Campaign data being sent:', campaignData);
 
       await campaignService.createCampaign(campaignData);
-      Alert.alert("Success", "Campaign created successfully", [
-        { text: "OK", onPress: () => navigation?.goBack() },
-      ]);
+      
+      Alert.alert(
+        "✅ Campaign Submitted Successfully",
+        "The blood bank will review your form and get back to you shortly.",
+        [
+          { 
+            text: "OK", 
+            onPress: () => navigation?.goBack(),
+            style: "default"
+          },
+        ]
+      );
     } catch (error) {
       console.error("Failed to create campaign:", error);
-      Alert.alert("Error", "Failed to create campaign");
+      Alert.alert(
+        "❌ Error", 
+        "Failed to create campaign. Please try again.",
+        [{ text: "OK", style: "default" }]
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -422,21 +378,19 @@ export default function CreateCampaignScreen({
           
           <View style={styles.timeRow}>
             <View style={styles.timeInput}>
-              <InputField
+              <TimePicker
                 label="Start Time"
                 value={formData.startTime}
-                onChangeText={(text) => updateFormData("startTime", text)}
-                placeholder="08:00"
+                onChange={(time) => updateFormData("startTime", time)}
                 error={errors.startTime}
                 required
               />
             </View>
             <View style={styles.timeInput}>
-              <InputField
+              <TimePicker
                 label="End Time"
                 value={formData.endTime}
-                onChangeText={(text) => updateFormData("endTime", text)}
-                placeholder="17:00"
+                onChange={(time) => updateFormData("endTime", time)}
                 error={errors.endTime}
                 required
               />
@@ -445,12 +399,13 @@ export default function CreateCampaignScreen({
         </FormSection>
 
         <FormSection title="Goals & Contact">
-          <InputField
+          <NumberSpinner
             label="Expected Donors"
             value={formData.expectedDonors}
-            onChangeText={(text) => updateFormData("expectedDonors", text)}
-            placeholder="Number of donors expected"
-            keyboardType="numeric"
+            onChange={(value) => updateFormData("expectedDonors", value)}
+            min={1}
+            max={9999}
+            step={1}
             error={errors.expectedDonors}
             required
           />

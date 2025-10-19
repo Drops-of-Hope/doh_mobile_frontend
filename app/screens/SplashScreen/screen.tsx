@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated } from "react-native";
+import { View, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import SplashContent from "../shared/organisms/SplashContent";
@@ -80,7 +80,7 @@ export default function SplashScreen() {
           duration: 1500,
           useNativeDriver: true,
         }),
-      ]),
+      ])
     ).start();
 
     const createDotAnimation = (animValue: Animated.Value, delay: number) => {
@@ -97,7 +97,7 @@ export default function SplashScreen() {
             duration: 800,
             useNativeDriver: true,
           }),
-        ]),
+        ])
       );
     };
 
@@ -107,9 +107,11 @@ export default function SplashScreen() {
       createDotAnimation(dot3Anim, 600).start();
     }, 1000);
 
+    // Navigate to Entry screen after animations
     const timer = setTimeout(() => {
+      console.log("🚀 SplashScreen: Navigating to Entry screen");
       navigation.replace("Entry");
-    }, 4000);
+    }, 3000); // Reduced from 4000ms to 3000ms
 
     return () => clearTimeout(timer);
   }, [navigation]);

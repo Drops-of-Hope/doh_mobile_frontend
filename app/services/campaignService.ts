@@ -557,63 +557,10 @@ class CampaignService {
     } catch (error) {
       console.error("Failed to get campaign details:", error);
 
-      // Check if it's a 404 error (campaign not found)
-      if (error && typeof error === "object" && "message" in error) {
-        const errorMessage = error.message as string;
-        if (
-          errorMessage.includes("404") ||
-          errorMessage.includes("Cannot GET")
-        ) {
-          // Development fallback: Return mock data for testing
-          console.warn(
-            `Campaign ${campaignId} not found in backend, using mock data for development`
-          );
-          return this.getMockCampaignDetails(campaignId);
-        }
-      }
-
+      // Campaign not found or error occurred
+      console.error(`Failed to get campaign details for ${campaignId}:`, error);
       throw new Error("Failed to get campaign details");
     }
-  }
-
-  // Mock campaign data for development/testing when backend is not available
-  private getMockCampaignDetails(campaignId: string): Campaign {
-    return {
-      id: campaignId,
-      title: "Sample Campaign",
-      type: "MOBILE",
-      location: "Colombo General Hospital",
-      organizerId: "user-123",
-      motivation: "Community health support",
-      description: "This is a sample campaign for development testing.",
-      startTime: new Date().toISOString(),
-      endTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(), // 4 hours later
-      expectedDonors: 50,
-      contactPersonName: "Dr. Sample",
-      contactPersonPhone: "0771234567",
-      isApproved: true,
-      medicalEstablishmentId: "hospital-1",
-      actualDonors: 0,
-      createdAt: new Date().toISOString(),
-      isActive: true,
-      updatedAt: new Date().toISOString(),
-
-      // UI computed fields
-      status: "upcoming",
-      hasLinkedDonations: false,
-      canEdit: true,
-      canDelete: true,
-      donationGoal: 50,
-      currentDonations: 0,
-
-      // Backward compatibility fields
-      address: "No. 1, Regent Street, Colombo 07",
-      date: new Date().toISOString().split("T")[0],
-      contactPerson: "Dr. Sample",
-      contactPhone: "0771234567",
-      contactEmail: "dr.sample@hospital.lk",
-      additionalNotes: "This is a development mock campaign.",
-    };
   }
 
   // Get campaign analytics
@@ -856,6 +803,107 @@ class CampaignService {
   }
 
   // Check user's registration status for a campaign
+  async getCampaignParticipationStatus(campaignId: string): Promise<{
+    isRegistered: boolean;
+    participationId?: string;
+    status?: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "COMPLETED" | "CANCELLED";
+    registeredAt?: string;
+  }> {
+    try {
+      console.log("🔍 Checking participation status for campaign:", campaignId);
+      
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.CAMPAIGN_PARTICIPATION_STATUS.replace(":id", campaignId),
+        {
+          method: "GET",
+        }
+      );
+      
+      console.log("✅ Participation status response:", response);
+      
+      return {
+        isRegistered: response.data?.isRegistered || false,
+        participationId: response.data?.participationId,
+        status: response.data?.status,
+        registeredAt: response.data?.registeredAt,
+      };
+    } catch (error) {
+      console.error("Failed to check participation status:", error);
+      // If 404, user is not registered
+      if (error instanceof Error && error.message.includes("404")) {
+        return { isRegistered: false };
+      }
+      throw error;
+    }
+  }
+
+  // Leave/Unregister from a campaign
+  async leaveCampaign(campaignId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      console.log("🚪 Leaving campaign:", campaignId);
+      
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.LEAVE_CAMPAIGN.replace(":id", campaignId),
+        {
+          method: "DELETE",
+        }
+      );
+      
+      console.log("✅ Successfully left campaign:", response);
+      
+      return {
+        success: true,
+        message: response.data?.message || "Successfully unregistered from campaign",
+      };
+    } catch (error) {
+      console.error("❌ Failed to leave campaign:", error);
+      throw new Error("Failed to unregister from campaign. Please try again later.");
+    }
+  }
+
+  // Get total participant count for a campaign
+  async getCampaignParticipantCount(
+    campaignId: string
+  ): Promise<{ success: boolean; count: number }> {
+    try {
+      console.log("📊 Fetching participant count for campaign:", campaignId);
+      const response = await apiRequestWithAuth(
+        API_ENDPOINTS.CAMPAIGN_PARTICIPATION_STATUS.replace(":id", campaignId),
+        { method: "GET" }
+      );
+
+      // Backend shape: { success: true|false, count: number, data: { count: number } }
+      const count =
+        typeof response?.count === "number"
+          ? response.count
+          : typeof response?.data?.count === "number"
+          ? response.data.count
+          : 0;
+
+      const success = Boolean(response?.success);
+      console.log("📊 Participant count response:", { success, count });
+
+      return { success, count };
+    } catch (error) {
+      console.error("Failed to fetch participant count:", error);
+
+      // Gracefully handle 404 (route missing or campaign not found) -> return 0
+      if (error instanceof Error && (error.message.includes("404") || error.message.includes("Cannot GET"))) {
+        console.warn(
+          `Participant count endpoint not found for campaign ${campaignId}. Defaulting count to 0.`
+        );
+        return { success: false, count: 0 };
+      }
+
+      // Any other error: still return 0 to avoid breaking UI
+      return { success: false, count: 0 };
+    }
+  }
+
+  // Check user's registration status for a campaign (legacy method - keeping for backward compatibility)
   async getCampaignRegistrationStatus(campaignId: string): Promise<{
     isRegistered: boolean;
     registrationId?: string;
@@ -881,7 +929,7 @@ class CampaignService {
     }
   }
 
-  // Cancel campaign registration
+  // Cancel campaign registration (legacy method - keeping for backward compatibility)
   async cancelCampaignRegistration(campaignId: string): Promise<{
     success: boolean;
     message: string;

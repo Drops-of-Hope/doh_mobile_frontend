@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, Dimensions } from "react-native";
+import { View, Text, Dimensions, TouchableOpacity } from "react-native";
 import { styled } from "nativewind";
 import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -11,12 +12,14 @@ interface QRDisplayProps {
   userName: string;
   userEmail: string;
   userUID: string;
+  onClose?: () => void;
 }
 
 const QRDisplay: React.FC<QRDisplayProps> = ({
   userName,
   userEmail,
   userUID,
+  onClose,
 }) => {
   const screenWidth = Dimensions.get("window").width;
   const qrSize = Math.min(screenWidth * 0.6, 280);
@@ -126,6 +129,34 @@ const QRDisplay: React.FC<QRDisplayProps> = ({
           </StyledText>
         </StyledView>
       </StyledView>
+
+      {/* Close Button */}
+      {onClose && (
+        <TouchableOpacity
+          onPress={onClose}
+          style={{
+            marginTop: 24,
+            backgroundColor: "#dc2626",
+            paddingVertical: 12,
+            paddingHorizontal: 32,
+            borderRadius: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 4,
+          }}
+        >
+          <Ionicons name="close-circle" size={20} color="white" />
+          <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
+            Close
+          </Text>
+        </TouchableOpacity>
+      )}
     </StyledView>
   );
 };

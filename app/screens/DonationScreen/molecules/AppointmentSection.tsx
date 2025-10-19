@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text, ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AppointmentCard from "../molecules/AppointmentCard";
+import AppointmentDetailsModal from "../organisms/AppointmentDetailsModal";
 import NoticeCard from "../atoms/NoticeCard";
 import { Appointment } from "../types";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
@@ -28,6 +29,8 @@ export default function AppointmentSection({
 }: AppointmentSectionProps) {
   const [refreshing, setRefreshing] = React.useState(false);
   const [activeTab, setActiveTab] = useState<AppointmentTabType>("upcoming");
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const { t } = useLanguage();
 
   // Separate appointments by status
@@ -45,6 +48,57 @@ export default function AppointmentSection({
         setRefreshing(false);
       }
     }
+  };
+
+  const handleViewDetails = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setShowDetailsModal(true);
+  };
+
+  const handleCancelAppointment = (appointment: Appointment) => {
+    Alert.alert(
+      "Cancel Appointment",
+      "Cancelling this appointment won't guarantee your next reservation slot availability. Are you sure you want to cancel?",
+      [
+        {
+          text: "No, Keep It",
+          style: "cancel",
+        },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: () => {
+            // TODO: Implement actual cancellation logic
+            setShowDetailsModal(false);
+            Alert.alert("Cancelled", "Your appointment has been cancelled.");
+            if (onRefresh) {
+              onRefresh();
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRebookAppointment = (appointment: Appointment) => {
+    Alert.alert(
+      "Rebook Appointment",
+      "Rebooking this appointment won't guarantee your next reservation slot availability. Do you want to proceed with rebooking?",
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Yes, Rebook",
+          onPress: () => {
+            // TODO: Implement actual rebooking logic
+            setShowDetailsModal(false);
+            onShowBooking(); // Open booking modal to rebook
+          },
+        },
+      ]
+    );
   };
 
   if (loading && appointments.length === 0) {
@@ -112,22 +166,23 @@ export default function AppointmentSection({
   };
 
   return (
-    <ScrollView 
-      style={styles.appointmentSection}
-      refreshControl={
-        onRefresh ? (
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[COLORS.PRIMARY]}
-            tintColor={COLORS.PRIMARY}
-          />
-        ) : undefined
-      }
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Make an Appointment Card */}
-      <View style={styles.appointmentCard}>
+    <>
+      <ScrollView 
+        style={styles.appointmentSection}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[COLORS.PRIMARY]}
+              tintColor={COLORS.PRIMARY}
+            />
+          ) : undefined
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Make an Appointment Card */}
+        <View style={styles.appointmentCard}>
         <Text style={styles.title}>{t("donation.appointment_tab_title")}</Text>
         <Text style={styles.subtitle}>
           {t("donation.appointment_tab_description")}
@@ -163,6 +218,7 @@ export default function AppointmentSection({
               <AppointmentCard
                 key={appointment.id}
                 appointment={appointment}
+                onViewDetails={appointment.status === "upcoming" ? handleViewDetails : undefined}
               />
             ))
           ) : (
@@ -171,6 +227,16 @@ export default function AppointmentSection({
         </View>
       </View>
     </ScrollView>
+
+    {/* Appointment Details Modal */}
+    <AppointmentDetailsModal
+      visible={showDetailsModal}
+      onClose={() => setShowDetailsModal(false)}
+      appointment={selectedAppointment}
+      onCancel={handleCancelAppointment}
+      onRebook={handleRebookAppointment}
+    />
+    </>
   );
 }
 

@@ -298,6 +298,7 @@ const DonationQuestions: React.FC<DonationQuestionsProps> = ({
                   }
                   onChangeText={(text) => onUpdateField("anyDifficulty", text)}
                   placeholder={t("donation.placeholders.anyDifficulty")}
+                  placeholderTextColor="#9CA3AF"
                   multiline={true}
                   style={{
                     borderWidth: 1,
@@ -307,6 +308,7 @@ const DonationQuestions: React.FC<DonationQuestionsProps> = ({
                     height: 80,
                     textAlignVertical: "top",
                     backgroundColor: "#fff",
+                    color: "#111827",
                   }}
                 />
               </View>

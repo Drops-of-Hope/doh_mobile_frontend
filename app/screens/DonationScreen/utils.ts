@@ -4,23 +4,67 @@ import type { Appointment as ServiceAppointment, MedicalEstablishment } from "..
 
 // Transform service appointment to screen appointment format
 const transformAppointmentForDisplay = (
-  serviceAppointment: ServiceAppointment, 
-  medicalEstablishment?: MedicalEstablishment
+  serviceAppointment: ServiceAppointment
 ): Appointment => {
+  console.log("\n🔄 ============ TRANSFORMATION START ============");
+  console.log("🔄 Input serviceAppointment:", JSON.stringify(serviceAppointment, null, 2));
+  
   const appointmentDate = new Date(serviceAppointment.appointmentDate);
   
-  return {
+  // Extract hospital name and location from medicalEstablishment
+  const hasEstablishment = !!serviceAppointment.medicalEstablishment;
+  const establishmentData = serviceAppointment.medicalEstablishment;
+  
+  console.log("🔄 Has medicalEstablishment:", hasEstablishment);
+  console.log("🔄 Establishment data:", establishmentData);
+  
+  const hospitalName = establishmentData?.name || "Unknown Hospital";
+  const location = establishmentData?.address || 
+                   establishmentData?.district ||
+                   "Location TBD";
+  
+  // Use slot times if available, fallback to appointment datetime
+  const hasSlot = !!serviceAppointment.slot;
+  const slotData = serviceAppointment.slot;
+  
+  let timeDisplay: string;
+  if (hasSlot && slotData?.startTime && slotData?.endTime) {
+    // Use slot times (already formatted as strings like "09:00" and "10:00")
+    timeDisplay = `${slotData.startTime} - ${slotData.endTime}`;
+    console.log("🔄 Using slot times:", timeDisplay);
+  } else {
+    // Fallback to extracting time from appointmentDate
+    timeDisplay = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    console.log("🔄 Using appointmentDate time (fallback):", timeDisplay);
+  }
+  
+  console.log("🔄 Extracted values:");
+  console.log("   - Hospital Name:", hospitalName);
+  console.log("   - Location:", location);
+  console.log("   - Time Display:", timeDisplay);
+  console.log("   - Has Slot:", hasSlot);
+  console.log("   - Slot data:", slotData);
+  console.log("   - Raw name value:", establishmentData?.name);
+  console.log("   - Raw address value:", establishmentData?.address);
+  console.log("   - Raw district value:", establishmentData?.district);
+  
+  const transformed: Appointment = {
     id: serviceAppointment.id,
-    hospital: medicalEstablishment?.name || "Unknown Hospital",
+    hospital: hospitalName,
     date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD format
-    time: appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    location: medicalEstablishment?.address || "Location TBD",
+    time: timeDisplay,
+    location: location,
     status: serviceAppointment.scheduled === "PENDING" 
       ? "upcoming" 
       : serviceAppointment.scheduled === "COMPLETED" 
         ? "completed" 
         : "cancelled"
   };
+  
+  console.log("🔄 Transformed appointment:", transformed);
+  console.log("🔄 ============ TRANSFORMATION END ============\n");
+  
+  return transformed;
 };
 
 // Get user's appointment history (last 5) and upcoming appointments
@@ -29,7 +73,9 @@ export const getUserAppointments = async (userId: string): Promise<{
   history: Appointment[];
 }> => {
   try {
+    console.log("🔍 Getting user appointments for userId:", userId);
     const serviceAppointments = await appointmentService.getUserAppointments(userId);
+    console.log("📦 Received service appointments:", serviceAppointments.length);
     
     // Sort appointments by date (newest first)
     const sortedAppointments = serviceAppointments.sort((a, b) => 
@@ -46,21 +92,25 @@ export const getUserAppointments = async (userId: string): Promise<{
       })
       .map(apt => transformAppointmentForDisplay(apt));
     
+    console.log("📅 Upcoming appointments transformed:", upcomingAppointments.length);
+    
     // Get last 5 completed appointments
     const historyAppointments = sortedAppointments
       .filter(apt => {
         const aptDate = new Date(apt.appointmentDate);
-        return aptDate < now || apt.scheduled === "COMPLETED";
+        return aptDate < now || apt.scheduled === "COMPLETED" || apt.scheduled === "CANCELLED";
       })
       .slice(0, 5) // Last 5 appointments
       .map(apt => transformAppointmentForDisplay(apt));
+    
+    console.log("📜 History appointments transformed:", historyAppointments.length);
     
     return {
       upcoming: upcomingAppointments,
       history: historyAppointments
     };
   } catch (error) {
-    console.error("Error fetching user appointments:", error);
+    console.error("❌ Error fetching user appointments:", error);
     // Return empty arrays on error
     return {
       upcoming: [],
@@ -69,7 +119,6 @@ export const getUserAppointments = async (userId: string): Promise<{
   }
 };
 
-// NOTE: Removed mock user profile helper. The donation screen now uses the
 // authenticated user from AuthContext. If you need a test user while
 // developing, use the app's `TestingPanel` or inject a test auth state.
 
