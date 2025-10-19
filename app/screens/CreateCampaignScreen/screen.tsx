@@ -20,6 +20,8 @@ import FormSection from "./molecules/FormSection";
 import InputField from "./atoms/InputField";
 import DropdownField from "./atoms/DropdownField";
 import DateSelector from "./atoms/DateSelector";
+import TimePicker from "./atoms/TimePicker";
+import NumberSpinner from "./atoms/NumberSpinner";
 import SubmitButton from "./atoms/SubmitButton";
 
 // Import types
@@ -209,22 +211,22 @@ export default function CreateCampaignScreen({
       }
     }
 
-    // Time validation (24-hour format)
+    // Time validation (24-hour format HH:mm)
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     
     if (!formData.startTime) {
       newErrors.startTime = "Start time is required";
     } else if (!timeRegex.test(formData.startTime)) {
-      newErrors.startTime = "Use 24-hour format (HH:MM)";
+      newErrors.startTime = "Invalid time format (HH:mm expected)";
     }
 
     if (!formData.endTime) {
       newErrors.endTime = "End time is required";
     } else if (!timeRegex.test(formData.endTime)) {
-      newErrors.endTime = "Use 24-hour format (HH:MM)";
+      newErrors.endTime = "Invalid time format (HH:mm expected)";
     }
 
-    // Check if end time is after start time
+    // Check if end time is after start time (at least 1 hour difference)
     if (formData.startTime && formData.endTime && timeRegex.test(formData.startTime) && timeRegex.test(formData.endTime)) {
       const [startHour, startMin] = formData.startTime.split(':').map(Number);
       const [endHour, endMin] = formData.endTime.split(':').map(Number);
@@ -233,6 +235,8 @@ export default function CreateCampaignScreen({
       
       if (endMinutes <= startMinutes) {
         newErrors.endTime = "End time must be after start time";
+      } else if (endMinutes - startMinutes < 60) {
+        newErrors.endTime = "Campaign must be at least 1 hour long";
       }
     }
 
@@ -311,12 +315,25 @@ export default function CreateCampaignScreen({
       console.log('Campaign data being sent:', campaignData);
 
       await campaignService.createCampaign(campaignData);
-      Alert.alert("Success", "Campaign created successfully", [
-        { text: "OK", onPress: () => navigation?.goBack() },
-      ]);
+      
+      Alert.alert(
+        "✅ Campaign Submitted Successfully",
+        "The blood bank will review your form and get back to you shortly.",
+        [
+          { 
+            text: "OK", 
+            onPress: () => navigation?.goBack(),
+            style: "default"
+          },
+        ]
+      );
     } catch (error) {
       console.error("Failed to create campaign:", error);
-      Alert.alert("Error", "Failed to create campaign");
+      Alert.alert(
+        "❌ Error", 
+        "Failed to create campaign. Please try again.",
+        [{ text: "OK", style: "default" }]
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -422,21 +439,19 @@ export default function CreateCampaignScreen({
           
           <View style={styles.timeRow}>
             <View style={styles.timeInput}>
-              <InputField
+              <TimePicker
                 label="Start Time"
                 value={formData.startTime}
-                onChangeText={(text) => updateFormData("startTime", text)}
-                placeholder="08:00"
+                onChange={(time) => updateFormData("startTime", time)}
                 error={errors.startTime}
                 required
               />
             </View>
             <View style={styles.timeInput}>
-              <InputField
+              <TimePicker
                 label="End Time"
                 value={formData.endTime}
-                onChangeText={(text) => updateFormData("endTime", text)}
-                placeholder="17:00"
+                onChange={(time) => updateFormData("endTime", time)}
                 error={errors.endTime}
                 required
               />
@@ -445,12 +460,13 @@ export default function CreateCampaignScreen({
         </FormSection>
 
         <FormSection title="Goals & Contact">
-          <InputField
+          <NumberSpinner
             label="Expected Donors"
             value={formData.expectedDonors}
-            onChangeText={(text) => updateFormData("expectedDonors", text)}
-            placeholder="Number of donors expected"
-            keyboardType="numeric"
+            onChange={(value) => updateFormData("expectedDonors", value)}
+            min={1}
+            max={9999}
+            step={1}
             error={errors.expectedDonors}
             required
           />

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { View, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -12,7 +12,6 @@ type RootStackParamList = {
 export default function SplashScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [healthCheckComplete, setHealthCheckComplete] = useState(false);
 
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -108,25 +107,14 @@ export default function SplashScreen() {
       createDotAnimation(dot3Anim, 600).start();
     }, 1000);
 
-    // Only navigate after health check is complete
+    // Navigate to Entry screen after animations
     const timer = setTimeout(() => {
-      if (healthCheckComplete) {
-        navigation.replace("Entry");
-      }
-    }, 4000);
+      console.log("🚀 SplashScreen: Navigating to Entry screen");
+      navigation.replace("Entry");
+    }, 3000); // Reduced from 4000ms to 3000ms
 
     return () => clearTimeout(timer);
-  }, [navigation, healthCheckComplete]);
-
-  // Navigate when health check completes (if timer already passed)
-  useEffect(() => {
-    if (healthCheckComplete) {
-      const delayTimer = setTimeout(() => {
-        navigation.replace("Entry");
-      }, 500);
-      return () => clearTimeout(delayTimer);
-    }
-  }, [healthCheckComplete, navigation]);
+  }, [navigation]);
 
   return (
     <View className="flex-1 bg-blue-200">
