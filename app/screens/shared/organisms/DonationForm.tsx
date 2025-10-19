@@ -205,12 +205,17 @@ const DonationForm: React.FC<DonationFormProps> = ({
         await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
       }
 
-      Alert.alert(t("donation.submit_success"), t("donation.submit_success"), [
-        {
-          text: t("common.ok"),
-          onPress: onSubmitSuccess,
-        },
-      ]);
+      // Single confirmation message
+      Alert.alert(
+        t("common.success"),
+        "Your donation form has been submitted successfully. Thank you for your contribution!",
+        [
+          {
+            text: t("common.ok"),
+            onPress: onSubmitSuccess,
+          },
+        ],
+      );
     } catch (error) {
       Alert.alert(t("common.error"), t("donation.submit_error"), [
         { text: t("common.ok") },
@@ -327,16 +332,6 @@ const DonationForm: React.FC<DonationFormProps> = ({
               </View>
             )}
           </View>
-
-          {onCancel && (
-            <StyledView className="mt-3">
-              <Button
-                title={t("common.cancel")}
-                onPress={onCancel}
-                variant="outline"
-              />
-            </StyledView>
-          )}
         </StyledView>
       </StyledScrollView>
     </StyledView>

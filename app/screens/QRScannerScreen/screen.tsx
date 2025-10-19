@@ -226,7 +226,7 @@ export default function QRScannerScreen({
       <DashboardHeader
         title="QR Scanner"
         onBack={handleBack}
-        onAdd={() => {}}
+        onAdd={undefined}
       />
 
       <View style={styles.cameraContainer}>
