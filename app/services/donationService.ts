@@ -91,7 +91,7 @@ export interface DonationFormData {
 // Donation service functions
 export const donationService = {
   // Submit donation form (expects payload matching BloodDonationForm fields)
-  submitDonationForm: async (formData: DonationFormData): Promise<any> => {
+  submitDonationForm: async (formData: DonationFormData, appointmentId?: string): Promise<any> => {
     // Transform front-end form shape to match BloodDonationForm schema
     const anyDiseasesJson: Record<string, any> = {};
 
@@ -112,6 +112,7 @@ export const donationService = {
       // schema fields
       dateTime: formData.dateTime || new Date().toISOString(),
       donorId: formData.donorId || formData.userId || undefined,
+      appointmentId: appointmentId || undefined,
       hasDonatedBefore: formData.hasDonatedBefore,
       anyDifficulty: formData.anyDifficulty
         ? formData.difficultyDetails || "yes"

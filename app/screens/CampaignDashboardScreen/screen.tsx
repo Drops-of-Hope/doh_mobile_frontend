@@ -34,6 +34,7 @@ interface CampaignSection {
   active: CampaignType[];
   upcoming: CampaignType[];
   previous: CampaignType[];
+  cancelled: CampaignType[];
 }
 
 export default function CampaignDashboardScreen({
@@ -48,6 +49,7 @@ export default function CampaignDashboardScreen({
     active: [],
     upcoming: [],
     previous: [],
+    cancelled: [],
   });
   const [activeCampaignStats, setActiveCampaignStats] =
     useState<DashboardStats | null>(null);
@@ -66,9 +68,21 @@ export default function CampaignDashboardScreen({
       active: [],
       upcoming: [],
       previous: [],
+      cancelled: [],
     };
 
     campaigns.forEach((campaign) => {
+      // Check if campaign is cancelled first (check both isApproved field and status)
+      const isCancelled = 
+        (typeof campaign.isApproved === 'string' && campaign.isApproved === 'CANCELLED') ||
+        campaign.status === 'cancelled';
+        
+      if (isCancelled) {
+        console.log('Campaign:', campaign.title, '→ CANCELLED');
+        categorized.cancelled.push(campaign);
+        return;
+      }
+
       // Strip .000Z suffix to prevent UTC conversion - treat times as local
       const startTimeStr = campaign.startTime.replace(/\.000Z$/, '');
       const endTimeStr = campaign.endTime.replace(/\.000Z$/, '');
@@ -107,6 +121,9 @@ export default function CampaignDashboardScreen({
     categorized.previous.sort(
       (a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime()
     );
+    categorized.cancelled.sort(
+      (a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
+    );
 
     return categorized;
   };
@@ -128,15 +145,15 @@ export default function CampaignDashboardScreen({
           }
         } else {
           console.warn("userCampaigns is not an array:", userCampaigns);
-          setCampaigns({ active: [], upcoming: [], previous: [] });
+          setCampaigns({ active: [], upcoming: [], previous: [], cancelled: [] });
         }
       } else {
         console.warn("No user ID available");
-        setCampaigns({ active: [], upcoming: [], previous: [] });
+        setCampaigns({ active: [], upcoming: [], previous: [], cancelled: [] });
       }
     } catch (error) {
       console.error("Failed to load campaigns:", error);
-      setCampaigns({ active: [], upcoming: [], previous: [] });
+      setCampaigns({ active: [], upcoming: [], previous: [], cancelled: [] });
       Alert.alert(
         "Error",
         "Failed to load campaigns. Please check your connection and try again."
@@ -381,7 +398,7 @@ export default function CampaignDashboardScreen({
         {campaigns.previous.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              📊 Previous Campaigns (Track Record)
+              🟢 Previous Campaigns (Track Record)
             </Text>
             {campaigns.previous.map((campaign) => (
               <TouchableOpacity

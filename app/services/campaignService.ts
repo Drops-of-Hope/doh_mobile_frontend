@@ -201,26 +201,8 @@ class CampaignService {
         return [];
       }
 
-      console.log(`📡 Successfully used: ${usedEndpoint}`);
-      console.log("📦 Raw API Response:", response);
-
       // Handle different response structures
       let campaignsData: any[] = [];
-
-      console.log("🔍 PARSING DEBUG: response structure:", typeof response);
-      console.log("🔍 PARSING DEBUG: response.data exists:", !!response?.data);
-      console.log(
-        "🔍 PARSING DEBUG: response.data type:",
-        typeof response?.data
-      );
-      console.log(
-        "🔍 PARSING DEBUG: response.campaigns exists:",
-        !!response?.campaigns
-      );
-      console.log(
-        "🔍 PARSING DEBUG: response keys:",
-        Object.keys(response || {})
-      );
 
       // Check if response has campaigns directly (no .data wrapper)
       if (response && response.campaigns && Array.isArray(response.campaigns)) {
@@ -644,6 +626,21 @@ class CampaignService {
         reasons.push("Cannot modify completed campaigns");
       }
 
+      // Check if campaign is cancelled
+      if (campaign.status === "cancelled") {
+        canEdit = false;
+        canDelete = false;
+        reasons.push("Cannot modify cancelled campaigns");
+      }
+
+      // Active (live) campaigns CANNOT be edited
+      if (campaign.status === "active") {
+        canEdit = false; // Prevent editing live campaigns
+        canDelete = false;
+        reasons.push("Cannot edit live (active) campaigns");
+        reasons.push("Cannot delete active campaigns");
+      }
+
       // Check if campaign has linked donations (cannot delete if it has donations)
       if (
         campaign.hasLinkedDonations ||
@@ -651,15 +648,6 @@ class CampaignService {
       ) {
         canDelete = false;
         reasons.push("Cannot delete campaign with linked donations");
-      }
-
-      // Active campaigns can be edited but approach with caution
-      if (campaign.status === "active") {
-        canEdit = true; // Allow editing active campaigns
-        if (campaign.currentDonations && campaign.currentDonations > 0) {
-          canDelete = false;
-          reasons.push("Cannot delete active campaign with donations");
-        }
       }
 
       // Upcoming campaigns can be freely edited/deleted

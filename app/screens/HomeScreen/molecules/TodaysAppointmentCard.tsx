@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Pressable } from "react-nativ
 import { Ionicons } from "@expo/vector-icons";
 import QRCode from "react-native-qrcode-svg";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
+import { useNavigation } from "@react-navigation/native";
 
 interface TodaysAppointmentCardProps {
   appointment: {
@@ -31,6 +32,7 @@ export default function TodaysAppointmentCard({
 }: TodaysAppointmentCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isQRRevealed, setIsQRRevealed] = useState(false);
+  const navigation = useNavigation();
 
   const formatTime = (timeString: string) => {
     // Handle both full datetime and time-only strings
@@ -39,6 +41,15 @@ export default function TodaysAppointmentCard({
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     return timeString;
+  };
+
+  const handleFillDonationForm = () => {
+    // Navigate to donation screen with appointment ID
+    // This will open the blood donation form with the appointment ID pre-filled
+    (navigation as any).navigate('Donate', { 
+      appointmentId: appointment.id,
+      openBloodDonationForm: true 
+    });
   };
 
   // Create QR code data with appointment ID
@@ -65,6 +76,14 @@ export default function TodaysAppointmentCard({
               {formatTime(appointment.slot.startTime)} - {formatTime(appointment.slot.endTime)}
             </Text>
           </View>
+          {/* Fill Donation Form Button */}
+          <TouchableOpacity
+            style={styles.fillFormButton}
+            onPress={handleFillDonationForm}
+          >
+            <Ionicons name="document-text-outline" size={18} color={COLORS.PRIMARY} />
+            <Text style={styles.fillFormText}>Fill Form</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Location Info */}
@@ -169,6 +188,26 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+  },
+  fillFormButton: {
+    backgroundColor: "white",
+    paddingVertical: SPACING.XS,
+    paddingHorizontal: SPACING.SM,
+    borderRadius: BORDER_RADIUS.MD,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    marginLeft: SPACING.XS,
+  },
+  fillFormText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.PRIMARY,
   },
   title: {
     fontSize: 18,
