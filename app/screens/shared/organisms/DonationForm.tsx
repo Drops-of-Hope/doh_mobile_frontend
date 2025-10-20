@@ -23,11 +23,13 @@ const StyledScrollView = styled(ScrollView);
 interface DonationFormProps {
   onSubmitSuccess?: () => void;
   onCancel?: () => void;
+  appointmentId?: string;
 }
 
 const DonationForm: React.FC<DonationFormProps> = ({
   onSubmitSuccess,
   onCancel,
+  appointmentId,
 }) => {
   const { t, currentLanguage, setLanguage } = useLanguage();
   const [formLanguage, setFormLanguage] = useState<"en" | "si" | "ta">(
@@ -194,18 +196,10 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
     setIsSubmitting(true);
     try {
-      // Try to submit to API, but fallback to offline mode for demo
-      try {
-        await donationService.submitDonationForm(formData);
-      } catch (apiError) {
-        // Simulate offline submission - in a real app, you'd queue this for later sync
-        console.log(
-          "API submission failed, simulating offline submission for demo purposes"
-        );
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
-      }
+      // Submit to API - throw error if it fails
+      await donationService.submitDonationForm(formData, appointmentId);
 
-      // Single confirmation message
+      // Single confirmation message on success
       Alert.alert(
         t("common.success"),
         "Your donation form has been submitted successfully. Thank you for your contribution!",
@@ -217,9 +211,12 @@ const DonationForm: React.FC<DonationFormProps> = ({
         ],
       );
     } catch (error) {
-      Alert.alert(t("common.error"), t("donation.submit_error"), [
-        { text: t("common.ok") },
-      ]);
+      console.error("Donation form submission error:", error);
+      Alert.alert(
+        t("common.error"), 
+        "Failed to submit donation form. Please try again.",
+        [{ text: t("common.ok") }]
+      );
     } finally {
       setIsSubmitting(false);
     }

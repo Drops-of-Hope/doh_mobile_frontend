@@ -66,8 +66,33 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     return diffDays;
   };
 
+  // Format badge name for display (e.g., "BRONZE" -> "Bronze Donor")
+  const formatBadgeName = (badge: string | undefined): string => {
+    if (!badge) return "Bronze Donor"; // Default
+    
+    // Convert badge to title case and add "Donor"
+    const formatted = badge.charAt(0).toUpperCase() + badge.slice(1).toLowerCase();
+    return `${formatted} Donor`;
+  };
+
+  // Get donor badge from stored user data
+  const getDonorBadge = async (): Promise<string> => {
+    try {
+      const userData = await getStoredUserData();
+      return formatBadgeName(userData?.donationBadge);
+    } catch (error) {
+      console.error("Error getting donor badge:", error);
+      return "Bronze Donor"; // Default fallback
+    }
+  };
+
+  // State for donor badge
+  const [donorBadge, setDonorBadge] = useState<string>("Bronze Donor");
+
   useEffect(() => {
     initializeUser();
+    // Load donor badge
+    getDonorBadge().then(setDonorBadge);
   }, []);
 
   const initializeUser = async () => {
@@ -376,7 +401,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           <View style={styles.headerContainer}>
             <HomeHeader
               firstName={getFirstName() || "User"}
-              donorLevel="Bronze Donor" // This could be dynamic based on user stats
+              donorLevel={donorBadge}
               searchText={searchText}
               onSearchTextChange={setSearchText}
               onLogout={logout}

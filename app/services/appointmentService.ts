@@ -208,12 +208,6 @@ export const appointmentService = {
           },
         }
       );
-
-      console.log("📋 Raw API response:", JSON.stringify(response, null, 2));
-      console.log("📋 Response type:", typeof response);
-      console.log("📋 Response is array:", Array.isArray(response));
-      console.log("📋 Response.success:", response?.success);
-      console.log("📋 Response.data:", response?.data);
       
       // Handle different response formats and empty data gracefully
       let appointments: Appointment[] = [];

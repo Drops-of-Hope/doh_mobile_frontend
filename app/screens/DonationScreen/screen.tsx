@@ -30,9 +30,15 @@ import { notificationService } from "../../services/notificationService";
 
 interface DonationScreenProps {
   navigation?: any;
+  route?: {
+    params?: {
+      appointmentId?: string;
+      openBloodDonationForm?: boolean;
+    };
+  };
 }
 
-export default function DonationScreen({ navigation }: DonationScreenProps) {
+export default function DonationScreen({ navigation, route }: DonationScreenProps) {
   // State management
   const [activeTab, setActiveTab] = useState<TabType>("qr");
   const [showQRModal, setShowQRModal] = useState(false);
@@ -49,6 +55,7 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
   const [qrScanned, setQrScanned] = useState(false);
   const [isTimerStarted, setIsTimerStarted] = useState(false);
+  const [currentAppointmentId, setCurrentAppointmentId] = useState<string | undefined>(undefined);
   
   // Polling state for attendance verification
   const [pollingAttempts, setPollingAttempts] = useState(0);
@@ -283,6 +290,26 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
     }
   }, [userProfile?.id]);
 
+  // Handle route parameters (e.g., opening form from TodaysAppointmentCard)
+  useEffect(() => {
+    if (route?.params?.openBloodDonationForm) {
+      console.log("📋 Opening blood donation form from route params");
+      console.log("📋 Appointment ID:", route.params.appointmentId);
+      
+      // Store the appointmentId in state
+      if (route.params.appointmentId) {
+        setCurrentAppointmentId(route.params.appointmentId);
+      }
+      
+      // Wait a bit for the screen to fully load
+      const timer = setTimeout(() => {
+        setShowFormModal(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [route?.params?.openBloodDonationForm, route?.params?.appointmentId]);
+
   // Modal handlers
   const handleShowQR = () => {
     if (!userProfile?.eligibleForDonation) {
@@ -313,16 +340,10 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
   };
 
   const handleFormSubmit = () => {
-    Alert.alert(
-      "Form Submitted",
-      "Your donation form has been submitted successfully. Thank you for your contribution!",
-      [
-        {
-          text: "OK",
-          onPress: () => setShowFormModal(false),
-        },
-      ]
-    );
+    // Close modal - DonationForm already shows success alert
+    setShowFormModal(false);
+    // Clear the appointmentId after submission
+    setCurrentAppointmentId(undefined);
   };
 
   const handleStartTimer = () => {
@@ -403,6 +424,7 @@ export default function DonationScreen({ navigation }: DonationScreenProps) {
         visible={showFormModal}
         onClose={() => setShowFormModal(false)}
         onSubmit={handleFormSubmit}
+        appointmentId={currentAppointmentId}
       />
 
       <AppointmentBookingModal
@@ -420,7 +442,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAFBFC",
-    paddingTop: StatusBar.currentHeight || 0,
+    paddingTop: 20,
   },
   scrollView: {
     flex: 1,

@@ -189,7 +189,8 @@ class AuthUserService {
       isProfileComplete: userResponse.user.isProfileComplete,
       totalDonations: userResponse.user.totalDonations,
       totalPoints: userResponse.user.totalPoints,
-      donationBadge: userResponse.user.donationBadge,
+      // If badge is null or undefined, default to BRONZE
+      donationBadge: userResponse.user.donationBadge || 'BRONZE',
       isActive: userResponse.user.isActive,
       needsProfileCompletion: userResponse.needsProfileCompletion,
       isNewUser: userResponse.isNewUser,

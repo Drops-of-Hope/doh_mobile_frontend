@@ -30,9 +30,9 @@ interface ProfileFormData {
   email: string;
   phoneNumber: string;
   bloodType: string;
+  nic: string;
   address: string;
   emergencyContact: string;
-  emergencyPhone: string;
 }
 
 export default function EditProfileScreen({
@@ -50,58 +50,77 @@ export default function EditProfileScreen({
     email: "",
     phoneNumber: "",
     bloodType: "",
+    nic: "",
     address: "",
     emergencyContact: "",
-    emergencyPhone: "",
   });
 
   const [errors, setErrors] = useState<Partial<ProfileFormData>>({});
 
-  // Load user data from auth service
+  // Load user data from backend using getUserProfile
   useEffect(() => {
     const loadUserData = async () => {
       try {
         setIsLoading(true);
-        const storedUserData = await getStoredUserData();
+        
+        // Fetch full user profile from backend
+        console.log("📥 Fetching user profile from backend...");
+        const userProfile = await userService.getUserProfile();
+        console.log("✅ User profile received:", userProfile);
 
-        if (storedUserData) {
+        if (userProfile) {
           // Split name into first and last
-          const nameParts = storedUserData.name.split(" ");
+          const nameParts = userProfile.name.split(" ");
           const firstName = nameParts[0] || "";
           const lastName = nameParts.slice(1).join(" ") || "";
 
           setFormData({
             firstName,
             lastName,
-            email: storedUserData.email,
-            phoneNumber: "", // We don't have phone in stored data
-            bloodType: storedUserData.bloodGroup || "",
-            address: "", // We don't have address in stored data
-            emergencyContact: "",
-            emergencyPhone: "",
+            email: userProfile.email,
+            phoneNumber: userProfile.userDetails?.phoneNumber || "",
+            bloodType: formatBloodTypeForDisplay(userProfile.bloodGroup) || "",
+            nic: userProfile.nic || "",
+            address: userProfile.userDetails?.address || "",
+            emergencyContact: userProfile.userDetails?.emergencyContact || "",
           });
-        } else if (user) {
-          // Fallback to AuthContext user data
-          const nameParts = user.name.split(" ");
-          const firstName = nameParts[0] || "";
-          const lastName = nameParts.slice(1).join(" ") || "";
-
-          setFormData((prev) => ({
-            ...prev,
-            firstName,
-            lastName,
-            email: user.email,
-          }));
         }
       } catch (error) {
         console.error("Error loading user data:", error);
+        Alert.alert("Error", "Failed to load profile data. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUserData();
-  }, [user]);
+  }, []);
+
+  // Helper function to format blood type for display (A_POSITIVE -> A+)
+  const formatBloodTypeForDisplay = (bloodType: string | undefined): string => {
+    if (!bloodType) return "";
+    
+    const bloodTypeMap: Record<string, string> = {
+      'A_POSITIVE': 'A+', 'A_NEGATIVE': 'A-',
+      'B_POSITIVE': 'B+', 'B_NEGATIVE': 'B-',
+      'AB_POSITIVE': 'AB+', 'AB_NEGATIVE': 'AB-',
+      'O_POSITIVE': 'O+', 'O_NEGATIVE': 'O-'
+    };
+    
+    return bloodTypeMap[bloodType] || bloodType;
+  };
+
+  // Helper function to format blood type for backend (A+ -> A_POSITIVE)
+  const formatBloodTypeForBackend = (bloodType: string): string => {
+    const bloodTypeMap: Record<string, string> = {
+      'A+': 'A_POSITIVE', 'A-': 'A_NEGATIVE',
+      'B+': 'B_POSITIVE', 'B-': 'B_NEGATIVE',
+      'AB+': 'AB_POSITIVE', 'AB-': 'AB_NEGATIVE',
+      'O+': 'O_POSITIVE', 'O-': 'O_NEGATIVE'
+    };
+    
+    return bloodTypeMap[bloodType.toUpperCase()] || bloodType;
+  };
 
   const validateForm = (): boolean => {
     const requiredFields = [
@@ -109,7 +128,6 @@ export default function EditProfileScreen({
       "lastName", 
       "email",
       "phoneNumber",
-      "bloodType",
     ];
 
     // Use enhanced validation with specific field validation
@@ -118,26 +136,11 @@ export default function EditProfileScreen({
     // Additional custom validations
     const customErrors: Partial<ProfileFormData> = {};
     
-    // Blood type validation (convert display format to enum format)
-    if (formData.bloodType) {
-      const bloodTypeMap: Record<string, string> = {
-        'A+': 'A_POSITIVE', 'A-': 'A_NEGATIVE',
-        'B+': 'B_POSITIVE', 'B-': 'B_NEGATIVE', 
-        'AB+': 'AB_POSITIVE', 'AB-': 'AB_NEGATIVE',
-        'O+': 'O_POSITIVE', 'O-': 'O_NEGATIVE'
-      };
-      
-      const enumValue = bloodTypeMap[formData.bloodType.toUpperCase()];
-      if (!enumValue) {
-        customErrors.bloodType = "Please select a valid blood type (A+, A-, B+, B-, AB+, AB-, O+, O-)";
-      }
-    }
-    
-    // Emergency phone validation (optional but if provided, must be valid)
-    if (formData.emergencyPhone && formData.emergencyPhone.trim()) {
-      const emergencyPhoneValidation = ValidationUtils.validatePhoneNumber(formData.emergencyPhone);
-      if (!emergencyPhoneValidation.isValid) {
-        customErrors.emergencyPhone = emergencyPhoneValidation.error;
+    // Emergency contact validation (optional - just phone number format check if provided)
+    if (formData.emergencyContact && formData.emergencyContact.trim()) {
+      const emergencyContactValidation = ValidationUtils.validatePhoneNumber(formData.emergencyContact);
+      if (!emergencyContactValidation.isValid) {
+        customErrors.emergencyContact = emergencyContactValidation.error;
       }
     }
     
@@ -182,7 +185,7 @@ export default function EditProfileScreen({
     let processedValue = value;
     
     // Apply specific processing for phone numbers
-    if (field === 'phoneNumber' || field === 'emergencyPhone') {
+    if (field === 'phoneNumber' || field === 'emergencyContact') {
       // Keep only digits and limit to 10 characters starting with 0
       const cleaned = value.replace(/\D/g, '');
       if (cleaned.length === 0 || cleaned.startsWith('0')) {
@@ -207,7 +210,7 @@ export default function EditProfileScreen({
         if (!emailValidation.isValid) {
           setErrors(prev => ({ ...prev, [field]: emailValidation.error }));
         }
-      } else if ((field === 'phoneNumber' || field === 'emergencyPhone') && processedValue.length >= 10) {
+      } else if ((field === 'phoneNumber' || field === 'emergencyContact') && processedValue.length >= 10) {
         const phoneValidation = ValidationUtils.validatePhoneNumber(processedValue);
         if (!phoneValidation.isValid) {
           setErrors(prev => ({ ...prev, [field]: phoneValidation.error }));
@@ -295,13 +298,20 @@ export default function EditProfileScreen({
 
           <FormSection title="Medical Information">
             <EnhancedInputField
+              label="NIC"
+              value={formData.nic}
+              onChangeText={() => {}}
+              placeholder="Your NIC number"
+              editable={false}
+              helpText="NIC cannot be changed (set during profile completion)"
+            />
+            <EnhancedInputField
               label="Blood Type"
               value={formData.bloodType}
-              onChangeText={(text: string) => updateFormData("bloodType", text)}
-              placeholder="e.g., O+, A-, B+, AB-"
-              error={errors.bloodType}
-              required
-              helpText="Select your blood type (important for donation matching)"
+              onChangeText={() => {}}
+              placeholder="Your blood type"
+              editable={false}
+              helpText="Blood type cannot be changed (set during profile completion)"
             />
             <EnhancedInputField
               label="Address"
@@ -310,25 +320,17 @@ export default function EditProfileScreen({
               placeholder="Enter your complete address"
               multiline
               error={errors.address}
-              helpText="Your current residential address (minimum 10 characters)"
+              helpText="Your current residential address"
             />
           </FormSection>
 
           <FormSection title="Emergency Contact">
-            <EnhancedInputField
-              label="Emergency Contact Name"
+            <PhoneInputField
+              label="Emergency Contact Number"
               value={formData.emergencyContact}
-              onChangeText={(text: string) => updateFormData("emergencyContact", text)}
-              placeholder="Enter emergency contact name"
+              onChangeText={(text: string) => updateFormData("emergencyContact", text.replace(/\s/g, ''))}
               error={errors.emergencyContact}
               helpText="Someone we can contact in case of emergency"
-            />
-            <PhoneInputField
-              label="Emergency Contact Phone"
-              value={formData.emergencyPhone}
-              onChangeText={(text: string) => updateFormData("emergencyPhone", text.replace(/\s/g, ''))}
-              error={errors.emergencyPhone}
-              helpText="Emergency contact's phone number"
             />
           </FormSection>
 

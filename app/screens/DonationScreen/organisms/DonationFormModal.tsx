@@ -6,12 +6,14 @@ interface DonationFormModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: () => void;
+  appointmentId?: string;
 }
 
 export default function DonationFormModal({
   visible,
   onClose,
   onSubmit,
+  appointmentId,
 }: DonationFormModalProps) {
   return (
     <Modal
@@ -20,7 +22,10 @@ export default function DonationFormModal({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <DonationForm onSubmitSuccess={onSubmit} />
+      <DonationForm 
+        onSubmitSuccess={onSubmit} 
+        appointmentId={appointmentId}
+      />
     </Modal>
   );
 }
