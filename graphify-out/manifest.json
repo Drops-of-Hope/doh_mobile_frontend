@@ -1,0 +1,1602 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1783496101.6534235,
+    "ast_hash": "e51077b6a7f1f67afc748f1a32a1557d",
+    "semantic_hash": ""
+  },
+  ".vscode/settings.json": {
+    "mtime": 1783496087.7046716,
+    "ast_hash": "eacc016f1925ac78bcf0ca70871953f7",
+    "semantic_hash": ""
+  },
+  "App.tsx": {
+    "mtime": 1783496087.7046716,
+    "ast_hash": "54c2b92b8782877f9c254e13789c6f19",
+    "semantic_hash": ""
+  },
+  "android/app/build.gradle": {
+    "mtime": 1783496087.7047932,
+    "ast_hash": "3e3c1d5c4eea4390e6e61b7c8ad41334",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/java/com/dropsofhope/mobile/MainActivity.kt": {
+    "mtime": 1783496087.7050617,
+    "ast_hash": "1738d0b5bca542c239ac48862ddcdb29",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/java/com/dropsofhope/mobile/MainApplication.kt": {
+    "mtime": 1783496087.705136,
+    "ast_hash": "b68fafaf98bb265ed6af0168c9023b53",
+    "semantic_hash": ""
+  },
+  "android/build.gradle": {
+    "mtime": 1783496087.7096636,
+    "ast_hash": "55cec08c744fbe7b1f1294009fe3f65d",
+    "semantic_hash": ""
+  },
+  "android/gradlew": {
+    "mtime": 1783496087.7099068,
+    "ast_hash": "ff1ddbebbc9b4d04f2e9f8cab50d6595",
+    "semantic_hash": ""
+  },
+  "android/settings.gradle": {
+    "mtime": 1783496087.7099068,
+    "ast_hash": "660a6ec6fab7a5d3f77dc8a44d64bcee",
+    "semantic_hash": ""
+  },
+  "app.json": {
+    "mtime": 1783496087.7099068,
+    "ast_hash": "1b824deeaf6c914acb19945185e988dd",
+    "semantic_hash": ""
+  },
+  "app/_layout.tsx": {
+    "mtime": 1783496087.7099068,
+    "ast_hash": "f05f0c6f76a0b67c81df64c8b0d9450b",
+    "semantic_hash": ""
+  },
+  "app/context/AuthContext.tsx": {
+    "mtime": 1783496087.7100713,
+    "ast_hash": "bcab33fd000c28cf020389e055fbe4d3",
+    "semantic_hash": ""
+  },
+  "app/context/LanguageContext.tsx": {
+    "mtime": 1783496087.7101247,
+    "ast_hash": "bbc3c6431f3e599617be8f03c4793400",
+    "semantic_hash": ""
+  },
+  "app/hooks/useAuthUser.ts": {
+    "mtime": 1783496087.7101247,
+    "ast_hash": "1773684360519c283b5d68de630cafe5",
+    "semantic_hash": ""
+  },
+  "app/hooks/useRoleBasedAccess.ts": {
+    "mtime": 1783496087.7102196,
+    "ast_hash": "27e6c206f9128346399beafef4e405ca",
+    "semantic_hash": ""
+  },
+  "app/index.tsx": {
+    "mtime": 1783496087.7102196,
+    "ast_hash": "3f6d7c72d9f1baafb30b05eec3f0ea3f",
+    "semantic_hash": ""
+  },
+  "app/login.tsx": {
+    "mtime": 1783496087.7102196,
+    "ast_hash": "c8e43bd95aa5ac57ed46618b3832bba5",
+    "semantic_hash": ""
+  },
+  "app/navigation/AppNavigator.tsx": {
+    "mtime": 1783496087.7102196,
+    "ast_hash": "e57bc7783afc95b9798d1ec5600a46cc",
+    "semantic_hash": ""
+  },
+  "app/profile.tsx": {
+    "mtime": 1783496087.7102196,
+    "ast_hash": "611c7fbfc662ffecdfe289452fb4dddf",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/atoms/DetailRow.tsx": {
+    "mtime": 1783496087.710338,
+    "ast_hash": "056b22efd1cd2006436aa8e3b8e36435",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/atoms/InfoRow.tsx": {
+    "mtime": 1783496087.7103777,
+    "ast_hash": "86559f28d2ea959090f0097d56e3509f",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/atoms/StatItem.tsx": {
+    "mtime": 1783496087.7103777,
+    "ast_hash": "e7845500e94faa7cf9cefa817c5f1bb6",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/atoms/StatusBadge.tsx": {
+    "mtime": 1783496087.7103777,
+    "ast_hash": "329665ae1e563cf877dc13caf5fc08cb",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/molecules/ActivityCard.tsx": {
+    "mtime": 1783496087.7103777,
+    "ast_hash": "946d17c06a9e559b9685ac1426fee38f",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/molecules/ActivityFilterBar.tsx": {
+    "mtime": 1783496087.7104907,
+    "ast_hash": "89946ec35eb8a3c68f8e6ad036d75454",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/molecules/EmptyStateCard.tsx": {
+    "mtime": 1783496087.7104907,
+    "ast_hash": "59533b63f3e224d2b5b6cefca52204ab",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/molecules/LoadingCard.tsx": {
+    "mtime": 1783496087.7104907,
+    "ast_hash": "3e25b4dc52baabcd18f22869c1cfb885",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/molecules/LocalActivitiesList.tsx": {
+    "mtime": 1783496087.7104907,
+    "ast_hash": "e0480c4fcbfb9fbbd3db6c4aa4f004ac",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/molecules/SummaryCard.tsx": {
+    "mtime": 1783496087.7104907,
+    "ast_hash": "1457b7fa692d542b87ecb69e3eb201ff",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/organisms/ActivitiesHeader.tsx": {
+    "mtime": 1783496087.7104907,
+    "ast_hash": "f5d611c8c2fed75d577e89f115ae1b9e",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/organisms/ActivitiesList.tsx": {
+    "mtime": 1783496087.7106311,
+    "ast_hash": "5ffecd0fb205689f5deb15e22f4187f5",
+    "semantic_hash": ""
+  },
+  "app/screens/ActivitiesScreen/screen.tsx": {
+    "mtime": 1783496087.7106311,
+    "ast_hash": "511ab834e49d93b88016d425e1205b92",
+    "semantic_hash": ""
+  },
+  "app/screens/AllCampaignsScreen/atoms/ScreenHeader.tsx": {
+    "mtime": 1783496087.7107027,
+    "ast_hash": "2666343059f85f4b75fae566d6762539",
+    "semantic_hash": ""
+  },
+  "app/screens/AllCampaignsScreen/atoms/StatCard.tsx": {
+    "mtime": 1783496087.7107332,
+    "ast_hash": "9b0032f5b82dee6f37299740145d19f5",
+    "semantic_hash": ""
+  },
+  "app/screens/AllCampaignsScreen/molecules/CampaignList.tsx": {
+    "mtime": 1783496087.7107332,
+    "ast_hash": "f97770415490236a7ed89c12a03d3ce3",
+    "semantic_hash": ""
+  },
+  "app/screens/AllCampaignsScreen/molecules/StatsOverview.tsx": {
+    "mtime": 1783496087.7107768,
+    "ast_hash": "95c5193e4b48e141872c79802f4e01ed",
+    "semantic_hash": ""
+  },
+  "app/screens/AllCampaignsScreen/organisms/CampaignModal.tsx": {
+    "mtime": 1783496087.7107768,
+    "ast_hash": "ad37070747c12d61827c426883e3438d",
+    "semantic_hash": ""
+  },
+  "app/screens/AllCampaignsScreen/screen.tsx": {
+    "mtime": 1783496087.7107768,
+    "ast_hash": "73982d6c56aa75a1100cabedbb447449",
+    "semantic_hash": ""
+  },
+  "app/screens/AllCampaignsScreen/types.ts": {
+    "mtime": 1783496087.7107768,
+    "ast_hash": "d79c5213a01c2ff651fbedd613aeb16d",
+    "semantic_hash": ""
+  },
+  "app/screens/AllCampaignsScreen/utils.ts": {
+    "mtime": 1783496087.7107768,
+    "ast_hash": "740552644f87135e99ab22dce47b0259",
+    "semantic_hash": ""
+  },
+  "app/screens/AllEmergenciesScreen/atoms/ScreenHeader.tsx": {
+    "mtime": 1783496087.7109375,
+    "ast_hash": "a571ab15fc11e327bab85eb0a0c07db7",
+    "semantic_hash": ""
+  },
+  "app/screens/AllEmergenciesScreen/atoms/StatCard.tsx": {
+    "mtime": 1783496087.7109585,
+    "ast_hash": "54a4040491caf602f17be7325aa6212d",
+    "semantic_hash": ""
+  },
+  "app/screens/AllEmergenciesScreen/molecules/EmergencyList.tsx": {
+    "mtime": 1783496087.7109585,
+    "ast_hash": "69cd14d0151f5868a730b340d721b476",
+    "semantic_hash": ""
+  },
+  "app/screens/AllEmergenciesScreen/molecules/StatsOverview.tsx": {
+    "mtime": 1783496087.7109947,
+    "ast_hash": "fcc537ef3f14c149ab84dd03db619d4c",
+    "semantic_hash": ""
+  },
+  "app/screens/AllEmergenciesScreen/screen.tsx": {
+    "mtime": 1783496087.7109947,
+    "ast_hash": "f6c648ac4b58ab07a9f04d4575f2a619",
+    "semantic_hash": ""
+  },
+  "app/screens/AllEmergenciesScreen/types.ts": {
+    "mtime": 1783496087.7109947,
+    "ast_hash": "9d862e9167a3dbccca5d2b81e77e54ce",
+    "semantic_hash": ""
+  },
+  "app/screens/AllEmergenciesScreen/utils.ts": {
+    "mtime": 1783496087.7109947,
+    "ast_hash": "1b12bc9eda294b505c8225124bef915e",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignAnalyticsScreen/screen.tsx": {
+    "mtime": 1783496087.7109947,
+    "ast_hash": "568d9bcb511a60e27e9cbb62ecf5c00d",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/atoms/HeaderButton.tsx": {
+    "mtime": 1783496087.7111876,
+    "ast_hash": "ed5f8aa55422e17a56b72109c6898a38",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/atoms/ProgressBar.tsx": {
+    "mtime": 1783496087.7112153,
+    "ast_hash": "110d76d3f8d757be9dda0cb9606bfef3",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/atoms/StatCard.tsx": {
+    "mtime": 1783496087.7112153,
+    "ast_hash": "2ada8107c4095f247e3e07cd9428c0ed",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/atoms/StatusBadge.tsx": {
+    "mtime": 1783496087.7112153,
+    "ast_hash": "c195f9f08db990719fec95d319b549d3",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/molecules/CampaignInfo.tsx": {
+    "mtime": 1783496087.7112153,
+    "ast_hash": "fda7c16196df2cf11006c4eba73c5824",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/molecules/DashboardHeader.tsx": {
+    "mtime": 1783496087.7113369,
+    "ast_hash": "27c3b614406cfb32c2e4ad66634b36a7",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/molecules/GoalProgress.tsx": {
+    "mtime": 1783496087.7113369,
+    "ast_hash": "5f0d9543ff18413d88e7e7cf3d41c538",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/molecules/QRButton.tsx": {
+    "mtime": 1783496087.7113369,
+    "ast_hash": "52d99e93c1e752d2ad70ade073d06167",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/organisms/AnalyticsSection.tsx": {
+    "mtime": 1783496087.7113369,
+    "ast_hash": "7e40a60d87abb667d129250325ae7f76",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/organisms/CampaignSelector.tsx": {
+    "mtime": 1783496087.711431,
+    "ast_hash": "e6b7b6cde830b82d9479f2872c18489d",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/organisms/QRSection.tsx": {
+    "mtime": 1783496087.711431,
+    "ast_hash": "637aba26cb58d0e5fb0ef4530319966b",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/screen.tsx": {
+    "mtime": 1783496087.711431,
+    "ast_hash": "ca42b0fcadadcd47134b7044ba55e3ab",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/types.ts": {
+    "mtime": 1783496087.711431,
+    "ast_hash": "e83ad13c6f2864b84112990e0994c3fa",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDashboardScreen/utils.ts": {
+    "mtime": 1783496087.711431,
+    "ast_hash": "0035dff4a2be3a6576c27ae122394014",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignDetailsScreen/screen.tsx": {
+    "mtime": 1783496087.711431,
+    "ast_hash": "8d318305f8bcc28fd99f5b9845cdda96",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignManagementScreen/screen.tsx": {
+    "mtime": 1783496087.711431,
+    "ast_hash": "230d252eba86f3ad3a135fd942669359",
+    "semantic_hash": ""
+  },
+  "app/screens/CampaignOrganizerDashboard/screen.tsx": {
+    "mtime": 1783496087.711431,
+    "ast_hash": "072039c65619978f8edd1ef25aeb1a14",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/atoms/DateSelector.tsx": {
+    "mtime": 1783496087.7116787,
+    "ast_hash": "37fd9be4f32b1237a0fa102c00873675",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/atoms/DropdownField.tsx": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "1143564e8f29b8ca8bdf6cb4395dd709",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/atoms/InputField.tsx": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "d2b81f04d31b16059b64f74ce86edd34",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/atoms/NumberSpinner.tsx": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "393e31d4d834f848f444a0bd95904e1f",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/atoms/SubmitButton.tsx": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "42c8101d2caacd57ce675df5df4c23ef",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/atoms/TimePicker.tsx": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "1e48f108c197294a2006f7ea1a82b79a",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/molecules/FormSection.tsx": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "6bea5c062886becbf35b444c9a03939f",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/screen.tsx": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "5f85d40e0985f42c9b2c4ea242d524d0",
+    "semantic_hash": ""
+  },
+  "app/screens/CreateCampaignScreen/types.ts": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "09a189741aa4e17115ec93b06c25566b",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationEligibilityScreen/screen.tsx": {
+    "mtime": 1783496087.7117155,
+    "ast_hash": "740c0a5f58ec966f179cf5ae93b9ffa8",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/atoms/ActionButton.tsx": {
+    "mtime": 1783496087.711998,
+    "ast_hash": "613e0c115cc85e8e71e2d749cbf8599b",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/atoms/InstructionList.tsx": {
+    "mtime": 1783496087.7120306,
+    "ast_hash": "dd8053bde939e952a5f370dbe68f15b1",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/atoms/NoticeCard.tsx": {
+    "mtime": 1783496087.7120306,
+    "ast_hash": "f01c172d948787e559f292442983811c",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/atoms/StatusBadge.tsx": {
+    "mtime": 1783496087.7120306,
+    "ast_hash": "931b115aba316c20825e6e6d9c2b868b",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/atoms/TabButton.tsx": {
+    "mtime": 1783496087.7120306,
+    "ast_hash": "27c5cd7f4810b04175ab1c5b7c6d38b5",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/AppointmentCard.tsx": {
+    "mtime": 1783496087.7120306,
+    "ast_hash": "062be31eecdd4839654f5ff8d585d69f",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/AppointmentSection.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "fa2157a079b744d0ba65654dadd1161a",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/AttendanceMarkedSection.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "ca7669f2f8e71cbd6b1cba49be95e4bb",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/DonationAdviceCarousel.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "59e5bf74d64a7c60f9265c338a70136e",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/DonationTimerCard.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "120c60d4aff161f75133f01df98581ea",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/NICCard.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "90b7f900bf2e616fd22694be319de636",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/QRSection.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "77e0cc786694b40997ac522da49fc85e",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/TabNavigation.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "1168045a8daf49bc9d7953063302ab6b",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/molecules/TabNavigator.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "461551ff9ad223b565349431d4b4ce99",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/organisms/AppointmentBookingForm.tsx": {
+    "mtime": 1783496087.7121358,
+    "ast_hash": "0b0d39088f3eafe2d9d2cad577adbc63",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/organisms/AppointmentBookingModal.tsx": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "41f7b728650e8a2a6b152fa7df04f725",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/organisms/AppointmentDetailsModal.tsx": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "6afd3c4febf561231aa97efabfa153bd",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/organisms/AppointmentTab.tsx": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "a4ca408ec8aa5932f4760b3759254b9e",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/organisms/CampaignTab.tsx": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "9557bcf088897e6132228c2d6a734990",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/organisms/DonationFormModal.tsx": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "ca57921f76af5313f69f52bea6f3d7ce",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/organisms/DonationTimerScreen.tsx": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "fcbbd8a13911f530b412981da96e4b00",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/organisms/QRModal.tsx": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "091ebbbbbeac316257934775cb398f55",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/screen.tsx": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "2156acf82a3bcac14e5042b77dc2d91e",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/types.ts": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "08c43b67e602679f98cbfeeb0a8277a8",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationScreen/utils.ts": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "e4147aa10717bd18eac0ff2f8b7971b1",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationTimerScreen/index.ts": {
+    "mtime": 1783496087.712449,
+    "ast_hash": "0eb5ca1ae553d09e81680ca50a578afb",
+    "semantic_hash": ""
+  },
+  "app/screens/DonationTimerScreen/screen.tsx": {
+    "mtime": 1783496087.712741,
+    "ast_hash": "e11b3a6cf67ca936e72b168e23304ba2",
+    "semantic_hash": ""
+  },
+  "app/screens/EditCampaignScreen/screen.tsx": {
+    "mtime": 1783496087.712741,
+    "ast_hash": "83960f4e77d3068d263acd161a5173a6",
+    "semantic_hash": ""
+  },
+  "app/screens/EditProfileScreen/screen.tsx": {
+    "mtime": 1783496087.712741,
+    "ast_hash": "cd05c85a4ae0d2c7dca66d4a62459c2a",
+    "semantic_hash": ""
+  },
+  "app/screens/EntryScreen/screen.tsx": {
+    "mtime": 1783496087.712741,
+    "ast_hash": "ab30ea040a6533cbd5ac521d347a0ba8",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/atoms/CampaignCard.tsx": {
+    "mtime": 1783496087.7128847,
+    "ast_hash": "9bb0d775b674eac470be4cca6691447a",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/atoms/FilterButton.tsx": {
+    "mtime": 1783496087.712903,
+    "ast_hash": "f0aa6b28899adce82d929cdf60468bcc",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/atoms/SearchBar.tsx": {
+    "mtime": 1783496087.712903,
+    "ast_hash": "cf1805f8b1749ce9bb9f4fb6d76aa98c",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/molecules/CampaignList.tsx": {
+    "mtime": 1783496087.712903,
+    "ast_hash": "e4075498743d15a34ddf037a206fefde",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/molecules/SearchAndFilterBar.tsx": {
+    "mtime": 1783496087.7129889,
+    "ast_hash": "8950bb4554870d53750591a9f565f67d",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/organisms/CampaignDetailsModal.tsx": {
+    "mtime": 1783496087.7129889,
+    "ast_hash": "b2c9be5f343c4e91f9a5b69057c6b34b",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/organisms/FilterModal.tsx": {
+    "mtime": 1783496087.7130816,
+    "ast_hash": "29bf66de04eb1dab6a4b5ad9f003669e",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/screen.tsx": {
+    "mtime": 1783496087.7130816,
+    "ast_hash": "f7ee5648ddceefe3683f313f3633a293",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/types.ts": {
+    "mtime": 1783496087.7130816,
+    "ast_hash": "f20071754e16115907a90079b11bc1ea",
+    "semantic_hash": ""
+  },
+  "app/screens/ExploreScreen/utils.ts": {
+    "mtime": 1783496087.7130816,
+    "ast_hash": "6cbd8c0aaf525069470a168060f1430e",
+    "semantic_hash": ""
+  },
+  "app/screens/FAQsScreen/screen.tsx": {
+    "mtime": 1783496087.7130816,
+    "ast_hash": "795974f622ed36ef81fab277a5abb802",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/ActionButton.tsx": {
+    "mtime": 1783496087.7132075,
+    "ast_hash": "09f887674c8dcf76974d3b04f5940b5a",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/CalendarDay.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "33f5e054cfbcff1c28835aae9abc6921",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/ComponentInfoCard.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "ec6a76b0cc173a4d79db3004f9ba42d9",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/DetailRow.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "549c9e9c396d5458abf514e6b60bfd18",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/FloatingButton.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "ab926c18f2cd093d68421e89f44a147b",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/ProgressBar.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "98444bdb74aa52360d13ea49818908c3",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/SearchBar.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "9d002eb42e172314d51bb85c4cdcc539",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/StatsNumber.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "4a15f35cb7b0dae8d35fb3191c63b29d",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/StatusIndicator.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "65871a9b3333ac01b86bb41cf4c1a4d7",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/TimeSlot.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "e844f66b983454388ed1251e0739dffb",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/atoms/UrgencyBadge.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "6efa0b0787411ccf691c25b16095323b",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/CalendarHeader.tsx": {
+    "mtime": 1783496087.7132256,
+    "ast_hash": "ca20a81d936570c2e7c62d27139a5067",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/CalendarWeekHeader.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "d34cfe6565754ed1c618b5d7ef7cabe8",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/CampaignCard.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "386f37cb1581eed5e1de77eaa8cd9dbd",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/ComponentRow.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "2a4eeeaabd58d670e0482acc322889ee",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/EmergencyCard.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "d4bf70f7bb12e55fb6b217d0e14cbed2",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/ExpandableAppointmentCard.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "2a3f9cf47b76ed01b5a431228c507af1",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/HeaderSection.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "465d6f410aa75ae3d6001c02a4fe3566",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/ModalActions.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "e5933532a988a23555e7d0be255e296d",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/ModalHeader.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "8290f9e9d7c7dcf9a59588af74da2f73",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/NextDonationCard.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "f0a385ce85c27db018302249395348ce",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/SectionHeader.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "264a3a9075a8ee0400c567d0d9b0519a",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/StatsCard.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "8169affc85b502bfe3c2b0c6c0342f93",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/ThankYouCard.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "a9fd4f2a8da8f45656beb4293dbbcd8f",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/TimeSlotGrid.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "00d19e1ae8fd0a60fc084979efc7b80b",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/molecules/TodaysAppointmentCard.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "219bc5b69ca30fdcf58af3a619b3cc26",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/AppointmentDetailsModal.tsx": {
+    "mtime": 1783496087.7133846,
+    "ast_hash": "bf5de10a5943689aaccf927ab9e11e58",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/AppointmentSection.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "ac9e38fd71d6ccd7af4b969039224380",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/CalendarWidget.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "068d791702a648350250c7c2b9877445",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/CampaignsSection.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "26a3e028f6c9db7670b14d15e4acf47c",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/DonationBookingModal.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "fe1557c62e61a8601d17fa7751d4cfad",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/EmergenciesSection.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "248b04c5e16d54f845f9d240815d9965",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/EmergencyDetailsModal.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "9281670a8545780b193c74ddf2bc9d65",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/HomeHeader.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "90018b2f2ac74b16a8c0794fe7c0e3c4",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/organisms/RescheduleModal.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "6ab07ba7ed6f04bab7b42faf71ee2b1a",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/screen.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "f81631845b95ced50f126d3d49b63c5d",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/types.ts": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "217703fbea391e203ec3163f7a9534a4",
+    "semantic_hash": ""
+  },
+  "app/screens/HomeScreen/utils.ts": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "cf489bd1cc8437603092f2b6aa5dab81",
+    "semantic_hash": ""
+  },
+  "app/screens/LanguageSelectionScreen/screen.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "54ecdd1835a5b5ae059b8e1dc32f1cef",
+    "semantic_hash": ""
+  },
+  "app/screens/ManualSearchScreen/screen.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "1b9d3c65eb263d0647be90ef3c085e1b",
+    "semantic_hash": ""
+  },
+  "app/screens/MyDonationsScreen/screen.tsx": {
+    "mtime": 1783496087.713761,
+    "ast_hash": "2e06c8d4a84247f9b439a060b0549ad8",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/atoms/ActionBadge.tsx": {
+    "mtime": 1783496087.714126,
+    "ast_hash": "49e081bc5d48fcf2e97c2c4e1786ae64",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/atoms/BackButton.tsx": {
+    "mtime": 1783496087.7141523,
+    "ast_hash": "67c967ec5efdce3244f64295da2b43b5",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/atoms/NotificationIcon.tsx": {
+    "mtime": 1783496087.7141523,
+    "ast_hash": "7fd0b242ae964f50cd2ea5f22fe532a6",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/atoms/UnreadDot.tsx": {
+    "mtime": 1783496087.7141523,
+    "ast_hash": "ea3a948b4a3eabc89f835afc39c2258b",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/molecules/EmptyNotifications.tsx": {
+    "mtime": 1783496087.7141523,
+    "ast_hash": "71fa1e5ceafbf479ef2d3f2d798f0cc8",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/molecules/NotificationCard.tsx": {
+    "mtime": 1783496087.7142396,
+    "ast_hash": "f51bb9048640359f1575162a164bb5b3",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/molecules/NotificationsHeader.tsx": {
+    "mtime": 1783496087.7142396,
+    "ast_hash": "efe7ac939a09aa6dbb34145455bd927a",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/organisms/NotificationsList.tsx": {
+    "mtime": 1783496087.7142396,
+    "ast_hash": "cf39f5cdfdf269b357bd6116f19c5d9b",
+    "semantic_hash": ""
+  },
+  "app/screens/NotificationsScreen/screen.tsx": {
+    "mtime": 1783496087.7142396,
+    "ast_hash": "2cf4edd15b631ac1b173dbd353f5dcd0",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileCompletionScreen/screen.tsx": {
+    "mtime": 1783496087.7142396,
+    "ast_hash": "210ae299cdab9cd25574115eb8f85499",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/BadgeDisplay.tsx": {
+    "mtime": 1783496087.714369,
+    "ast_hash": "a0ea94815b728915af3078a2834352bf",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/BecomeCampaignOrganizerButton.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "ba0fc6a2fee9a29330b669793faf16ff",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/BellIcon.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "948000636a094698a28fc7aed77edb6e",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/Button.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "02f340b2c7c301e272565a91a06c79ed",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/CalendarIcon.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "8d1e1a4bbf1576d56e0ca4baa1a5844e",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/CampOrganizerIcon.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "8ae44fbc3f688beb0802e2fd0c247d5f",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/DropIcon.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "4dc3f1b97b8c7244922d1085b1b5a89e",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/EligibilityIcon.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "7ff9f11217e795d112a5e1dd0f20d351",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/GlobeIcon.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "bfdc44428fa6c822f34d56a586ccec9a",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/LogoutButton.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "12a066303dc3a5dffa4609adf8d0c918",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/MenuItem.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "0fe7fd6e6445aab0dbb144b9ad7cb68b",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/MenuItemRow.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "d67b6c13f6e2c46b1f1da32d093b2c82",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/ProfileAvatar.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "a3bf6a5b53f7e1990f2f90ee3097ffc4",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/ProfilePicture.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "96329028e6639f9a81c760baa815bfe9",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/atoms/QuestionIcon.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "ae217d715105ee86025c755dc23a2913",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/molecules/MenuItemsConfig.tsx": {
+    "mtime": 1783496087.7143924,
+    "ast_hash": "ea72007a0c2253652524adc5f6fa6cea",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/molecules/MenuSection.tsx": {
+    "mtime": 1783496087.7146733,
+    "ast_hash": "3397d9f9319197e8e3c2c8ebadef4f5f",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/molecules/ProfileHeader.tsx": {
+    "mtime": 1783496087.7146733,
+    "ast_hash": "f822c00a59adb4ff0aa6ce05668f3f35",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/organisms/EditProfileModal.tsx": {
+    "mtime": 1783496087.7146733,
+    "ast_hash": "c3aad0287b605e9a917631e003956e39",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/organisms/FAQModal.tsx": {
+    "mtime": 1783496087.7147527,
+    "ast_hash": "8e58a94d778b37502206b6d98c011446",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/organisms/LanguageModal.tsx": {
+    "mtime": 1783496087.7147527,
+    "ast_hash": "42c4b957a411f3eda70dc16e28fd530d",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/screen.tsx": {
+    "mtime": 1783496087.7147527,
+    "ast_hash": "38f6efaaa240e801a4495e384218c0e3",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/types.ts": {
+    "mtime": 1783496087.7147527,
+    "ast_hash": "25f5488fc074b11f48a01248d1f392fb",
+    "semantic_hash": ""
+  },
+  "app/screens/ProfileScreen/utils.ts": {
+    "mtime": 1783496087.7147527,
+    "ast_hash": "21bac22da925dfb942c9a202514fcb28",
+    "semantic_hash": ""
+  },
+  "app/screens/QRScannerScreen/screen.tsx": {
+    "mtime": 1783496087.7147527,
+    "ast_hash": "e552fddced181bb2cb1784fa03f4281b",
+    "semantic_hash": ""
+  },
+  "app/screens/SplashScreen/atoms/BackgroundText.tsx": {
+    "mtime": 1783496087.7149563,
+    "ast_hash": "9004972326685245617710e30ec8e00f",
+    "semantic_hash": ""
+  },
+  "app/screens/SplashScreen/atoms/LoadingDot.tsx": {
+    "mtime": 1783496087.7149837,
+    "ast_hash": "032c7e7fdbeb586a7574f5ebb2ddc5c6",
+    "semantic_hash": ""
+  },
+  "app/screens/SplashScreen/molecules/LoadingIndicator.tsx": {
+    "mtime": 1783496087.7149837,
+    "ast_hash": "8c66e3805d4394095f6ecc8897f646a2",
+    "semantic_hash": ""
+  },
+  "app/screens/SplashScreen/molecules/TitleSection.tsx": {
+    "mtime": 1783496087.7150216,
+    "ast_hash": "888f7462b71b44f4fce32bee2cdb2d46",
+    "semantic_hash": ""
+  },
+  "app/screens/SplashScreen/screen.tsx": {
+    "mtime": 1783496087.7150216,
+    "ast_hash": "7489fadfd91b51a8fe818e5d9eb01b47",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/atoms/ActionButton.tsx": {
+    "mtime": 1783496087.715086,
+    "ast_hash": "94eff1b7cc194911626d5d7d276a1a55",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/atoms/DetailRow.tsx": {
+    "mtime": 1783496087.7151124,
+    "ast_hash": "40fab68567efe90eae2ff5bedef9515b",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/atoms/HeaderButton.tsx": {
+    "mtime": 1783496087.7151124,
+    "ast_hash": "f27a16d0c25887798bcb0e169055f10a",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/atoms/StatusBadge.tsx": {
+    "mtime": 1783496087.7151124,
+    "ast_hash": "9a689baada3eb70c0ce97e5ea0b7edbf",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/molecules/ActionButtons.tsx": {
+    "mtime": 1783496087.7151124,
+    "ast_hash": "4b5d96cf74b95a2670a6ebb52ea1c613",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/molecules/AppointmentDetails.tsx": {
+    "mtime": 1783496087.71518,
+    "ast_hash": "12db8ea5e6ecb083d8d8c182cf89e42b",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/molecules/AppointmentHeader.tsx": {
+    "mtime": 1783496087.71518,
+    "ast_hash": "6a338081d667c24b9425080e065c5af9",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/molecules/AppointmentInfo.tsx": {
+    "mtime": 1783496087.71518,
+    "ast_hash": "20022d0711c60e4d835e7eed269892c9",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/molecules/NotesContainer.tsx": {
+    "mtime": 1783496087.71518,
+    "ast_hash": "e03d3bae255e2f6efce20ba77c389350",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/molecules/SectionHeader.tsx": {
+    "mtime": 1783496087.71518,
+    "ast_hash": "f4da00cd948ad7a31ca0a9681c17758f",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/organisms/AppointmentCard.tsx": {
+    "mtime": 1783496087.71518,
+    "ast_hash": "c026fd555c35f5ae86a70d5834ed13d4",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/organisms/AppointmentSection.tsx": {
+    "mtime": 1783496087.7152803,
+    "ast_hash": "9ea4d0b94cc49cb2f8549f2633a4547a",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/organisms/EmptyState.tsx": {
+    "mtime": 1783496087.7152803,
+    "ast_hash": "a4ec5481a4ec93e59096b9aafa4f42f6",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/screen.tsx": {
+    "mtime": 1783496087.7152803,
+    "ast_hash": "aa4e6e406ae620d4a8d74c87602ed754",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/types.ts": {
+    "mtime": 1783496087.7152803,
+    "ast_hash": "f1bbb92a4bbeb1ac477c0b2f4c690e5d",
+    "semantic_hash": ""
+  },
+  "app/screens/UpcomingAppointmentScreen/utils.ts": {
+    "mtime": 1783496087.7152803,
+    "ast_hash": "1da14c1250eed4dc6d1c548de65e1034",
+    "semantic_hash": ""
+  },
+  "app/screens/UserDebugScreen/screen.tsx": {
+    "mtime": 1783496087.7152803,
+    "ast_hash": "2ad305f7a257a251a2bcdc9a550e1d97",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/BottomTabBar/TabIcons.tsx": {
+    "mtime": 1783496087.7154102,
+    "ast_hash": "aca261c57cfe812d263c6d936cf239ab",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/BottomTabBar/TabItem.tsx": {
+    "mtime": 1783496087.7154562,
+    "ast_hash": "63c830ae212407bcc527848907b1f171",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/Button.tsx": {
+    "mtime": 1783496087.7154562,
+    "ast_hash": "882e240bbb1ba34248634676b7ba5125",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/Donation/BooleanQuestion.tsx": {
+    "mtime": 1783496087.7154562,
+    "ast_hash": "adf65767bcaafd75f84cd26cc542a8ab",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/Donation/CampaignCard.tsx": {
+    "mtime": 1783496087.7155285,
+    "ast_hash": "2a4d8950d1455068035f55b024bf4612",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/Donation/QRDisplay.tsx": {
+    "mtime": 1783496087.7155285,
+    "ast_hash": "4af2f16353de535888e098c966202334",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/EnhancedInputField.tsx": {
+    "mtime": 1783496087.7155285,
+    "ast_hash": "edcd9974d26fbede26e020e18c755c32",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/Input.tsx": {
+    "mtime": 1783496087.7155285,
+    "ast_hash": "f4c8e85bd9f0b62ef16b86dd98df09c6",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/PhoneInputField.tsx": {
+    "mtime": 1783496087.7155285,
+    "ast_hash": "ed51497fc3696a323522a8b8b8d76de6",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/Skeleton.tsx": {
+    "mtime": 1783496087.7155285,
+    "ast_hash": "f26c62e9e16b27817a212d4ca5a2bca8",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/atoms/Toast.tsx": {
+    "mtime": 1783496087.7155285,
+    "ast_hash": "59e142f448fdb38b694f3f9035fde1d4",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/BottomTabBar/TabsConfig.tsx": {
+    "mtime": 1783496087.715687,
+    "ast_hash": "495b5c5f9f25dd1670f7206985a3c4a4",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/Donation/CampaignList.tsx": {
+    "mtime": 1783496087.715687,
+    "ast_hash": "a7e7f1b13851eea96d73218cd18198d1",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/Donation/DonationQuestions.tsx": {
+    "mtime": 1783496087.715773,
+    "ast_hash": "6290aa2b0c6486a3f49f3f47ff8b68e6",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/Donation/Steps/Step1.tsx": {
+    "mtime": 1783496087.715773,
+    "ast_hash": "e2267d938d780e3d7056178ebd98a1c5",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/Donation/Steps/Step2.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "83a84780d69dc155406c6774140f177a",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/Donation/Steps/Step3.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "e8720393ae1c67441624d062054123c6",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/Donation/Steps/Step4.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "118fd8cfefb6c77c8a4ac97a559c1957",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/Donation/Steps/Step5.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "9c77203087df7f4f56fa48b59f3187a5",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/Donation/Steps/Step6.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "a3532ff96e2b589ba22a60d0040fc082",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/LanguageTabs.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "4d4b1a712bb92f3ff140fccfd143a1f7",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/QRButton.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "877f08426374dd154b91440aabd7f76c",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/TitlePage.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "41a5e481e9409d8cdf31b60ba896ba11",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/skeletons/ActivitiesScreenSkeleton.tsx": {
+    "mtime": 1783496087.7158458,
+    "ast_hash": "eda25a1f4ac119118630b1c17b5ecdc3",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/skeletons/CampaignDetailsSkeleton.tsx": {
+    "mtime": 1783496087.7160456,
+    "ast_hash": "2642a623b6362752b7e6adcc5cb021d7",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/skeletons/ExploreScreenSkeleton.tsx": {
+    "mtime": 1783496087.7160456,
+    "ast_hash": "2d452797d4f54e06e04f9785cab77f57",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/molecules/skeletons/HomeScreenSkeleton.tsx": {
+    "mtime": 1783496087.7160456,
+    "ast_hash": "ff538669584f2f4488f811bd80e8d751",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/organisms/AuthHandler.tsx": {
+    "mtime": 1783496087.7160456,
+    "ast_hash": "40052091fd297178a8778e6bdde7d0b2",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/organisms/BottomTabBar.tsx": {
+    "mtime": 1783496087.7161586,
+    "ast_hash": "07319eb6c3eb7260e95f4331e48fa527",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/organisms/CampaignStatsComponent.tsx": {
+    "mtime": 1783496087.7161586,
+    "ast_hash": "dcd47157c87546232ec494ea773d6c9a",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/organisms/DonationForm.tsx": {
+    "mtime": 1783496087.7161586,
+    "ast_hash": "b16b2748d0df9a3e957c0ddad87b26ac",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/organisms/ProfileContent.tsx": {
+    "mtime": 1783496087.7161586,
+    "ast_hash": "bf61d9d1a22e967d57d080f9ce9f5c0d",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/organisms/QRScannerModal.tsx": {
+    "mtime": 1783496087.7161586,
+    "ast_hash": "6abc8e54f76c62b8bc8f431006cf62f1",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/organisms/SplashContent.tsx": {
+    "mtime": 1783496087.7161586,
+    "ast_hash": "6fa5abfe9a3463ff7b2300a9ddd07f41",
+    "semantic_hash": ""
+  },
+  "app/screens/shared/organisms/UserQRModal.tsx": {
+    "mtime": 1783496087.7161586,
+    "ast_hash": "3b05153d9c4cc45e6c3ed4b785a8188b",
+    "semantic_hash": ""
+  },
+  "app/services/activityService.ts": {
+    "mtime": 1783496087.7161586,
+    "ast_hash": "4708cfd011cf109e74282d7b99392727",
+    "semantic_hash": ""
+  },
+  "app/services/api.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "ad04dfd35d81af40416db49865dcdccf",
+    "semantic_hash": ""
+  },
+  "app/services/appointmentConfig.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "ba2c1ee76dd43680933e3ad0981b7130",
+    "semantic_hash": ""
+  },
+  "app/services/appointmentService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "b0ea7244201c7433cfe177fc30d70173",
+    "semantic_hash": ""
+  },
+  "app/services/auth.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "9f0800535ef7028464e7a58633952eb5",
+    "semantic_hash": ""
+  },
+  "app/services/authUserService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "511f102ba913aaf2bfa868308fd34041",
+    "semantic_hash": ""
+  },
+  "app/services/badgeService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "6ce0beeb23fe3653abbf68f21832526f",
+    "semantic_hash": ""
+  },
+  "app/services/campaignService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "eafc2e4597ba8ec259f3813579f99acb",
+    "semantic_hash": ""
+  },
+  "app/services/donationService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "04471d6b0a544d2a916f1797039eefd2",
+    "semantic_hash": ""
+  },
+  "app/services/donorSearchService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "c0146d69144f184e0540a17987e7e9dd",
+    "semantic_hash": ""
+  },
+  "app/services/exploreService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "e4cfcc986b2867c99712582f491880af",
+    "semantic_hash": ""
+  },
+  "app/services/homeService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "8a3046f141106e1c587b2dd0561500ea",
+    "semantic_hash": ""
+  },
+  "app/services/localActivityService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "5f38f82addd7cab1942388b31bfa9821",
+    "semantic_hash": ""
+  },
+  "app/services/notificationService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "123923c5493572a952ede69857a7c20c",
+    "semantic_hash": ""
+  },
+  "app/services/pushService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "6e7ae6b2a1fc27df6251961dad01ba17",
+    "semantic_hash": ""
+  },
+  "app/services/qrService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "d25be3b8a27f2bcd902a6b1483159210",
+    "semantic_hash": ""
+  },
+  "app/services/userService.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "fcebf52edffeaf084dbeb57500b8235c",
+    "semantic_hash": ""
+  },
+  "app/utils/ValidationUtils.ts": {
+    "mtime": 1783496087.7163866,
+    "ast_hash": "28cf2634b82b6becb37aaed39a8c8848",
+    "semantic_hash": ""
+  },
+  "app/utils/qrFormatTester.ts": {
+    "mtime": 1783496087.716952,
+    "ast_hash": "2928c2dab191b1c130234d1610389c65",
+    "semantic_hash": ""
+  },
+  "app/utils/roleBasedAccess.ts": {
+    "mtime": 1783496087.716952,
+    "ast_hash": "0865ab34a09341cfb97de118e7676ae2",
+    "semantic_hash": ""
+  },
+  "app/utils/userDataUtils.ts": {
+    "mtime": 1783496087.716952,
+    "ast_hash": "35ec71b04d057bf41dcde0de76d980ec",
+    "semantic_hash": ""
+  },
+  "app/utils/userIdUtils.ts": {
+    "mtime": 1783496087.716952,
+    "ast_hash": "8b4c5b3b3e62bdd3959495be155faf0a",
+    "semantic_hash": ""
+  },
+  "assets.d.ts": {
+    "mtime": 1783496087.716952,
+    "ast_hash": "146c37f96f6ad745cb7f307bf0d35f10",
+    "semantic_hash": ""
+  },
+  "babel.config.js": {
+    "mtime": 1783496087.7195268,
+    "ast_hash": "4030a5f6ba572e1c7d1bd1ec94f1a924",
+    "semantic_hash": ""
+  },
+  "constants/districts.ts": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "a6a75bbd4bd50606c7d91862ea9cb188",
+    "semantic_hash": ""
+  },
+  "constants/index.ts": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "58564b6246a2a964367d37963ac87a6d",
+    "semantic_hash": ""
+  },
+  "constants/tabIcons.tsx": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "c38b510ee558804374f7e54e8926a668",
+    "semantic_hash": ""
+  },
+  "constants/tabItems.tsx": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "41f85ba7e69ab568a82315373b5b9100",
+    "semantic_hash": ""
+  },
+  "constants/theme.ts": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "47ddf960aeb8ebf0552f1cdd727001df",
+    "semantic_hash": ""
+  },
+  "data/faqData.ts": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "2ca9d49735858e0f7fc1e14937352c60",
+    "semantic_hash": ""
+  },
+  "declarations.d.ts": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "15c7df2fbaba348af4c16ddb51a31c0b",
+    "semantic_hash": ""
+  },
+  "index.ts": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "04d3a2f499c9fc261b69447ba725fff2",
+    "semantic_hash": ""
+  },
+  "locales/en.json": {
+    "mtime": 1783496087.7203352,
+    "ast_hash": "0dff25a27d676bd2463e7a2f7a50344a",
+    "semantic_hash": ""
+  },
+  "locales/qr_en.json": {
+    "mtime": 1783496087.7206318,
+    "ast_hash": "cde81d6f33c0d2e0104dbbe15dd3c378",
+    "semantic_hash": ""
+  },
+  "locales/si.json": {
+    "mtime": 1783496087.7206318,
+    "ast_hash": "5fb91a151c77a63e167e24e6e11b06f4",
+    "semantic_hash": ""
+  },
+  "locales/ta.json": {
+    "mtime": 1783496087.7206318,
+    "ast_hash": "083868609c1c6c17b9db88ed98ffb076",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1783496087.7215269,
+    "ast_hash": "3c1ffe7a2168cfefb8de82930e03b0ab",
+    "semantic_hash": ""
+  },
+  "postcss.config.js": {
+    "mtime": 1783496087.7215269,
+    "ast_hash": "8640f9b2e6475cc3f5b1ff4548925765",
+    "semantic_hash": ""
+  },
+  "scripts/compareLocales.js": {
+    "mtime": 1783496087.7215269,
+    "ast_hash": "ff3863239f9eeb8bda0c40b06cc62e22",
+    "semantic_hash": ""
+  },
+  "tailwind.config.js": {
+    "mtime": 1783496087.7215269,
+    "ast_hash": "6448ab213da6bd42f5693ef37d96b212",
+    "semantic_hash": ""
+  },
+  "tsconfig.json": {
+    "mtime": 1783496087.7215269,
+    "ast_hash": "4cfaf7868ae637eff873029b449ce460",
+    "semantic_hash": ""
+  },
+  "types/nativewind.d.ts": {
+    "mtime": 1783496087.7215269,
+    "ast_hash": "93e0602a0474bc204e38aaa41722ede4",
+    "semantic_hash": ""
+  },
+  "types/notifications.ts": {
+    "mtime": 1783496087.7225976,
+    "ast_hash": "d073b2d146d2fc3459759240b2f62e15",
+    "semantic_hash": ""
+  },
+  ".github/workflows/deploy-mobile.yml": {
+    "mtime": 1783496087.7043464,
+    "ast_hash": "747d32518a08f59350bd29279666d2c0",
+    "semantic_hash": ""
+  },
+  ".github/workflows/lint.yml": {
+    "mtime": 1783496087.7046716,
+    "ast_hash": "78b64d94653cc14093b07216b42f1d46",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1783496101.6533284,
+    "ast_hash": "82efb97a359f5c7290bf2513d14686be",
+    "semantic_hash": ""
+  },
+  "constants/README.md": {
+    "mtime": 1783496087.7195268,
+    "ast_hash": "8b6caed994bc161b9013ea67acc0a78d",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-hdpi/splashscreen_logo.png": {
+    "mtime": 1783496087.7051811,
+    "ast_hash": "923a97f0eb49dfe77050a9b04021c7c2",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-mdpi/splashscreen_logo.png": {
+    "mtime": 1783496087.7051811,
+    "ast_hash": "7972b3926fb70b870c80bffa55b7cbf5",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-xhdpi/splashscreen_logo.png": {
+    "mtime": 1783496087.7051811,
+    "ast_hash": "d410e073461f6bf1ea976822a1720f57",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-xxhdpi/splashscreen_logo.png": {
+    "mtime": 1783496087.7055268,
+    "ast_hash": "f7f136b6149a65eede06b5d29819adc0",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-xxxhdpi/splashscreen_logo.png": {
+    "mtime": 1783496087.707527,
+    "ast_hash": "901c0cc3794d53bf08a614d5f2654884",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-hdpi/ic_launcher.webp": {
+    "mtime": 1783496087.7082202,
+    "ast_hash": "2c4cc0a759c07c7687acdac8e0e23bb7",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp": {
+    "mtime": 1783496087.708267,
+    "ast_hash": "0dddf318528e8fd7bcaf877d1d149cec",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp": {
+    "mtime": 1783496087.708267,
+    "ast_hash": "8f8ea43baa1819768d64722f38923448",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-mdpi/ic_launcher.webp": {
+    "mtime": 1783496087.708267,
+    "ast_hash": "be910d775baf9ee400975348831afdf1",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp": {
+    "mtime": 1783496087.7083776,
+    "ast_hash": "fa31c9d076f225cca1d0fc35de62c809",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp": {
+    "mtime": 1783496087.7083776,
+    "ast_hash": "620bd5843cb396a7a726813b9cfbfd95",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp": {
+    "mtime": 1783496087.7083776,
+    "ast_hash": "6ac747d8201ea01facbdce273da5b668",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1783496087.7084575,
+    "ast_hash": "2807af29ced2c753052cb15233e9b1d4",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp": {
+    "mtime": 1783496087.7084575,
+    "ast_hash": "1f6c5bb0989f53a496fa619ec9ea68d0",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp": {
+    "mtime": 1783496087.7084575,
+    "ast_hash": "3542c5c915f4ac5256603a513d3749ae",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1783496087.7087011,
+    "ast_hash": "0f8bd959f913ec0e40c4d9fd193d31d3",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp": {
+    "mtime": 1783496087.7087011,
+    "ast_hash": "9747125fb08821b43f819855a4635634",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp": {
+    "mtime": 1783496087.7087011,
+    "ast_hash": "da038705f71c3e745b87c6010f800d47",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1783496087.7091184,
+    "ast_hash": "84de223c2b40415b4e0f19b6f5482ac3",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp": {
+    "mtime": 1783496087.7091184,
+    "ast_hash": "a93be92d92e911dd976c09ec9355a301",
+    "semantic_hash": ""
+  },
+  "assets/favicon.png": {
+    "mtime": 1783496087.716952,
+    "ast_hash": "b2ec1811d6014c71646693aed6afcca3",
+    "semantic_hash": ""
+  },
+  "assets/icon.png": {
+    "mtime": 1783496087.717527,
+    "ast_hash": "06b052f0d97d07139bda77ef2ef90344",
+    "semantic_hash": ""
+  },
+  "assets/logo.png": {
+    "mtime": 1783496087.717527,
+    "ast_hash": "98af5afef1e33ab721594bd03ac4cfe3",
+    "semantic_hash": ""
+  },
+  "assets/splash-icon.png": {
+    "mtime": 1783496087.7195268,
+    "ast_hash": "06b052f0d97d07139bda77ef2ef90344",
+    "semantic_hash": ""
+  }
+}
