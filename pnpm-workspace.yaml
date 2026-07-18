@@ -1,2 +1,4 @@
 allowBuilds:
+  '@sentry/cli': true
   core-js-pure: true
+  unrs-resolver: true
