@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../../context/AuthContext';
 import { debugUserIds, validateUserDataConsistency, clearAllUserData } from '../../utils/userDataUtils';
 
+import { logger } from "../../utils/logger";
 export default function UserDebugScreen() {
   const [debugData, setDebugData] = useState<any>(null);
   const { user, refreshAuthState } = useAuth();
@@ -34,7 +35,7 @@ export default function UserDebugScreen() {
 
       setDebugData(data);
     } catch (error) {
-      console.error('Error loading debug data:', error);
+      logger.error('Error loading debug data:', error);
     } finally {
       setIsLoading(false);
     }

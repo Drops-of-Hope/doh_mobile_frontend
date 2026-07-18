@@ -18,6 +18,7 @@ import { District } from '../../../constants/districts';
 import ValidationUtils from '../../utils/ValidationUtils';
 import { COLORS, SPACING } from '../../../constants/theme';
 
+import { logger } from "../../utils/logger";
 interface ProfileCompletionScreenProps {
   userId: string;
   onComplete: (userInfo: any) => void;
@@ -92,8 +93,8 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
   ];
 
   const handleComplete = async () => {
-    console.log("Starting profile completion...");
-    console.log("User ID being sent to backend:", userId);
+    logger.log("Starting profile completion...");
+    logger.log("User ID being sent to backend:", userId);
     
     // Comprehensive validation using ValidationUtils
     const formData = {
@@ -129,11 +130,11 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
         emergencyContact: emergencyContact ? ValidationUtils.cleanPhoneNumber(emergencyContact) : undefined,
       };
       
-      console.log("Profile data being sent:", profileData);
+      logger.log("Profile data being sent:", profileData);
       
       const userInfo = await completeUserProfile(userId, profileData);
       
-      console.log("Profile completion response:", userInfo);
+      logger.log("Profile completion response:", userInfo);
 
       if (userInfo) {
         Alert.alert('Success', 'Profile completed successfully!', [
@@ -141,7 +142,7 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
         ]);
       }
     } catch (error: any) {
-      console.error("Profile completion error:", error);
+      logger.error("Profile completion error:", error);
       Alert.alert('Error', error.message || 'Failed to complete profile');
     }
   };

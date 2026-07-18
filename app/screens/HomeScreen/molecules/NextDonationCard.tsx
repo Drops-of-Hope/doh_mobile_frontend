@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 
+import { logger } from "../../../utils/logger";
 interface NextDonationCardProps {
   lastDonationDate?: string;
   nextEligibleDate?: string;
@@ -14,18 +15,53 @@ export default function NextDonationCard({
   nextEligibleDate,
   eligibleToDonate,
 }: NextDonationCardProps) {
+  // Safety rule: never show "you can donate" unless eligibility is positively
+  // known. Unknown states must read as unknown, not as a green light.
+  const UNKNOWN_INFO = {
+    text: "Eligibility unavailable — check your connection",
+    canDonate: false,
+  };
+
+  const formatNextDate = (
+    date: Date
+  ): { text: string; canDonate: boolean } | null => {
+    if (isNaN(date.getTime())) return null;
+
+    const now = new Date();
+    if (date <= now) {
+      return { text: "You can donate now!", canDonate: true };
+    }
+
+    const formattedDate = date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const daysUntil = Math.ceil(
+      (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    return { text: `${formattedDate} (${daysUntil} days)`, canDonate: false };
+  };
+
   const calculateNextDonationInfo = (): {
     text: string;
     canDonate: boolean;
   } => {
     // Use API data for eligibility if available
-    if (eligibleToDonate !== undefined) {
-      if (eligibleToDonate) {
-        return { text: "You can donate now!", canDonate: true };
-      }
+    if (eligibleToDonate === true) {
+      return { text: "You can donate now!", canDonate: true };
     }
 
-    // Fallback calculation if API data is not available
+    if (eligibleToDonate === false) {
+      if (nextEligibleDate) {
+        const fromServer = formatNextDate(new Date(nextEligibleDate));
+        if (fromServer) return fromServer;
+      }
+      return { text: "Not eligible to donate yet", canDonate: false };
+    }
+
+    // Eligibility unknown: derive from last donation date if we have one
     return calculateFallbackDonationInfo();
   };
 
@@ -33,53 +69,23 @@ export default function NextDonationCard({
     text: string;
     canDonate: boolean;
   } => {
-    console.log(
-      "🔄 Using fallback calculation with lastDonationDate:",
-      lastDonationDate
-    );
-
     if (!lastDonationDate) {
-      console.log("🆕 No last donation date, user can donate");
-      return { text: "You can donate now!", canDonate: true };
+      return UNKNOWN_INFO;
     }
 
     try {
       const last = new Date(lastDonationDate);
-
-      // Validate the date
       if (isNaN(last.getTime())) {
-        return { text: "You can donate now!", canDonate: true };
+        return UNKNOWN_INFO;
       }
 
       const nextDate = new Date(last);
       nextDate.setMonth(nextDate.getMonth() + 4); // Add 4 months
 
-      const now = new Date();
-      const daysSinceLastDonation = Math.floor(
-        (now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      if (nextDate <= now) {
-        return { text: "You can donate now!", canDonate: true };
-      }
-
-      const formattedDate = nextDate.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-
-      const daysUntil = Math.ceil(
-        (nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      return {
-        text: `${formattedDate} (${daysUntil} days)`,
-        canDonate: false,
-      };
+      return formatNextDate(nextDate) ?? UNKNOWN_INFO;
     } catch (error) {
-      console.error("❌ Error in fallback calculation:", error);
-      return { text: "You can donate now!", canDonate: true };
+      logger.error("❌ Error in fallback calculation:", error);
+      return UNKNOWN_INFO;
     }
   };
 

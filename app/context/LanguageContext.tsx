@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import * as SecureStore from "expo-secure-store";
 
+import { logger } from "../utils/logger";
 type Language = "en" | "si" | "ta";
 
 interface LanguageContextType {
@@ -51,7 +52,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
         setCurrentLanguage(savedLanguage as Language);
       }
     } catch (error) {
-      console.error("Failed to load saved language:", error);
+      logger.error("Failed to load saved language:", error);
     }
   };
 
@@ -60,7 +61,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
       const translationData = languageFiles[currentLanguage]();
       setTranslations(translationData);
     } catch (error) {
-      console.error("Failed to load translations:", error);
+      logger.error("Failed to load translations:", error);
       // Fallback to English if loading fails
       if (currentLanguage !== "en") {
         setTranslations(languageFiles.en());
@@ -73,7 +74,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
       await SecureStore.setItemAsync("user_language", language);
       setCurrentLanguage(language);
     } catch (error) {
-      console.error("Failed to save language preference:", error);
+      logger.error("Failed to save language preference:", error);
     }
   };
 

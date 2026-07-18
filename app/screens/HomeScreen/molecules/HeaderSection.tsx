@@ -1,17 +1,14 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, StyleSheet } from "react-native";
 
 interface HeaderSectionProps {
   firstName: string;
   donorLevel?: string;
-  onLogout: () => void;
 }
 
 export default function HeaderSection({
   firstName,
   donorLevel = "Bronze Donor",
-  onLogout,
 }: HeaderSectionProps) {
   return (
     <View style={styles.headerContent}>
@@ -24,13 +21,6 @@ export default function HeaderSection({
           <View style={styles.donorDot} />
           <Text style={styles.donorText}>{donorLevel}</Text>
         </View>
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={onLogout}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="log-out-outline" size={24} color="#DC2626" />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -89,11 +79,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-  },
-  logoutButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "#FEF2F2",
-    marginTop: 15,
   },
 });

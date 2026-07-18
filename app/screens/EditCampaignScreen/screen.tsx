@@ -16,6 +16,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { campaignService } from "../../services/campaignService";
 
+import { logger } from "../../utils/logger";
 interface EditCampaignScreenProps {
   navigation?: any;
   route?: {
@@ -139,7 +140,7 @@ export default function EditCampaignScreen({
         );
       }
     } catch (error) {
-      console.error("Failed to load campaign:", error);
+      logger.error("Failed to load campaign:", error);
       
       // Handle specific error cases
       let errorMessage = "Failed to load campaign details.";
@@ -260,7 +261,7 @@ export default function EditCampaignScreen({
         [{ text: "OK", onPress: () => navigation?.goBack() }]
       );
     } catch (error: any) {
-      console.error("Failed to update campaign:", error);
+      logger.error("Failed to update campaign:", error);
       Alert.alert(
         "Error",
         error.message || "Failed to update campaign. Please try again."

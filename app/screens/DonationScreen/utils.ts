@@ -2,12 +2,13 @@ import { Appointment, UserProfile } from "./types";
 import { appointmentService } from "../../services/appointmentService";
 import type { Appointment as ServiceAppointment, MedicalEstablishment } from "../../services/appointmentService";
 
+import { logger } from "../../utils/logger";
 // Transform service appointment to screen appointment format
 const transformAppointmentForDisplay = (
   serviceAppointment: ServiceAppointment
 ): Appointment => {
-  console.log("\n🔄 ============ TRANSFORMATION START ============");
-  console.log("🔄 Input serviceAppointment:", JSON.stringify(serviceAppointment, null, 2));
+  logger.log("\n🔄 ============ TRANSFORMATION START ============");
+  logger.log("🔄 Input serviceAppointment:", JSON.stringify(serviceAppointment, null, 2));
   
   const appointmentDate = new Date(serviceAppointment.appointmentDate);
   
@@ -15,8 +16,8 @@ const transformAppointmentForDisplay = (
   const hasEstablishment = !!serviceAppointment.medicalEstablishment;
   const establishmentData = serviceAppointment.medicalEstablishment;
   
-  console.log("🔄 Has medicalEstablishment:", hasEstablishment);
-  console.log("🔄 Establishment data:", establishmentData);
+  logger.log("🔄 Has medicalEstablishment:", hasEstablishment);
+  logger.log("🔄 Establishment data:", establishmentData);
   
   const hospitalName = establishmentData?.name || "Unknown Hospital";
   const location = establishmentData?.address || 
@@ -31,22 +32,22 @@ const transformAppointmentForDisplay = (
   if (hasSlot && slotData?.startTime && slotData?.endTime) {
     // Use slot times (already formatted as strings like "09:00" and "10:00")
     timeDisplay = `${slotData.startTime} - ${slotData.endTime}`;
-    console.log("🔄 Using slot times:", timeDisplay);
+    logger.log("🔄 Using slot times:", timeDisplay);
   } else {
     // Fallback to extracting time from appointmentDate
     timeDisplay = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    console.log("🔄 Using appointmentDate time (fallback):", timeDisplay);
+    logger.log("🔄 Using appointmentDate time (fallback):", timeDisplay);
   }
   
-  console.log("🔄 Extracted values:");
-  console.log("   - Hospital Name:", hospitalName);
-  console.log("   - Location:", location);
-  console.log("   - Time Display:", timeDisplay);
-  console.log("   - Has Slot:", hasSlot);
-  console.log("   - Slot data:", slotData);
-  console.log("   - Raw name value:", establishmentData?.name);
-  console.log("   - Raw address value:", establishmentData?.address);
-  console.log("   - Raw district value:", establishmentData?.district);
+  logger.log("🔄 Extracted values:");
+  logger.log("   - Hospital Name:", hospitalName);
+  logger.log("   - Location:", location);
+  logger.log("   - Time Display:", timeDisplay);
+  logger.log("   - Has Slot:", hasSlot);
+  logger.log("   - Slot data:", slotData);
+  logger.log("   - Raw name value:", establishmentData?.name);
+  logger.log("   - Raw address value:", establishmentData?.address);
+  logger.log("   - Raw district value:", establishmentData?.district);
   
   const transformed: Appointment = {
     id: serviceAppointment.id,
@@ -61,8 +62,8 @@ const transformAppointmentForDisplay = (
         : "cancelled"
   };
   
-  console.log("🔄 Transformed appointment:", transformed);
-  console.log("🔄 ============ TRANSFORMATION END ============\n");
+  logger.log("🔄 Transformed appointment:", transformed);
+  logger.log("🔄 ============ TRANSFORMATION END ============\n");
   
   return transformed;
 };
@@ -73,9 +74,9 @@ export const getUserAppointments = async (userId: string): Promise<{
   history: Appointment[];
 }> => {
   try {
-    console.log("🔍 Getting user appointments for userId:", userId);
+    logger.log("🔍 Getting user appointments for userId:", userId);
     const serviceAppointments = await appointmentService.getUserAppointments(userId);
-    console.log("📦 Received service appointments:", serviceAppointments.length);
+    logger.log("📦 Received service appointments:", serviceAppointments.length);
     
     // Sort appointments by date (newest first)
     const sortedAppointments = serviceAppointments.sort((a, b) => 
@@ -92,7 +93,7 @@ export const getUserAppointments = async (userId: string): Promise<{
       })
       .map(apt => transformAppointmentForDisplay(apt));
     
-    console.log("📅 Upcoming appointments transformed:", upcomingAppointments.length);
+    logger.log("📅 Upcoming appointments transformed:", upcomingAppointments.length);
     
     // Get last 5 completed appointments
     const historyAppointments = sortedAppointments
@@ -103,14 +104,14 @@ export const getUserAppointments = async (userId: string): Promise<{
       .slice(0, 5) // Last 5 appointments
       .map(apt => transformAppointmentForDisplay(apt));
     
-    console.log("📜 History appointments transformed:", historyAppointments.length);
+    logger.log("📜 History appointments transformed:", historyAppointments.length);
     
     return {
       upcoming: upcomingAppointments,
       history: historyAppointments
     };
   } catch (error) {
-    console.error("❌ Error fetching user appointments:", error);
+    logger.error("❌ Error fetching user appointments:", error);
     // Return empty arrays on error
     return {
       upcoming: [],

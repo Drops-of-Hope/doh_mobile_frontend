@@ -1,7 +1,8 @@
+import { logger } from "./logger";
 // QR Data Format Testing Utility
 export const testQRFormats = (originalData: string) => {
-  console.log("🧪 TESTING QR FORMATS:");
-  console.log("Original scanned data:", originalData);
+  logger.log("🧪 TESTING QR FORMATS:");
+  logger.log("Original scanned data:", originalData);
   
   // Test different formats the backend might expect
   const testFormats = [
@@ -22,7 +23,7 @@ export const testQRFormats = (originalData: string) => {
   ];
   
   testFormats.forEach((format, index) => {
-    console.log(`Format ${index + 1}:`, format);
+    logger.log(`Format ${index + 1}:`, format);
   });
   
   return testFormats;

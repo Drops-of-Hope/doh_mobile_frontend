@@ -3,6 +3,7 @@ import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useAuth } from "../context/AuthContext";
 
+import { logger } from "../utils/logger";
 // Backend API response format (what we actually receive from the server)
 interface BackendCampaignResponse {
   id: string;
@@ -148,7 +149,7 @@ class CampaignService {
   // Get campaigns for an organizer - STRICT mode: only returns campaigns organized by the specific user
   async getOrganizerCampaigns(organizerId: string): Promise<Campaign[]> {
     try {
-      console.log(
+      logger.log(
         "Fetching campaigns for organizer (STRICT mode):",
         organizerId
       );
@@ -177,16 +178,16 @@ class CampaignService {
 
       for (const endpoint of endpointsToTry) {
         try {
-          console.log(`Trying ${endpoint.name}: ${endpoint.url}`);
+          logger.log(`Trying ${endpoint.name}: ${endpoint.url}`);
           response = await apiRequestWithAuth(endpoint.url, {
             method: "GET",
           });
 
-          console.log(`✅ Success with ${endpoint.name}:`, response);
+          logger.log(`✅ Success with ${endpoint.name}:`, response);
           usedEndpoint = endpoint.name;
           break; // If successful, exit the loop
         } catch (error) {
-          console.log(
+          logger.log(
             `❌ Failed with ${endpoint.name}:`,
             error instanceof Error ? error.message : error
           );
@@ -195,7 +196,7 @@ class CampaignService {
       }
 
       if (!response) {
-        console.log(
+        logger.log(
           "❌ All organizer-specific endpoints failed - returning empty array (no fallback)"
         );
         return [];
@@ -207,21 +208,21 @@ class CampaignService {
       // Check if response has campaigns directly (no .data wrapper)
       if (response && response.campaigns && Array.isArray(response.campaigns)) {
         campaignsData = response.campaigns;
-        console.log(
+        logger.log(
           `📋 Found ${campaignsData.length} campaigns in response.campaigns (direct)`
         );
       }
       // Check if response.data exists and has campaigns
       else if (response && response.data) {
-        console.log(
+        logger.log(
           "🔍 PARSING DEBUG: response.data keys:",
           Object.keys(response.data)
         );
-        console.log(
+        logger.log(
           "🔍 PARSING DEBUG: response.data.campaigns exists:",
           !!response.data.campaigns
         );
-        console.log(
+        logger.log(
           "🔍 PARSING DEBUG: response.data.campaigns is array:",
           Array.isArray(response.data.campaigns)
         );
@@ -229,7 +230,7 @@ class CampaignService {
         // If response.data is an array
         if (Array.isArray(response.data)) {
           campaignsData = response.data;
-          console.log(
+          logger.log(
             `📋 Found ${campaignsData.length} campaigns in response.data`
           );
         }
@@ -239,7 +240,7 @@ class CampaignService {
           Array.isArray(response.data.campaigns)
         ) {
           campaignsData = response.data.campaigns;
-          console.log(
+          logger.log(
             `📋 Found ${campaignsData.length} campaigns in response.data.campaigns`
           );
         }
@@ -249,11 +250,11 @@ class CampaignService {
           Array.isArray(response.data.results)
         ) {
           campaignsData = response.data.results;
-          console.log(
+          logger.log(
             `📋 Found ${campaignsData.length} campaigns in response.data.results`
           );
         } else {
-          console.log(
+          logger.log(
             "🔍 response.data structure:",
             Object.keys(response.data)
           );
@@ -263,24 +264,24 @@ class CampaignService {
       // If response itself is an array
       else if (Array.isArray(response)) {
         campaignsData = response;
-        console.log(
+        logger.log(
           `📋 Response is direct array with ${campaignsData.length} campaigns`
         );
       }
 
-      console.log(
+      logger.log(
         "🔍 FINAL DEBUG: campaignsData length:",
         campaignsData.length
       );
-      console.log("🔍 FINAL DEBUG: campaignsData content:", campaignsData);
+      logger.log("🔍 FINAL DEBUG: campaignsData content:", campaignsData);
 
       if (campaignsData.length === 0) {
-        console.log("📭 No campaigns found for this organizer");
+        logger.log("📭 No campaigns found for this organizer");
         return [];
       }
 
       // Log campaign details for debugging
-      console.log("🔎 Campaign details:");
+      logger.log("🔎 Campaign details:");
       campaignsData.forEach((campaign, index) => {
         // Handle both organizer as string and as object
         let organizerInfo;
@@ -290,23 +291,23 @@ class CampaignService {
         } else {
           organizerInfo = campaign.organizer || campaign.organizerId;
         }
-        console.log(
+        logger.log(
           `  ${index + 1}. ${campaign.title} (organizer: ${organizerInfo})`
         );
       });
 
       // Since we used organizer-specific endpoints, we can trust the API response
       // No need for additional filtering - the API already filtered by organizerId
-      console.log(
+      logger.log(
         `✅ Returning ${campaignsData.length} campaigns from organizer-specific endpoint`
       );
-      console.log("✅ Final result:", campaignsData);
+      logger.log("✅ Final result:", campaignsData);
 
       return campaignsData;
     } catch (error) {
-      console.error("❌ Failed to fetch organizer campaigns:", error);
+      logger.error("❌ Failed to fetch organizer campaigns:", error);
       if (error instanceof Error) {
-        console.error("Error details:", error.message, error.stack);
+        logger.error("Error details:", error.message, error.stack);
       }
       return []; // Return empty array instead of throwing
     }
@@ -323,7 +324,7 @@ class CampaignService {
       });
       return response.data;
     } catch (error) {
-      console.error("Failed to create campaign:", error);
+      logger.error("Failed to create campaign:", error);
       throw new Error("Failed to create campaign");
     }
   }
@@ -356,10 +357,10 @@ class CampaignService {
         donationGoal: campaignData.expectedDonors || 0,
       };
       
-      console.log("Transformed campaign stats:", transformedStats);
+      logger.log("Transformed campaign stats:", transformedStats);
       return transformedStats;
     } catch (error) {
-      console.error("Failed to fetch campaign stats:", error);
+      logger.error("Failed to fetch campaign stats:", error);
       throw new Error("Failed to fetch campaign statistics");
     }
   }
@@ -378,7 +379,7 @@ class CampaignService {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to mark attendance:", error);
+      logger.error("Failed to mark attendance:", error);
       throw new Error("Failed to mark attendance");
     }
   }
@@ -394,7 +395,7 @@ class CampaignService {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch campaign attendance:", error);
+      logger.error("Failed to fetch campaign attendance:", error);
       throw new Error("Failed to fetch attendance records");
     }
   }
@@ -414,7 +415,7 @@ class CampaignService {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to update campaign:", error);
+      logger.error("Failed to update campaign:", error);
       if (error instanceof Error) {
         // Handle specific error messages from backend
         if (error.message.includes("403")) {
@@ -441,7 +442,7 @@ class CampaignService {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to delete campaign:", error);
+      logger.error("Failed to delete campaign:", error);
       if (error instanceof Error) {
         // Handle specific error messages from backend
         if (error.message.includes("403")) {
@@ -467,7 +468,7 @@ class CampaignService {
         }
       );
 
-      console.log("API Response data:", apiData);
+      logger.log("API Response data:", apiData);
 
       if (!apiData || !apiData.id) {
         throw new Error("Invalid campaign data received from API");
@@ -534,13 +535,13 @@ class CampaignService {
         additionalNotes: "",
       };
 
-      console.log("Transformed campaign:", transformedCampaign);
+      logger.log("Transformed campaign:", transformedCampaign);
       return transformedCampaign;
     } catch (error) {
-      console.error("Failed to get campaign details:", error);
+      logger.error("Failed to get campaign details:", error);
 
       // Campaign not found or error occurred
-      console.error(`Failed to get campaign details for ${campaignId}:`, error);
+      logger.error(`Failed to get campaign details for ${campaignId}:`, error);
       throw new Error("Failed to get campaign details");
     }
   }
@@ -575,7 +576,7 @@ class CampaignService {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to get campaign analytics:", error);
+      logger.error("Failed to get campaign analytics:", error);
       throw new Error("Failed to get campaign analytics");
     }
   }
@@ -595,7 +596,7 @@ class CampaignService {
       );
       return response.data;
     } catch (error) {
-      console.error(
+      logger.error(
         "Failed to check campaign permissions, using fallback logic:",
         error
       );
@@ -662,17 +663,16 @@ class CampaignService {
         reasons,
       };
     } catch (error) {
-      console.error(
+      logger.error(
         "Failed to check campaign permissions with fallback:",
         error
       );
 
-      // If we can't determine permissions, provide reasonable defaults for development
-      console.warn("Using default permissions for development");
+      // Safety-critical: if permissions can't be determined, deny by default.
       return {
-        canEdit: true,
-        canDelete: true,
-        reasons: [],
+        canEdit: false,
+        canDelete: false,
+        reasons: ["Could not verify permissions. Check your connection."],
       };
     }
   }
@@ -688,7 +688,7 @@ class CampaignService {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to search donors:", error);
+      logger.error("Failed to search donors:", error);
       throw new Error("Failed to search donors");
     }
   }
@@ -704,7 +704,7 @@ class CampaignService {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch campaign notifications:", error);
+      logger.error("Failed to fetch campaign notifications:", error);
       throw new Error("Failed to fetch notifications");
     }
   }
@@ -726,7 +726,7 @@ class CampaignService {
     };
   }> {
     try {
-      console.log("🏥 Joining campaign:", campaignId, "with data:", registrationData);
+      logger.log("🏥 Joining campaign:", campaignId, "with data:", registrationData);
       
       const payload = {
         campaignId,
@@ -745,7 +745,7 @@ class CampaignService {
         }
       );
 
-      console.log("✅ Campaign registration successful:", response);
+      logger.log("✅ Campaign registration successful:", response);
       
       return {
         success: true,
@@ -759,7 +759,7 @@ class CampaignService {
         },
       };
     } catch (error) {
-      console.error("❌ Failed to join campaign:", error);
+      logger.error("❌ Failed to join campaign:", error);
       
       // Handle specific error cases
       if (error instanceof Error) {
@@ -798,7 +798,7 @@ class CampaignService {
     registeredAt?: string;
   }> {
     try {
-      console.log("🔍 Checking participation status for campaign:", campaignId);
+      logger.log("🔍 Checking participation status for campaign:", campaignId);
       
       const response = await apiRequestWithAuth(
         API_ENDPOINTS.CAMPAIGN_PARTICIPATION_STATUS.replace(":id", campaignId),
@@ -807,7 +807,7 @@ class CampaignService {
         }
       );
       
-      console.log("✅ Participation status response:", response);
+      logger.log("✅ Participation status response:", response);
       
       return {
         isRegistered: response.data?.isRegistered || false,
@@ -816,7 +816,7 @@ class CampaignService {
         registeredAt: response.data?.registeredAt,
       };
     } catch (error) {
-      console.error("Failed to check participation status:", error);
+      logger.error("Failed to check participation status:", error);
       // If 404, user is not registered
       if (error instanceof Error && error.message.includes("404")) {
         return { isRegistered: false };
@@ -831,7 +831,7 @@ class CampaignService {
     message: string;
   }> {
     try {
-      console.log("🚪 Leaving campaign:", campaignId);
+      logger.log("🚪 Leaving campaign:", campaignId);
       
       const response = await apiRequestWithAuth(
         API_ENDPOINTS.LEAVE_CAMPAIGN.replace(":id", campaignId),
@@ -840,14 +840,14 @@ class CampaignService {
         }
       );
       
-      console.log("✅ Successfully left campaign:", response);
+      logger.log("✅ Successfully left campaign:", response);
       
       return {
         success: true,
         message: response.data?.message || "Successfully unregistered from campaign",
       };
     } catch (error) {
-      console.error("❌ Failed to leave campaign:", error);
+      logger.error("❌ Failed to leave campaign:", error);
       throw new Error("Failed to unregister from campaign. Please try again later.");
     }
   }
@@ -857,7 +857,7 @@ class CampaignService {
     campaignId: string
   ): Promise<{ success: boolean; count: number }> {
     try {
-      console.log("📊 Fetching participant count for campaign:", campaignId);
+      logger.log("📊 Fetching participant count for campaign:", campaignId);
       const response = await apiRequestWithAuth(
         API_ENDPOINTS.CAMPAIGN_PARTICIPATION_STATUS.replace(":id", campaignId),
         { method: "GET" }
@@ -872,15 +872,15 @@ class CampaignService {
           : 0;
 
       const success = Boolean(response?.success);
-      console.log("📊 Participant count response:", { success, count });
+      logger.log("📊 Participant count response:", { success, count });
 
       return { success, count };
     } catch (error) {
-      console.error("Failed to fetch participant count:", error);
+      logger.error("Failed to fetch participant count:", error);
 
       // Gracefully handle 404 (route missing or campaign not found) -> return 0
       if (error instanceof Error && (error.message.includes("404") || error.message.includes("Cannot GET"))) {
-        console.warn(
+        logger.warn(
           `Participant count endpoint not found for campaign ${campaignId}. Defaulting count to 0.`
         );
         return { success: false, count: 0 };
@@ -908,7 +908,7 @@ class CampaignService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to check registration status:", error);
+      logger.error("Failed to check registration status:", error);
       // If 404, user is not registered
       if (error instanceof Error && error.message.includes("404")) {
         return { isRegistered: false };
@@ -935,7 +935,7 @@ class CampaignService {
         message: "Registration cancelled successfully",
       };
     } catch (error) {
-      console.error("Failed to cancel registration:", error);
+      logger.error("Failed to cancel registration:", error);
       throw new Error("Failed to cancel registration");
     }
   }

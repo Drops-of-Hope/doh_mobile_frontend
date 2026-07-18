@@ -38,6 +38,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuthUser } from "../../hooks/useAuthUser";
 
+import { logger } from "../../utils/logger";
 interface HomeScreenProps {
   navigation?: any;
 }
@@ -52,7 +53,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
 
   // Context
-  const { user, getFirstName, logout } = useAuth();
+  const { user, getFirstName } = useAuth();
   const { t } = useLanguage();
   const { getStoredUserData, processAuthUser } = useAuthUser();
 
@@ -81,7 +82,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       const userData = await getStoredUserData();
       return formatBadgeName(userData?.donationBadge);
     } catch (error) {
-      console.error("Error getting donor badge:", error);
+      logger.error("Error getting donor badge:", error);
       return "Bronze Donor"; // Default fallback
     }
   };
@@ -103,7 +104,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       // If no stored user data but we have an authenticated user, 
       // we need to process/create the user in the backend
       if (!userData && user?.sub) {
-        console.log("🔄 No stored user data found, processing auth user...");
+        logger.log("🔄 No stored user data found, processing auth user...");
         
         // Create AuthUserData from the current user
         const authData = {
@@ -120,7 +121,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         
         // Process the user (creates in backend if needed)
         userData = await processAuthUser(authData);
-        console.log("✅ User processed successfully:", userData);
+        logger.log("✅ User processed successfully:", userData);
       }
       
       // Now check if profile completion is needed
@@ -129,7 +130,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       // Load home data
       await loadHomeData();
     } catch (error) {
-      console.error("❌ Error initializing user:", error);
+      logger.error("❌ Error initializing user:", error);
       Alert.alert(
         "Initialization Error",
         "Failed to initialize user data. Please try logging out and back in.",
@@ -143,17 +144,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       const userDataToCheck = userData || await getStoredUserData();
       
       if (!userDataToCheck) {
-        console.log("⚠️ No user data available for profile check");
+        logger.log("⚠️ No user data available for profile check");
         return;
       }
       
       if (userDataToCheck?.needsProfileCompletion) {
-        console.log("📋 User needs profile completion");
+        logger.log("📋 User needs profile completion");
         setShowProfileCompletion(true);
         return;
       }
     } catch (error) {
-      console.error("Error checking profile completion:", error);
+      logger.error("Error checking profile completion:", error);
     }
   };
 
@@ -184,7 +185,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                        appointmentUTCMonth === todayUTCMonth &&
                        appointmentUTCDay === todayUTCDay;
         
-        console.log("📅 Frontend Today Check (UTC):", {
+        logger.log("📅 Frontend Today Check (UTC):", {
           appointmentDate: appointmentDate.toISOString(),
           today: today.toISOString(),
           appointmentUTC: `${appointmentUTCYear}-${appointmentUTCMonth + 1}-${appointmentUTCDay}`,
@@ -212,11 +213,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             },
             location: firstAppointment.location || ''
           };
-          console.log("✅ Created todaysAppointment from upcoming appointment:", data.todaysAppointment);
+          logger.log("✅ Created todaysAppointment from upcoming appointment:", data.todaysAppointment);
         }
       }
       
-      console.log("🏠 HomeScreen - Data loaded:", {
+      logger.log("🏠 HomeScreen - Data loaded:", {
         hasTodaysAppointment: !!data?.todaysAppointment,
         todaysAppointmentDetails: data?.todaysAppointment,
         upcomingCount: data?.upcomingAppointments?.length
@@ -225,13 +226,13 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       
       // Additional render check
       setTimeout(() => {
-        console.log("🎨 HomeScreen State Check after setState:", {
+        logger.log("🎨 HomeScreen State Check after setState:", {
           hasTodaysAppointment: !!data?.todaysAppointment,
           willRenderCard: !!data?.todaysAppointment
         });
       }, 100);
     } catch (error) {
-      console.error("Failed to load home data:", error);
+      logger.error("Failed to load home data:", error);
       
       // Check if error is due to user not existing
       if (error instanceof Error && error.message.includes("User not found")) {
@@ -262,7 +263,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       const data = await homeService.getHomeData();
       setHomeData(data);
     } catch (error) {
-      console.error("Failed to refresh home data:", error);
+      logger.error("Failed to refresh home data:", error);
     } finally {
       setRefreshing(false);
     }
@@ -404,7 +405,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               donorLevel={donorBadge}
               searchText={searchText}
               onSearchTextChange={setSearchText}
-              onLogout={logout}
             />
           </View>
           

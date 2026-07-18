@@ -30,6 +30,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { debugAllUserIds, testBackendEndpoints } from "../../utils/userIdUtils";
 
+import { logger } from "../../utils/logger";
 interface CampaignSection {
   active: CampaignType[];
   upcoming: CampaignType[];
@@ -62,7 +63,7 @@ export default function CampaignDashboardScreen({
 
   const categorizeByStatus = (campaigns: CampaignType[]): CampaignSection => {
     const now = new Date();
-    console.log('Current time:', now.toISOString(), '| Local:', now.toLocaleString());
+    logger.log('Current time:', now.toISOString(), '| Local:', now.toLocaleString());
     
     const categorized: CampaignSection = {
       active: [],
@@ -78,7 +79,7 @@ export default function CampaignDashboardScreen({
         campaign.status === 'cancelled';
         
       if (isCancelled) {
-        console.log('Campaign:', campaign.title, '→ CANCELLED');
+        logger.log('Campaign:', campaign.title, '→ CANCELLED');
         categorized.cancelled.push(campaign);
         return;
       }
@@ -90,21 +91,21 @@ export default function CampaignDashboardScreen({
       const startTime = new Date(startTimeStr);
       const endTime = new Date(endTimeStr);
       
-      console.log('Campaign:', campaign.title);
-      console.log('  Start string:', campaign.startTime, '→ stripped:', startTimeStr);
-      console.log('  End string:', campaign.endTime, '→ stripped:', endTimeStr);
-      console.log('  Start parsed:', startTime.toISOString(), '| Local:', startTime.toLocaleString());
-      console.log('  End parsed:', endTime.toISOString(), '| Local:', endTime.toLocaleString());
-      console.log('  Now >= Start?', now >= startTime, '| Now <= End?', now <= endTime);
+      logger.log('Campaign:', campaign.title);
+      logger.log('  Start string:', campaign.startTime, '→ stripped:', startTimeStr);
+      logger.log('  End string:', campaign.endTime, '→ stripped:', endTimeStr);
+      logger.log('  Start parsed:', startTime.toISOString(), '| Local:', startTime.toLocaleString());
+      logger.log('  End parsed:', endTime.toISOString(), '| Local:', endTime.toLocaleString());
+      logger.log('  Now >= Start?', now >= startTime, '| Now <= End?', now <= endTime);
 
       if (now >= startTime && now <= endTime) {
-        console.log('  → Categorized as ACTIVE');
+        logger.log('  → Categorized as ACTIVE');
         categorized.active.push(campaign);
       } else if (now < startTime) {
-        console.log('  → Categorized as UPCOMING');
+        logger.log('  → Categorized as UPCOMING');
         categorized.upcoming.push(campaign);
       } else {
-        console.log('  → Categorized as PREVIOUS');
+        logger.log('  → Categorized as PREVIOUS');
         categorized.previous.push(campaign);
       }
     });
@@ -131,9 +132,9 @@ export default function CampaignDashboardScreen({
   const loadCampaigns = async () => {
     try {
       if (user?.sub) {
-        console.log("Loading campaigns for user:", user.sub);
+        logger.log("Loading campaigns for user:", user.sub);
         const userCampaigns = await loadUserCampaigns(user.sub);
-        console.log("Received campaigns:", userCampaigns);
+        logger.log("Received campaigns:", userCampaigns);
 
         if (Array.isArray(userCampaigns)) {
           const categorized = categorizeByStatus(userCampaigns);
@@ -144,15 +145,15 @@ export default function CampaignDashboardScreen({
             await loadStats(categorized.active[0].id);
           }
         } else {
-          console.warn("userCampaigns is not an array:", userCampaigns);
+          logger.warn("userCampaigns is not an array:", userCampaigns);
           setCampaigns({ active: [], upcoming: [], previous: [], cancelled: [] });
         }
       } else {
-        console.warn("No user ID available");
+        logger.warn("No user ID available");
         setCampaigns({ active: [], upcoming: [], previous: [], cancelled: [] });
       }
     } catch (error) {
-      console.error("Failed to load campaigns:", error);
+      logger.error("Failed to load campaigns:", error);
       setCampaigns({ active: [], upcoming: [], previous: [], cancelled: [] });
       Alert.alert(
         "Error",
@@ -169,7 +170,7 @@ export default function CampaignDashboardScreen({
       const campaignStats = await loadCampaignStats(campaignId);
       setActiveCampaignStats(campaignStats);
     } catch (error) {
-      console.error("Failed to load campaign stats:", error);
+      logger.error("Failed to load campaign stats:", error);
     }
   };
 
@@ -200,12 +201,12 @@ export default function CampaignDashboardScreen({
   };
 
   const handleDebugUserIds = async () => {
-    console.log("=== MANUAL USER ID DEBUG TRIGGERED ===");
+    logger.log("=== MANUAL USER ID DEBUG TRIGGERED ===");
     await debugAllUserIds();
-    console.log("Auth context user:", user);
-    console.log("Auth context user.sub:", user?.sub);
+    logger.log("Auth context user:", user);
+    logger.log("Auth context user.sub:", user?.sub);
 
-    console.log("=== TESTING BACKEND ENDPOINTS ===");
+    logger.log("=== TESTING BACKEND ENDPOINTS ===");
     await testBackendEndpoints();
 
     Alert.alert(

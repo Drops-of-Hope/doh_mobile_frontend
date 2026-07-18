@@ -27,6 +27,7 @@ import SubmitButton from "./atoms/SubmitButton";
 // Import types
 import { CreateCampaignScreenProps, LocalCampaignForm, FormErrors } from "./types";
 
+import { logger } from "../../utils/logger";
 export default function CreateCampaignScreen({
   navigation,
 }: CreateCampaignScreenProps) {
@@ -63,16 +64,16 @@ export default function CreateCampaignScreen({
   const loadMedicalEstablishments = async () => {
     try {
       setLoadingEstablishments(true);
-      console.log("Loading medical establishments...");
+      logger.log("Loading medical establishments...");
       let allEstablishments: MedicalEstablishment[] = [];
       
       // Try to load from API first
       try {
         const establishments = await appointmentService.getMedicalEstablishmentsByDistrict(District.COLOMBO);
-        console.log("Loaded establishments from API:", establishments);
+        logger.log("Loaded establishments from API:", establishments);
         allEstablishments = establishments;
       } catch (apiError) {
-        console.log("API call failed, trying to load all establishments...");
+        logger.log("API call failed, trying to load all establishments...");
         
         // Try different districts
         const districts = [District.COLOMBO, District.KANDY, District.GALLE, District.GAMPAHA];
@@ -82,23 +83,23 @@ export default function CreateCampaignScreen({
             const establishments = await appointmentService.getMedicalEstablishmentsByDistrict(district);
             allEstablishments.push(...establishments);
           } catch (districtError) {
-            console.log(`Failed to load from ${district}:`, districtError);
+            logger.log(`Failed to load from ${district}:`, districtError);
           }
         }
       }
       
       // If we got some establishments, use them
       if (allEstablishments.length > 0) {
-        console.log("Successfully loaded establishments:", allEstablishments.length);
+        logger.log("Successfully loaded establishments:", allEstablishments.length);
         setMedicalEstablishments(allEstablishments);
         return;
       }
       
       // No establishments found
-      console.log("No medical establishments found");
+      logger.log("No medical establishments found");
       setMedicalEstablishments([]);
     } catch (error) {
-      console.error("Failed to load medical establishments:", error);
+      logger.error("Failed to load medical establishments:", error);
       // Set empty array on error
       setMedicalEstablishments([]);
     } finally {
@@ -216,8 +217,8 @@ export default function CreateCampaignScreen({
         return;
       }
 
-      console.log('Creating campaign with database user ID:', databaseUserId);
-      console.log('Auth sub was:', user?.sub);
+      logger.log('Creating campaign with database user ID:', databaseUserId);
+      logger.log('Auth sub was:', user?.sub);
 
       // Create date string in YYYY-MM-DD format
       const dateStr = `${formData.year}-${formData.month.padStart(2, '0')}-${formData.day.padStart(2, '0')}`;
@@ -227,12 +228,12 @@ export default function CreateCampaignScreen({
       const startDateTime = `${dateStr}T${formData.startTime}:00`;
       const endDateTime = `${dateStr}T${formData.endTime}:00`;
       
-      console.log('Creating campaign with:');
-      console.log('  Date:', dateStr);
-      console.log('  Start Time:', formData.startTime);
-      console.log('  End Time:', formData.endTime);
-      console.log('  Full Start DateTime:', startDateTime);
-      console.log('  Full End DateTime:', endDateTime);
+      logger.log('Creating campaign with:');
+      logger.log('  Date:', dateStr);
+      logger.log('  Start Time:', formData.startTime);
+      logger.log('  End Time:', formData.endTime);
+      logger.log('  Full Start DateTime:', startDateTime);
+      logger.log('  Full End DateTime:', endDateTime);
       
       const campaignData = {
         title: formData.title.trim(),
@@ -248,10 +249,10 @@ export default function CreateCampaignScreen({
         medicalEstablishmentId: formData.medicalEstablishmentId,
         organizerId: databaseUserId, // Use database user ID instead of auth sub
         isApproved: false,
-        requirements: formData.requirements ? JSON.parse(`{"notes": "${formData.requirements.trim()}"}`) : {},
+        requirements: formData.requirements ? { notes: formData.requirements.trim() } : {},
       };
 
-      console.log('Campaign data being sent:', campaignData);
+      logger.log('Campaign data being sent:', campaignData);
 
       await campaignService.createCampaign(campaignData);
       
@@ -267,7 +268,7 @@ export default function CreateCampaignScreen({
         ]
       );
     } catch (error) {
-      console.error("Failed to create campaign:", error);
+      logger.error("Failed to create campaign:", error);
       Alert.alert(
         "❌ Error", 
         "Failed to create campaign. Please try again.",

@@ -1,6 +1,7 @@
 // Badge service for fetching badge information from backend
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 
+import { logger } from "../utils/logger";
 export interface BadgeInfo {
   currentBadge: {
     name: string;
@@ -60,7 +61,7 @@ export const badgeService = {
 
       throw new Error("No badge data received");
     } catch (error) {
-      console.error("Failed to fetch badge info:", error);
+      logger.error("Failed to fetch badge info:", error);
       throw new Error("Failed to fetch badge information");
     }
   },
@@ -85,7 +86,7 @@ export const badgeService = {
 
       throw new Error("No donation stats update data received");
     } catch (error) {
-      console.error("Failed to update donation stats:", error);
+      logger.error("Failed to update donation stats:", error);
       throw new Error("Failed to update donation statistics");
     }
   },

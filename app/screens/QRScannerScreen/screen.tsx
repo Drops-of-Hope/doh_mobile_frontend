@@ -7,6 +7,7 @@ import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeade
 import { qrService, QRScanRequest } from "../../services/qrService";
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import { logger } from "../../utils/logger";
 // Define the param list for the stack navigator
 type QRScannerStackParamList = {
   QRScannerScreen: { campaignId: string };
@@ -63,7 +64,7 @@ export default function QRScannerScreen({
     setIsProcessing(true);
 
     try {
-      console.log("🔍 QR SCAN DEBUG: Raw scanned data:", data);
+      logger.log("🔍 QR SCAN DEBUG: Raw scanned data:", data);
       
       let userId: string;
       let donorData: any = null;
@@ -71,7 +72,7 @@ export default function QRScannerScreen({
       // Try to parse as JSON first (new donor format)
       try {
         const parsedData = JSON.parse(data);
-        console.log("🔍 QR SCAN DEBUG: Successfully parsed as JSON:", parsedData);
+        logger.log("🔍 QR SCAN DEBUG: Successfully parsed as JSON:", parsedData);
         
         // Check if it's the expected donor format: {name, email, uid, timestamp}
         if (parsedData.uid && parsedData.name && parsedData.email) {
@@ -82,16 +83,16 @@ export default function QRScannerScreen({
             uid: parsedData.uid,
             timestamp: parsedData.timestamp
           };
-          console.log("🔍 QR SCAN DEBUG: Extracted userId from donor QR:", userId);
+          logger.log("🔍 QR SCAN DEBUG: Extracted userId from donor QR:", userId);
         } else {
           throw new Error("Invalid JSON format - missing required fields");
         }
       } catch (jsonError: any) {
-        console.log("🔍 QR SCAN DEBUG: JSON parse failed, trying legacy UUID format:", jsonError.message);
+        logger.log("🔍 QR SCAN DEBUG: JSON parse failed, trying legacy UUID format:", jsonError.message);
         // Fallback to old format - direct UUID string
         if (data && data.length >= 36) {
           userId = data;
-          console.log("🔍 QR SCAN DEBUG: Using legacy UUID format:", userId);
+          logger.log("🔍 QR SCAN DEBUG: Using legacy UUID format:", userId);
         } else {
           throw new Error("Invalid QR data format");
         }
@@ -101,7 +102,7 @@ export default function QRScannerScreen({
         throw new Error("Could not extract user ID from QR code");
       }
 
-      console.log("🔍 QR SCAN DEBUG: Final userId to send to API:", userId);
+      logger.log("🔍 QR SCAN DEBUG: Final userId to send to API:", userId);
 
       // Try to scan the QR code through the backend
       const scanRequest: QRScanRequest = {
@@ -116,7 +117,7 @@ export default function QRScannerScreen({
         },
       };
 
-      console.log("🔍 QR SCAN DEBUG: Full request payload:", scanRequest);
+      logger.log("🔍 QR SCAN DEBUG: Full request payload:", scanRequest);
 
       const scanResult = await qrService.scanQR(scanRequest);
 
@@ -149,7 +150,7 @@ export default function QRScannerScreen({
         resetScanner();
       }
     } catch (error) {
-      console.error("QR Scan error:", error);
+      logger.error("QR Scan error:", error);
       Alert.alert("Error", "Failed to process QR code. Please try again.");
       resetScanner();
     } finally {
@@ -181,7 +182,7 @@ export default function QRScannerScreen({
         ],
       );
     } catch (error) {
-      console.error("Mark attendance error:", error);
+      logger.error("Mark attendance error:", error);
       Alert.alert("Error", "Failed to mark attendance. Please try again.");
       resetScanner();
     } finally {

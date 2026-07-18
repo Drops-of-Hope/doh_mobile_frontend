@@ -17,6 +17,7 @@ import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeade
 import { donorSearchService, DonorSearchResult, DonorSearchFilters } from "../../services/donorSearchService";
 import { campaignService } from "../../services/campaignService";
 
+import { logger } from "../../utils/logger";
 interface ManualSearchScreenProps {
   navigation?: any;
   route?: {
@@ -53,7 +54,7 @@ export default function ManualSearchScreen({
       const recent = await donorSearchService.getRecentDonors(campaignId, 5);
       setRecentDonors(recent);
     } catch (error) {
-      console.error("Failed to load recent donors:", error);
+      logger.error("Failed to load recent donors:", error);
     }
   };
 
@@ -76,7 +77,7 @@ export default function ManualSearchScreen({
       const result = await donorSearchService.searchDonors(filters);
       setSearchResults(result.donors);
     } catch (error) {
-      console.error("Search failed:", error);
+      logger.error("Search failed:", error);
       Alert.alert("Error", "Failed to search donors. Please try again.");
     } finally {
       setIsLoading(false);
@@ -142,7 +143,7 @@ export default function ManualSearchScreen({
         ],
       );
     } catch (error) {
-      console.error("Failed to mark attendance:", error);
+      logger.error("Failed to mark attendance:", error);
       Alert.alert("Error", "Failed to mark attendance. Please try again.");
     } finally {
       setIsLoading(false);
@@ -179,7 +180,7 @@ export default function ManualSearchScreen({
         Alert.alert("Verification Failed", verification.message);
       }
     } catch (error) {
-      console.error("Failed to verify donor:", error);
+      logger.error("Failed to verify donor:", error);
       Alert.alert("Error", "Failed to verify donor. Please try again.");
     } finally {
       setIsLoading(false);

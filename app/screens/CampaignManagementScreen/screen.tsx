@@ -17,6 +17,7 @@ import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeade
 import { campaignService, Campaign } from "../../services/campaignService";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
 
+import { logger } from "../../utils/logger";
 interface CampaignManagementScreenProps {
   navigation?: any;
 }
@@ -46,7 +47,7 @@ export default function CampaignManagementScreen({
       );
       setCampaigns(userCampaigns);
     } catch (error) {
-      console.error("Failed to load campaigns:", error);
+      logger.error("Failed to load campaigns:", error);
       Alert.alert("Error", "Failed to load campaigns. Please try again.");
     } finally {
       setIsLoading(false);
@@ -79,7 +80,7 @@ export default function CampaignManagementScreen({
 
       navigation?.navigate("EditCampaign", { campaignId: campaign.id });
     } catch (error) {
-      console.error("Failed to check permissions:", error);
+      logger.error("Failed to check permissions:", error);
       Alert.alert("Error", "Failed to check campaign permissions.");
     }
   };
@@ -118,7 +119,7 @@ export default function CampaignManagementScreen({
                   [{ text: "OK", onPress: () => loadCampaigns() }]
                 );
               } catch (error) {
-                console.error("Failed to delete campaign:", error);
+                logger.error("Failed to delete campaign:", error);
                 Alert.alert(
                   "Error",
                   error instanceof Error
@@ -131,7 +132,7 @@ export default function CampaignManagementScreen({
         ]
       );
     } catch (error) {
-      console.error("Failed to check permissions:", error);
+      logger.error("Failed to check permissions:", error);
       Alert.alert("Error", "Failed to check campaign permissions.");
     }
   };

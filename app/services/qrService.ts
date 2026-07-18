@@ -1,5 +1,6 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 
+import { logger } from "../utils/logger";
 // Types for QR functionality
 export interface QRCodeData {
   userId: string;
@@ -110,6 +111,20 @@ export interface ScannerPermissions {
   allowedCampaigns: string[];
 }
 
+// POST /qr/mark-attendance responds with { success, message, participation }
+// at the top level (no `data` wrapper) — map it onto AttendanceMarkResult.
+function mapAttendanceResponse(response: any): AttendanceMarkResult {
+  const participation = response?.participation;
+  return {
+    success: response?.success,
+    participationId: participation?.id,
+    status: participation?.status,
+    pointsEarned: participation?.pointsEarned,
+    message: response?.message,
+    updatedParticipation: participation,
+  };
+}
+
 // QR Service functions
 export const qrService = {
   // Generate QR code for user
@@ -120,7 +135,7 @@ export const qrService = {
       });
       return response.data;
     } catch (error) {
-      console.error("Failed to generate QR code:", error);
+      logger.error("Failed to generate QR code:", error);
       throw error;
     }
   },
@@ -148,7 +163,7 @@ export const qrService = {
         throw new Error(response.message || "Scan failed");
       }
     } catch (error) {
-      console.error("Failed to scan QR code:", error);
+      logger.error("Failed to scan QR code:", error);
       throw error;
     }
   },
@@ -167,9 +182,9 @@ export const qrService = {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      return response.data;
+      return mapAttendanceResponse(response);
     } catch (error) {
-      console.error("Failed to mark attendance:", error);
+      logger.error("Failed to mark attendance:", error);
       throw error;
     }
   },
@@ -199,12 +214,12 @@ export const qrService = {
             notes: `${request.notes} - Auto-registered via QR scan`,
           }),
         });
-        return attendanceResponse.data;
+        return mapAttendanceResponse(attendanceResponse);
       } else {
         throw new Error(registrationResponse.message || "Auto-registration failed");
       }
     } catch (error) {
-      console.error("Failed to auto-register and mark attendance:", error);
+      logger.error("Failed to auto-register and mark attendance:", error);
       throw error;
     }
   },
@@ -217,7 +232,7 @@ export const qrService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch campaign stats:", error);
+      logger.error("Failed to fetch campaign stats:", error);
       throw error;
     }
   },
@@ -258,7 +273,7 @@ export const qrService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch campaign participants:", error);
+      logger.error("Failed to fetch campaign participants:", error);
       throw error;
     }
   },
@@ -269,7 +284,7 @@ export const qrService = {
       const response = await apiRequestWithAuth("/qr/scanner-permissions");
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch scanner permissions:", error);
+      logger.error("Failed to fetch scanner permissions:", error);
       throw error;
     }
   },
@@ -283,7 +298,7 @@ export const qrService = {
       });
       return response.data.results;
     } catch (error) {
-      console.error("Failed to batch scan QR codes:", error);
+      logger.error("Failed to batch scan QR codes:", error);
       throw error;
     }
   },
@@ -305,7 +320,7 @@ export const qrService = {
       });
       return response.data;
     } catch (error) {
-      console.error("Failed to update participation status:", error);
+      logger.error("Failed to update participation status:", error);
       throw error;
     }
   },
@@ -329,7 +344,7 @@ export const qrService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to add participation feedback:", error);
+      logger.error("Failed to add participation feedback:", error);
       throw error;
     }
   },
@@ -368,7 +383,7 @@ export const qrService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch scan history:", error);
+      logger.error("Failed to fetch scan history:", error);
       throw error;
     }
   },
@@ -390,7 +405,7 @@ export const qrService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to export campaign report:", error);
+      logger.error("Failed to export campaign report:", error);
       throw error;
     }
   },

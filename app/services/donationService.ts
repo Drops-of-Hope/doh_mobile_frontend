@@ -1,6 +1,7 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 import { getCurrentUser } from "./auth";
 
+import { logger } from "../utils/logger";
 // User profile interface aligned with Prisma `User` model
 export interface UserProfile {
   id: string;
@@ -175,7 +176,7 @@ export const donationService = {
         }
       } catch (err) {
         // If fetching profile fails, log and continue; payload will be sent without userId
-        console.warn(
+        logger.warn(
           "donationService: could not fetch user profile to attach userId:",
           err
         );
@@ -187,7 +188,7 @@ export const donationService = {
       transformedPayload.donorId = userIdToSend;
     }
 
-    console.log("Submitting donation form with payload:", transformedPayload);
+    logger.log("Submitting donation form with payload:", transformedPayload);
 
     return apiRequestWithAuth(API_ENDPOINTS.DONATION_FORM, {
       method: "POST",

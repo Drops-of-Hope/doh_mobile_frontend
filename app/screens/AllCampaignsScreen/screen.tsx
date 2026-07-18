@@ -21,6 +21,7 @@ import { getAllCampaigns, getCampaignStats } from "./utils";
 import { campaignService } from "../../services/campaignService";
 import { useAuth } from "../../context/AuthContext";
 
+import { logger } from "../../utils/logger";
 interface AllCampaignsScreenProps {
   navigation?: any;
 }
@@ -99,7 +100,7 @@ export default function AllCampaignsScreen({
                 );
                 
                 // Store registration locally for future reference
-                console.log("Campaign registration details:", result.registrationDetails);
+                logger.log("Campaign registration details:", result.registrationDetails);
               } else {
                 Alert.alert(
                   "Registration Info",
@@ -108,7 +109,7 @@ export default function AllCampaignsScreen({
                 );
               }
             } catch (error) {
-              console.error("Campaign registration error:", error);
+              logger.error("Campaign registration error:", error);
               
               const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
               

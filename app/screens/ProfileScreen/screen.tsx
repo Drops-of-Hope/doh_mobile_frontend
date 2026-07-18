@@ -44,6 +44,7 @@ import { COLORS, SPACING } from "../../../constants/theme";
 // Import the profile completion screen
 import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
 
+import { logger } from "../../utils/logger";
 interface ProfileScreenProps {
   navigation?: any;
 }
@@ -88,8 +89,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           if (!storedUserData) {
             // User is authenticated but not in our database
             // Process the auth user (create or login)
-            console.log("🔄 Processing auth user for database creation...");
-            console.log("👤 User data from AuthContext:", user);
+            logger.log("🔄 Processing auth user for database creation...");
+            logger.log("👤 User data from AuthContext:", user);
 
             // Transform user data to the format expected by processAuthUser
             const authData = {
@@ -104,23 +105,23 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               username: user.username || user.email,
             };
 
-            console.log("📡 Sending auth data to backend:", authData);
+            logger.log("📡 Sending auth data to backend:", authData);
 
             try {
               const result = await processAuthUser(authData);
-              console.log("✅ Backend response:", result);
+              logger.log("✅ Backend response:", result);
 
               // After processing, reload user data which will trigger profile completion if needed
               await loadUserData();
             } catch (error) {
-              console.error("❌ Backend API call failed:", error);
-              console.error(
+              logger.error("❌ Backend API call failed:", error);
+              logger.error(
                 "🔍 This likely means the backend endpoints don't exist yet"
               );
             }
           }
         } catch (error) {
-          console.error("Error processing auth user:", error);
+          logger.error("Error processing auth user:", error);
         }
       }
     };
@@ -133,47 +134,47 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       setIsLoadingProfile(true);
 
       if (user) {
-        console.log("ProfileScreen: Loading user data for user ID:", user.sub);
-        console.log("ProfileScreen: Current user from AuthContext:", user);
+        logger.log("ProfileScreen: Loading user data for user ID:", user.sub);
+        logger.log("ProfileScreen: Current user from AuthContext:", user);
 
         // Debug user data consistency
         await debugUserIds();
         const isConsistent = await validateUserDataConsistency();
 
         if (!isConsistent) {
-          console.log(
+          logger.log(
             "ProfileScreen: User data inconsistency detected, clearing all data"
           );
           await clearAllUserData();
 
           // Set basic loading state - user needs to complete profile or re-authenticate
-          console.log("ProfileScreen: Data cleared, showing profile completion");
+          logger.log("ProfileScreen: Data cleared, showing profile completion");
           setShowProfileCompletion(true);
           return;
         }
 
         // First, get stored user data from auth service
         const storedUserData = await getStoredUserData();
-        console.log("ProfileScreen: Stored user data:", storedUserData);
+        logger.log("ProfileScreen: Stored user data:", storedUserData);
 
         if (storedUserData) {
-          console.log(
+          logger.log(
             "ProfileScreen: Using stored user data for user ID:",
             storedUserData.id
           );
 
           // Verify the stored data matches the current authenticated user
           if (storedUserData.id !== user.sub) {
-            console.warn("ProfileScreen: Stored user data ID mismatch!");
-            console.warn("ProfileScreen: Expected user ID:", user.sub);
-            console.warn("ProfileScreen: Stored user ID:", storedUserData.id);
-            console.warn("ProfileScreen: Clearing mismatched stored data...");
+            logger.warn("ProfileScreen: Stored user data ID mismatch!");
+            logger.warn("ProfileScreen: Expected user ID:", user.sub);
+            logger.warn("ProfileScreen: Stored user ID:", storedUserData.id);
+            logger.warn("ProfileScreen: Clearing mismatched stored data...");
 
             // Clear the mismatched data
             await clearAllUserData();
 
             // Show profile completion for user to re-authenticate or complete profile
-            console.log("ProfileScreen: Data mismatch cleared, showing profile completion");
+            logger.log("ProfileScreen: Data mismatch cleared, showing profile completion");
             setShowProfileCompletion(true);
             return;
           }
@@ -182,13 +183,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           const needsCompletion = !storedUserData.isProfileComplete;
 
           if (needsCompletion) {
-            console.log("ProfileScreen: Profile needs completion");
+            logger.log("ProfileScreen: Profile needs completion");
             setShowProfileCompletion(true);
             return;
           }
 
           // Update userData with real data
-          console.log("ProfileScreen: Setting user data from stored data");
+          logger.log("ProfileScreen: Setting user data from stored data");
           setUserData({
             name: storedUserData.name,
             email: storedUserData.email,
@@ -199,16 +200,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             membershipType: getRoleMembershipType(userRole),
           });
         } else {
-          console.log("ProfileScreen: No stored user data, need profile completion");
+          logger.log("ProfileScreen: No stored user data, need profile completion");
           // Show profile completion screen if no stored data
           setShowProfileCompletion(true);
         }
       }
     } catch (error) {
-      console.error("ProfileScreen: Error loading user data:", error);
+      logger.error("ProfileScreen: Error loading user data:", error);
       // Show profile completion on error
       if (user) {
-        console.log("ProfileScreen: Error occurred, showing profile completion");
+        logger.log("ProfileScreen: Error occurred, showing profile completion");
         setShowProfileCompletion(true);
       }
     } finally {
@@ -275,7 +276,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           try {
             await logout();
           } catch (error) {
-            console.error("Logout failed:", error);
+            logger.error("Logout failed:", error);
             Alert.alert(t("common.error"), t("profile.logout_error"));
           }
         },
@@ -285,14 +286,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   // Handler for successful campaign organizer role assignment
   const handleCampaignOrganizerSuccess = async () => {
-    console.log("🎉 Campaign Organizer role assigned successfully!");
-    console.log("🚪 Logging out user to refresh roles...");
+    logger.log("🎉 Campaign Organizer role assigned successfully!");
+    logger.log("🚪 Logging out user to refresh roles...");
     
     // Directly call logout without confirmation since user already confirmed
     try {
       await logout();
     } catch (error) {
-      console.error("Logout after role assignment failed:", error);
+      logger.error("Logout after role assignment failed:", error);
       // Still try to show message even if logout fails
       Alert.alert(
         "Please Re-login",
@@ -340,12 +341,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <ProfileCompletionScreen
           userId={user?.sub || ""}
           onComplete={(userInfo) => {
-            console.log("🎉 Profile completion successful:", userInfo);
+            logger.log("🎉 Profile completion successful:", userInfo);
             setShowProfileCompletion(false);
             loadUserData(); // Reload data after profile completion
           }}
           onSkip={() => {
-            console.log("⏭️ Profile completion skipped");
+            logger.log("⏭️ Profile completion skipped");
             setShowProfileCompletion(false);
           }}
         />

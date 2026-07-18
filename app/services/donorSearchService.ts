@@ -1,5 +1,6 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 
+import { logger } from "../utils/logger";
 export interface DonorSearchResult {
   id: string;
   name: string;
@@ -83,7 +84,7 @@ class DonorSearchService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to search donors:", error);
+      logger.error("Failed to search donors:", error);
       throw new Error("Failed to search donors");
     }
   }
@@ -100,7 +101,7 @@ class DonorSearchService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to get donor details:", error);
+      logger.error("Failed to get donor details:", error);
       throw new Error("Failed to get donor details");
     }
   }
@@ -122,7 +123,7 @@ class DonorSearchService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to verify donor:", error);
+      logger.error("Failed to verify donor:", error);
       throw new Error("Failed to verify donor");
     }
   }
@@ -150,7 +151,7 @@ class DonorSearchService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to mark manual attendance:", error);
+      logger.error("Failed to mark manual attendance:", error);
       throw new Error("Failed to mark manual attendance");
     }
   }
@@ -171,7 +172,7 @@ class DonorSearchService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to get recent donors:", error);
+      logger.error("Failed to get recent donors:", error);
       throw new Error("Failed to get recent donors");
     }
   }
@@ -188,7 +189,7 @@ class DonorSearchService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to get frequent donors:", error);
+      logger.error("Failed to get frequent donors:", error);
       throw new Error("Failed to get frequent donors");
     }
   }

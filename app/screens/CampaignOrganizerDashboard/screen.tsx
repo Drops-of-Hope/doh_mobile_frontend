@@ -27,6 +27,7 @@ import { useLanguage } from "../../context/LanguageContext";
 // Import utilities
 import { getDatabaseUserId } from "../../utils/userIdUtils";
 
+import { logger } from "../../utils/logger";
 interface CampaignOrganizerDashboardProps {
   navigation?: any;
   route?: {
@@ -76,19 +77,19 @@ export default function CampaignOrganizerDashboard({
       const databaseUserId = await getDatabaseUserId();
 
       if (!databaseUserId) {
-        console.warn("No database user ID available for campaign retrieval");
-        console.log("Auth user sub for reference:", user?.sub);
+        logger.warn("No database user ID available for campaign retrieval");
+        logger.log("Auth user sub for reference:", user?.sub);
         setMyCampaigns([]);
         return;
       }
 
-      console.log("Loading campaigns for database user ID:", databaseUserId);
-      console.log("Auth user sub for reference:", user?.sub);
+      logger.log("Loading campaigns for database user ID:", databaseUserId);
+      logger.log("Auth user sub for reference:", user?.sub);
 
       const campaigns = await campaignService.getOrganizerCampaigns(
         databaseUserId
       );
-      console.log("Received campaigns:", campaigns);
+      logger.log("Received campaigns:", campaigns);
 
       // Ensure we have an array
       const campaignArray = Array.isArray(campaigns) ? campaigns : [];
@@ -99,7 +100,7 @@ export default function CampaignOrganizerDashboard({
         setSelectedCampaignId(campaignArray[0].id);
       }
     } catch (error) {
-      console.error("Failed to load campaigns:", error);
+      logger.error("Failed to load campaigns:", error);
       Alert.alert(t("dashboard.error"), t("dashboard.load_campaigns_error"), [
         { text: t("common.ok") },
       ]);

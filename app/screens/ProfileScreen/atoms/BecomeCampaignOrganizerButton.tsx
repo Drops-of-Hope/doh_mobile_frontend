@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 import { userService } from "../../../services/userService";
 
+import { logger } from "../../../utils/logger";
 interface BecomeCampaignOrganizerButtonProps {
   onSuccess: () => void; // Callback to trigger logout after success
 }
@@ -40,12 +41,12 @@ const BecomeCampaignOrganizerButton: React.FC<
   const handleRequestRole = async () => {
     try {
       setIsLoading(true);
-      console.log("🚀 Requesting Campaign Organizer role...");
+      logger.log("🚀 Requesting Campaign Organizer role...");
 
       // Call backend to assign Asgardeo role
       const result = await userService.requestCampaignOrganizerRole();
 
-      console.log("✅ Role assignment result:", result);
+      logger.log("✅ Role assignment result:", result);
 
       if (result.success) {
         // Show success message with logout instruction
@@ -69,7 +70,7 @@ const BecomeCampaignOrganizerButton: React.FC<
         );
       }
     } catch (error: any) {
-      console.error("❌ Error requesting role:", error);
+      logger.error("❌ Error requesting role:", error);
       Alert.alert(
         "❌ Error",
         error.message ||

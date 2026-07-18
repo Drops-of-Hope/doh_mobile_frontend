@@ -1,13 +1,18 @@
 // API configuration and base setup
 // Choose the correct host depending on platform/emulator and allow override.
 import { Platform } from "react-native";
+import * as Sentry from "@sentry/react-native";
+import * as SecureStore from "expo-secure-store";
+import { logger } from "../utils/logger";
 
-const ANDROID_EMULATOR_HOST = "http://192.168.1.58:5000/api";
+// 10.0.2.2 is the Android emulator's loopback to the host machine. Physical
+// devices and production builds must set EXPO_PUBLIC_API_URL (see .env.example).
+const ANDROID_EMULATOR_HOST = "http://10.0.2.2:5000/api";
 const DEFAULT_LOCALHOST = "http://localhost:5000/api";
 
 // Allow an environment or runtime override (set EXPO_PUBLIC_API_URL in your .env or app config)
 const ENV_API_URL =
-  process.env.EXPO_PUBLIC_API_URL || (global as any)?.EXPO_PUBLIC_API_URL;
+  process.env.EXPO_PUBLIC_API_URL || (globalThis as any)?.EXPO_PUBLIC_API_URL;
 
 export const API_BASE_URL =
   ENV_API_URL ||
@@ -92,8 +97,15 @@ export const apiRequest = async (
   options: RequestInit = {}
 ): Promise<any> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  console.log("🌐 API Request:", url);
-  console.log("🌐 Request method:", options.method || "GET");
+  logger.log("🌐 API Request:", url);
+  logger.log("🌐 Request method:", options.method || "GET");
+
+  // Breadcrumb only records the endpoint path (no host, no query payloads)
+  Sentry.addBreadcrumb({
+    category: "http",
+    message: `${options.method || "GET"} ${endpoint}`,
+    level: "info",
+  });
 
   const defaultHeaders = {
     "Content-Type": "application/json",
@@ -108,17 +120,17 @@ export const apiRequest = async (
       },
     });
 
-    console.log("📡 API Response status:", response.status);
+    logger.log("📡 API Response status:", response.status);
     const contentType = response.headers.get("content-type");
-    console.log("📡 API Response content-type:", contentType);
+    logger.log("📡 API Response content-type:", contentType);
 
     // Check if response is HTML (common error scenario)
     if (contentType && contentType.includes("text/html")) {
       const htmlText = await response.text();
-      console.error("❌ API returned HTML instead of JSON!");
-      console.error("❌ URL:", url);
-      console.error("❌ Status:", response.status);
-      console.error(
+      logger.error("❌ API returned HTML instead of JSON!");
+      logger.error("❌ URL:", url);
+      logger.error("❌ Status:", response.status);
+      logger.error(
         "❌ HTML preview (first 500 chars):",
         htmlText.substring(0, 500)
       );
@@ -135,24 +147,35 @@ export const apiRequest = async (
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ API Error Response:", errorText);
-      throw new Error(
-        `HTTP error! status: ${response.status}, message: ${errorText}`
-      );
+      logger.error("❌ API Error Response:", errorText);
+
+      // Prefer the backend's own error/message field so Alerts show a
+      // human-readable string instead of a raw JSON dump.
+      let message = `HTTP error! status: ${response.status}, message: ${errorText}`;
+      try {
+        const parsed = JSON.parse(errorText);
+        if (parsed?.message || parsed?.error) {
+          message = parsed.message || parsed.error;
+        }
+      } catch {
+        // errorText wasn't JSON; keep the default message
+      }
+
+      throw new Error(message);
     }
 
     const data = await response.json();
-    console.log("✅ API Response data received");
+    logger.log("✅ API Response data received");
     return data;
   } catch (error: any) {
-    console.error("❌ API request failed!");
-    console.error("❌ URL attempted:", url);
-    console.error("❌ Error type:", error?.name);
-    console.error("❌ Error message:", error?.message);
+    logger.error("❌ API request failed!");
+    logger.error("❌ URL attempted:", url);
+    logger.error("❌ Error type:", error?.name);
+    logger.error("❌ Error message:", error?.message);
 
     // Check if it's a JSON parsing error
     if (error?.message?.includes("JSON")) {
-      console.error(
+      logger.error(
         "❌ JSON parsing failed - backend likely returned HTML or invalid JSON"
       );
     }
@@ -161,14 +184,12 @@ export const apiRequest = async (
   }
 };
 
-import * as SecureStore from "expo-secure-store";
-
 // Auth token management using SecureStore instead of memory
 export const setAuthToken = async (token: string) => {
   try {
     await SecureStore.setItemAsync("accessToken", token);
   } catch (error) {
-    console.error("Failed to save auth token:", error);
+    logger.error("Failed to save auth token:", error);
   }
 };
 
@@ -176,35 +197,35 @@ export const getAuthToken = async (): Promise<string | null> => {
   try {
     // First try to get from accessToken (legacy)
     let token = await SecureStore.getItemAsync("accessToken");
-    console.log("🔑 Token from accessToken:", token ? "EXISTS" : "NULL");
+    logger.log("🔑 Token from accessToken:", token ? "EXISTS" : "NULL");
 
     if (!token) {
       // If not found, get from authState (current auth system)
       const authState = await SecureStore.getItemAsync("authState");
-      console.log("🔑 AuthState from storage:", authState ? "EXISTS" : "NULL");
+      logger.log("🔑 AuthState from storage:", authState ? "EXISTS" : "NULL");
 
       if (authState) {
         const parsedAuthState = JSON.parse(authState);
         token = parsedAuthState.accessToken;
-        console.log(
+        logger.log(
           "🔑 Token extracted from authState:",
           token ? "EXISTS" : "NULL"
         );
 
         // Also log user info from token if it exists
         if (parsedAuthState.idToken) {
-          console.log("🔑 User has idToken:", !!parsedAuthState.idToken);
+          logger.log("🔑 User has idToken:", !!parsedAuthState.idToken);
         }
       }
     }
 
     if (!token) {
-      console.warn("⚠️ NO AUTH TOKEN FOUND! User might not be authenticated.");
+      logger.warn("⚠️ NO AUTH TOKEN FOUND! User might not be authenticated.");
     }
 
     return token;
   } catch (error) {
-    console.error("Failed to retrieve auth token:", error);
+    logger.error("Failed to retrieve auth token:", error);
     return null;
   }
 };
@@ -213,7 +234,7 @@ export const clearAuthToken = async () => {
   try {
     await SecureStore.deleteItemAsync("accessToken");
   } catch (error) {
-    console.error("Failed to clear auth token:", error);
+    logger.error("Failed to clear auth token:", error);
   }
 };
 

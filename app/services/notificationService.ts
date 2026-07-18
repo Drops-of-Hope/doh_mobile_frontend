@@ -1,5 +1,6 @@
 import { apiRequestWithAuth, API_ENDPOINTS, API_BASE_URL } from "./api";
 
+import { logger } from "../utils/logger";
 export interface CampaignNotification {
   id: string;
   type: "NEW_REGISTRATION" | "ATTENDANCE_MARKED" | "DONATION_COMPLETED" | "CAMPAIGN_STATUS" | "REMINDER" | "ALERT";
@@ -91,7 +92,7 @@ class NotificationService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch campaign notifications:", error);
+      logger.error("Failed to fetch campaign notifications:", error);
       throw new Error("Failed to fetch notifications");
     }
   }
@@ -106,7 +107,7 @@ class NotificationService {
         }
       );
     } catch (error) {
-      console.error("Failed to mark notification as read:", error);
+      logger.error("Failed to mark notification as read:", error);
       throw new Error("Failed to mark notification as read");
     }
   }
@@ -122,7 +123,7 @@ class NotificationService {
         }
       );
     } catch (error) {
-      console.error("Failed to mark notifications as read:", error);
+      logger.error("Failed to mark notifications as read:", error);
       throw new Error("Failed to mark notifications as read");
     }
   }
@@ -137,7 +138,7 @@ class NotificationService {
         }
       );
     } catch (error) {
-      console.error("Failed to mark all notifications as read:", error);
+      logger.error("Failed to mark all notifications as read:", error);
       throw new Error("Failed to mark all notifications as read");
     }
   }
@@ -152,7 +153,7 @@ class NotificationService {
         }
       );
     } catch (error) {
-      console.error("Failed to delete notification:", error);
+      logger.error("Failed to delete notification:", error);
       throw new Error("Failed to delete notification");
     }
   }
@@ -169,7 +170,7 @@ class NotificationService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to get notification settings:", error);
+      logger.error("Failed to get notification settings:", error);
       throw new Error("Failed to get notification settings");
     }
   }
@@ -187,7 +188,7 @@ class NotificationService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to update notification settings:", error);
+      logger.error("Failed to update notification settings:", error);
       throw new Error("Failed to update notification settings");
     }
   }
@@ -208,7 +209,7 @@ class NotificationService {
       
       return response.data.count;
     } catch (error) {
-      console.error("Failed to get unread count:", error);
+      logger.error("Failed to get unread count:", error);
       return 0;
     }
   }
@@ -226,7 +227,7 @@ class NotificationService {
         // Use host only; most WS endpoints are hosted at root without the /api prefix
         wsOrigin = `${protocol}//${httpUrl.host}`;
       } catch (e) {
-        console.warn("Failed to parse API_BASE_URL for WebSocket, falling back to wss://doh-backend.onrender.com");
+        logger.warn("Failed to parse API_BASE_URL for WebSocket, falling back to wss://doh-backend.onrender.com");
         wsOrigin = "wss://doh-backend.onrender.com";
       }
 
@@ -235,20 +236,20 @@ class NotificationService {
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
-        console.log("Connected to notification stream");
+        logger.log("Connected to notification stream");
       };
       
       ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        logger.error("WebSocket error:", error);
       };
       
       ws.onclose = () => {
-        console.log("Disconnected from notification stream");
+        logger.log("Disconnected from notification stream");
       };
       
       return ws;
     } catch (error) {
-      console.error("Failed to subscribe to notifications:", error);
+      logger.error("Failed to subscribe to notifications:", error);
       return null;
     }
   }
@@ -264,7 +265,7 @@ class NotificationService {
         }
       );
     } catch (error) {
-      console.error("Failed to send test notification:", error);
+      logger.error("Failed to send test notification:", error);
       throw new Error("Failed to send test notification");
     }
   }
@@ -295,7 +296,7 @@ class NotificationService {
       
       return response.data;
     } catch (error) {
-      console.error("Failed to get notification stats:", error);
+      logger.error("Failed to get notification stats:", error);
       throw new Error("Failed to get notification stats");
     }
   }
@@ -324,8 +325,8 @@ class NotificationService {
       if (filters?.limit) queryParams.append("limit", filters.limit.toString());
 
       const endpoint = `${API_ENDPOINTS.USER_NOTIFICATIONS}?${queryParams.toString()}`;
-      console.log("🌐 Fetching notifications from:", endpoint);
-      console.log("🌐 Filters:", JSON.stringify(filters));
+      logger.log("🌐 Fetching notifications from:", endpoint);
+      logger.log("🌐 Filters:", JSON.stringify(filters));
 
       const response = await apiRequestWithAuth(
         endpoint,
@@ -335,11 +336,11 @@ class NotificationService {
       );
       
       // apiRequestWithAuth already returns the parsed JSON data directly
-      console.log("🌐 Response data:", JSON.stringify(response, null, 2));
+      logger.log("🌐 Response data:", JSON.stringify(response, null, 2));
       
       return response || { notifications: [], unreadCount: 0 };
     } catch (error) {
-      console.error("Failed to fetch user notifications:", error);
+      logger.error("Failed to fetch user notifications:", error);
       // Return empty array instead of throwing to allow graceful degradation
       return { notifications: [], unreadCount: 0 };
     }
@@ -348,20 +349,20 @@ class NotificationService {
   // Get latest notification of a specific type
   async getLatestNotificationByType(userId: string, type: string): Promise<any | null> {
     try {
-      console.log(`🔔 Getting latest notification for user ${userId}, type: ${type}`);
+      logger.log(`🔔 Getting latest notification for user ${userId}, type: ${type}`);
       const result = await this.getUserNotifications(userId, {
         type: [type],
         limit: 1,
       });
       
-      console.log(`🔔 Result notifications count: ${result.notifications.length}`);
+      logger.log(`🔔 Result notifications count: ${result.notifications.length}`);
       if (result.notifications.length > 0) {
-        console.log(`🔔 Latest notification:`, JSON.stringify(result.notifications[0], null, 2));
+        logger.log(`🔔 Latest notification:`, JSON.stringify(result.notifications[0], null, 2));
       }
       
       return result.notifications.length > 0 ? result.notifications[0] : null;
     } catch (error) {
-      console.error("Failed to fetch latest notification:", error);
+      logger.error("Failed to fetch latest notification:", error);
       return null;
     }
   }

@@ -20,6 +20,7 @@ import { filterAppointments } from "./utils";
 import { appointmentService } from "../../services/appointmentService";
 import { useAuth } from "../../context/AuthContext";
 
+import { logger } from "../../utils/logger";
 export default function UpcomingAppointmentScreen({
   navigation,
 }: AppointmentScreenProps) {
@@ -36,27 +37,27 @@ export default function UpcomingAppointmentScreen({
 
   const loadUserAppointments = async () => {
     if (!user?.id && !user?.sub) {
-      console.log("⚠️ No user ID available");
+      logger.log("⚠️ No user ID available");
       return;
     }
     
     try {
       setLoading(true);
       const userId = user.id || user.sub;
-      console.log("🔍 Loading appointments for user:", userId);
+      logger.log("🔍 Loading appointments for user:", userId);
       
       const userAppointments = await appointmentService.getUserAppointments(userId);
-      console.log("📅 Raw appointments from API:", userAppointments);
+      logger.log("📅 Raw appointments from API:", userAppointments);
       
       if (!userAppointments || userAppointments.length === 0) {
-        console.log("📅 No appointments found");
+        logger.log("📅 No appointments found");
         setAppointments([]);
         return;
       }
       
       // Transform backend appointments to screen format
       const transformedAppointments: Appointment[] = userAppointments.map(apt => {
-        console.log("🔄 Transforming appointment:", apt);
+        logger.log("🔄 Transforming appointment:", apt);
         
         return {
           id: apt.id,
@@ -75,10 +76,10 @@ export default function UpcomingAppointmentScreen({
         };
       });
       
-      console.log("✅ Transformed appointments:", transformedAppointments);
+      logger.log("✅ Transformed appointments:", transformedAppointments);
       setAppointments(transformedAppointments);
     } catch (error) {
-      console.error("❌ Failed to load appointments:", error);
+      logger.error("❌ Failed to load appointments:", error);
       // Set empty array on error - show "No appointments" message
       setAppointments([]);
     } finally {
@@ -102,7 +103,7 @@ export default function UpcomingAppointmentScreen({
               await loadUserAppointments();
               Alert.alert("Success", "Appointment cancelled successfully.");
             } catch (error) {
-              console.error("Failed to cancel appointment:", error);
+              logger.error("Failed to cancel appointment:", error);
               Alert.alert("Error", "Failed to cancel appointment. Please try again.");
             }
           },
@@ -130,7 +131,7 @@ export default function UpcomingAppointmentScreen({
 
   const handleBookAppointment = () => {
     // Navigate to booking screen or show booking modal
-    console.log("Book appointment pressed");
+    logger.log("Book appointment pressed");
   };
 
   const handleBack = () => {
@@ -139,7 +140,7 @@ export default function UpcomingAppointmentScreen({
 
   const handleAdd = () => {
     // Navigate to add appointment screen
-    console.log("Add appointment pressed");
+    logger.log("Add appointment pressed");
   };
 
   const { upcomingAppointments, pastAppointments } =

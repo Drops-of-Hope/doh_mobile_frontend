@@ -18,6 +18,7 @@ import EnhancedInputField from "../shared/atoms/EnhancedInputField";
 import PhoneInputField from "../shared/atoms/PhoneInputField";
 import ValidationUtils from "../../utils/ValidationUtils";
 
+import { logger } from "../../utils/logger";
 interface EditProfileScreenProps {
   navigation?: any;
   onBack?: () => void;
@@ -64,9 +65,9 @@ export default function EditProfileScreen({
         setIsLoading(true);
         
         // Fetch full user profile from backend
-        console.log("📥 Fetching user profile from backend...");
+        logger.log("📥 Fetching user profile from backend...");
         const userProfile = await userService.getUserProfile();
-        console.log("✅ User profile received:", userProfile);
+        logger.log("✅ User profile received:", userProfile);
 
         if (userProfile) {
           // Split name into first and last
@@ -86,7 +87,7 @@ export default function EditProfileScreen({
           });
         }
       } catch (error) {
-        console.error("Error loading user data:", error);
+        logger.error("Error loading user data:", error);
         Alert.alert("Error", "Failed to load profile data. Please try again.");
       } finally {
         setIsLoading(false);
@@ -174,7 +175,7 @@ export default function EditProfileScreen({
         { text: "OK", onPress: () => handleBack() },
       ]);
     } catch (error) {
-      console.error("Failed to update profile:", error);
+      logger.error("Failed to update profile:", error);
       Alert.alert("Error", "Failed to update profile. Please try again.");
     } finally {
       setIsSubmitting(false);

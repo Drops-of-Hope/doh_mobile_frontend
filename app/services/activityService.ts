@@ -1,5 +1,6 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 
+import { logger } from "../utils/logger";
 // Types for activity screen data
 export interface ActivityData {
   activities: Activity[];
@@ -237,7 +238,7 @@ export const activityService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch activities:", error);
+      logger.error("Failed to fetch activities:", error);
       throw error;
     }
   },
@@ -248,7 +249,7 @@ export const activityService = {
       const response = await apiRequestWithAuth(`${API_ENDPOINTS.USER_ACTIVITIES}/stats`);
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch activity stats:", error);
+      logger.error("Failed to fetch activity stats:", error);
       throw error;
     }
   },
@@ -270,7 +271,7 @@ export const activityService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch donation history:", error);
+      logger.error("Failed to fetch donation history:", error);
       throw error;
     }
   },
@@ -292,7 +293,7 @@ export const activityService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch campaign history:", error);
+      logger.error("Failed to fetch campaign history:", error);
       throw error;
     }
   },
@@ -304,7 +305,7 @@ export const activityService = {
         method: "PATCH",
       });
     } catch (error) {
-      console.error("Failed to mark activity as read:", error);
+      logger.error("Failed to mark activity as read:", error);
       throw error;
     }
   },
@@ -316,7 +317,7 @@ export const activityService = {
         method: "PATCH",
       });
     } catch (error) {
-      console.error("Failed to mark all activities as read:", error);
+      logger.error("Failed to mark all activities as read:", error);
       throw error;
     }
   },
@@ -327,7 +328,7 @@ export const activityService = {
       const response = await apiRequestWithAuth(`${API_ENDPOINTS.USER_ACTIVITIES}/${activityId}`);
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch activity details:", error);
+      logger.error("Failed to fetch activity details:", error);
       throw error;
     }
   },
@@ -338,7 +339,7 @@ export const activityService = {
       const response = await apiRequestWithAuth("/users/achievements");
       return response.data.achievements;
     } catch (error) {
-      console.error("Failed to fetch achievements:", error);
+      logger.error("Failed to fetch achievements:", error);
       throw error;
     }
   },
@@ -349,7 +350,7 @@ export const activityService = {
       const response = await apiRequestWithAuth(`${API_ENDPOINTS.USER_ACTIVITIES}/filters`);
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch activity filters:", error);
+      logger.error("Failed to fetch activity filters:", error);
       throw error;
     }
   },
@@ -374,7 +375,7 @@ export const activityService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to export activity report:", error);
+      logger.error("Failed to export activity report:", error);
       throw error;
     }
   },
@@ -395,7 +396,7 @@ export const activityService = {
       });
       return response.data;
     } catch (error) {
-      console.error("Failed to add donation feedback:", error);
+      logger.error("Failed to add donation feedback:", error);
       throw error;
     }
   },
@@ -416,7 +417,7 @@ export const activityService = {
       const response = await apiRequestWithAuth(API_ENDPOINTS.UPCOMING_APPOINTMENTS);
       return response.data.appointments;
     } catch (error) {
-      console.error("Failed to fetch upcoming appointments:", error);
+      logger.error("Failed to fetch upcoming appointments:", error);
       throw error;
     }
   },
@@ -434,7 +435,7 @@ export const activityService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to search activities:", error);
+      logger.error("Failed to search activities:", error);
       throw error;
     }
   },
