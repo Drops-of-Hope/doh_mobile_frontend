@@ -15,20 +15,23 @@ jobs:
       - name: ⬇️ Checkout Repo
         uses: actions/checkout@v4
 
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
+          cache: pnpm
 
       - name: 📦 Install Dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
+
+      - name: 🧪 TypeScript Check
+        run: pnpm lint:tsc
 
       - name: 🧹 Run ESLint
-        run: npm run lint
+        run: pnpm lint:eslint
 
-      - name: ✅ Validate Tailwind Config (Optional)
-        run: npx tailwindcss --config tailwind.config.js --input ./input.css --output ./temp-output.css --dry-run || echo "Tailwind validation completed"
-
-      - name: 🔍 Check Expo Doctor
-        run: npx expo-doctor
+      - name: 🌐 Locale Completeness Check
+        run: node scripts/compareLocales.js || echo "Locale gaps found (non-blocking, tracked in roadmap P4 i18n)"

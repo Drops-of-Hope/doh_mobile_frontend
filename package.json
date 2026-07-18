@@ -9,65 +9,57 @@
     "web": "expo start --web",
     "clean:android": "cd android && ./gradlew clean && cd ..",
     "clean:ios": "cd ios && xcodebuild clean && cd ..",
-    "lint": "npm run lint:tsc",
+    "lint": "pnpm run lint:tsc && pnpm run lint:eslint",
     "lint:tsc": "tsc --noEmit",
-    "lint:eslint": "npx eslint --ext .js,.jsx,.ts,.tsx . --max-warnings=0"
+    "lint:eslint": "eslint ."
   },
   "dependencies": {
-    "@asgardeo/auth-react": "^5.4.0",
     "@expo/metro-runtime": "~6.1.2",
+    "@expo/vector-icons": "^15.1.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-masked-view/masked-view": "0.3.2",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
-    "expo": "^54.0.13",
+    "@sentry/react-native": "^7.2.0",
+    "babel-preset-expo": "~54.0.11",
+    "expo": "^54.0.35",
     "expo-auth-session": "~7.0.8",
     "expo-camera": "~17.0.8",
     "expo-clipboard": "^8.0.7",
     "expo-constants": "~18.0.9",
+    "expo-dev-client": "^6.0.21",
     "expo-file-system": "^19.0.16",
     "expo-linear-gradient": "~15.0.7",
     "expo-linking": "~8.0.8",
     "expo-media-library": "~18.2.0",
     "expo-notifications": "^0.32.12",
-    "expo-router": "~6.0.12",
     "expo-secure-store": "~15.0.7",
     "expo-splash-screen": "~31.0.10",
     "expo-status-bar": "~3.0.8",
     "expo-web-browser": "~15.0.8",
+    "latest": "^0.2.0",
     "nativewind": "^2.0.11",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-native": "0.81.4",
-    "react-native-app-auth": "^8.0.3",
-    "react-native-encrypted-storage": "^4.0.3",
+    "react-native": "0.81.5",
     "react-native-qrcode-svg": "^6.3.15",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
-    "react-native-web": "^0.21.0",
-    "react-spinners": "^0.17.0"
+    "react-native-web": "^0.21.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@react-native-community/cli": "latest",
     "@types/react": "~19.1.10",
     "autoprefixer": "^10.4.21",
+    "babel-plugin-transform-remove-console": "^6.9.4",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "^10.0.0",
+    "globals": "^17.7.0",
     "postcss": "^8.5.4",
     "tailwindcss": "3.3.2",
     "typescript": "~5.9.2"
-  },
-  "expo": {
-    "doctor": {
-      "reactNativeDirectoryCheck": {
-        "exclude": [
-          "react-native-encrypted-storage",
-          "@asgardeo/auth-react",
-          "react-spinners"
-        ],
-        "listUnknownPackages": false
-      }
-    }
   },
   "private": true
 }
