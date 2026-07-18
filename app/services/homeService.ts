@@ -1,5 +1,14 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 
+import { logger } from "../utils/logger";
+/**
+ * Conservative client-side fallback for the minimum interval between whole
+ * blood donations. The authoritative interval must come from the backend
+ * eligibility endpoint; this is only used when no server-provided
+ * eligibility or nextEligible date is available.
+ */
+const FALLBACK_DONATION_INTERVAL_DAYS = 120;
+
 // Types for home screen data
 export interface HomeScreenData {
   userStats: UserHomeStats;
@@ -154,6 +163,12 @@ export interface DonationEligibility {
   nextEligibleDate?: string;
   reasons?: string[];
   recommendations?: string[];
+  /**
+   * True when eligibility could not be verified (API failure/offline).
+   * Safety rule: never report a donor as eligible on failure — UI must show
+   * an "unknown / check connection" state instead of a green light.
+   */
+  eligibilityUnknown?: boolean;
 }
 
 // Home service functions
@@ -209,7 +224,7 @@ export const homeService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch user donation data:", error);
+      logger.error("Failed to fetch user donation data:", error);
       throw error;
     }
   },
@@ -217,21 +232,22 @@ export const homeService = {
   // Get user eligibility status
   async getUserEligibility(): Promise<DonationEligibility> {
     try {
-      console.log("🩸 Fetching user eligibility status...");
+      logger.log("🩸 Fetching user eligibility status...");
       const response = await apiRequestWithAuth(API_ENDPOINTS.USER_ELIGIBILITY);
       
       const eligibility = response.data || response;
-      console.log("✅ User eligibility data:", eligibility);
+      logger.log("✅ User eligibility data:", eligibility);
       
       return eligibility;
     } catch (error) {
-      console.error("❌ Failed to fetch user eligibility:", error);
-      
-      // Return default eligibility if API fails
+      logger.error("❌ Failed to fetch user eligibility:", error);
+
+      // Safety-critical: never assume eligible when the API fails.
       return {
-        isEligible: true,
+        isEligible: false,
+        eligibilityUnknown: true,
         nextEligibleDate: undefined,
-        reasons: [],
+        reasons: ["Could not verify eligibility. Check your connection."],
         recommendations: [],
       };
     }
@@ -263,7 +279,7 @@ export const homeService = {
       
       return appointments.length > 0 ? appointments[0] : null;
     } catch (error) {
-      console.error("Failed to fetch upcoming appointment:", error);
+      logger.error("Failed to fetch upcoming appointment:", error);
       // Return null instead of throwing for graceful handling
       return null;
     }
@@ -279,7 +295,7 @@ export const homeService = {
       const response = await apiRequestWithAuth(API_ENDPOINTS.USER_PROFILE);
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch user profile:", error);
+      logger.error("Failed to fetch user profile:", error);
       throw error;
     }
   },
@@ -287,10 +303,10 @@ export const homeService = {
   // Get complete home screen data in one call
   async getHomeData(): Promise<HomeScreenData> {
     try {
-      console.log("🏠 Fetching home data from API endpoint:", API_ENDPOINTS.HOME_DATA);
+      logger.log("🏠 Fetching home data from API endpoint:", API_ENDPOINTS.HOME_DATA);
       const response = await apiRequestWithAuth(API_ENDPOINTS.HOME_DATA);
       
-      console.log("📊 Raw home data response structure:", {
+      logger.log("📊 Raw home data response structure:", {
         hasData: !!response?.data,
         hasUserStats: !!response?.data?.userStats || !!response?.userStats,
         userStatsKeys: Object.keys(response?.data?.userStats || response?.userStats || {}),
@@ -301,7 +317,7 @@ export const homeService = {
       let homeData = response.data || response;
       
       // Log todaysAppointment specifically
-      console.log("📅 Today's Appointment Check:", {
+      logger.log("📅 Today's Appointment Check:", {
         hasTodaysAppointment: !!homeData.todaysAppointment,
         todaysAppointment: homeData.todaysAppointment
       });
@@ -325,7 +341,7 @@ export const homeService = {
           homeData.userStats = authoritativeStats;
         }
       } catch (mergeErr) {
-        console.warn("⚠️ Could not merge with /home/stats, using dashboard stats only:", mergeErr);
+        logger.warn("⚠️ Could not merge with /home/stats, using dashboard stats only:", mergeErr);
         // If userStats exists, ensure eligibility data is properly calculated
         if (homeData.userStats) {
           homeData.userStats = await this.enhanceUserStatsWithEligibility(
@@ -334,13 +350,13 @@ export const homeService = {
         }
       }
       
-      console.log("✅ Enhanced home data:", homeData);
+      logger.log("✅ Enhanced home data:", homeData);
       return homeData;
     } catch (error) {
-      console.error("❌ Failed to fetch home data:", error);
+      logger.error("❌ Failed to fetch home data:", error);
       
       // If the API fails, try to get individual pieces of data
-      console.log("🔄 Attempting to fetch data components individually...");
+      logger.log("🔄 Attempting to fetch data components individually...");
       try {
         const [userStats, upcomingAppointments, emergencies] = await Promise.allSettled([
           this.getUserStats(),
@@ -355,10 +371,14 @@ export const homeService = {
           emergencies: emergencies.status === 'fulfilled' ? emergencies.value : [],
           featuredCampaigns: [],
           notifications: [],
-          donationEligibility: { isEligible: true, nextEligibleDate: undefined },
+          donationEligibility: {
+            isEligible: false,
+            eligibilityUnknown: true,
+            nextEligibleDate: undefined,
+          },
         };
       } catch (fallbackError) {
-        console.error("❌ Fallback data fetch also failed:", fallbackError);
+        logger.error("❌ Fallback data fetch also failed:", fallbackError);
         throw error;
       }
     }
@@ -367,7 +387,7 @@ export const homeService = {
   // Enhance user stats with proper eligibility calculation
   async enhanceUserStatsWithEligibility(userStats: UserHomeStats): Promise<UserHomeStats> {
     try {
-      console.log("🔍 Enhancing user stats with eligibility data:", userStats);
+      logger.log("🔍 Enhancing user stats with eligibility data:", userStats);
       
       // Normalize nextEligibleDate from different possible field names
       const eligibleProvided = (userStats as any).__eligibleProvided === true;
@@ -377,7 +397,7 @@ export const homeService = {
       // If backend provided eligibleToDonate, trust it and only normalize nextEligibleDate
       if (hasEligibleFlag) {
         if (!userStats.nextEligibleDate && normalizedNextEligible) {
-          console.log("📋 Normalizing nextEligibleDate from nextEligible:", normalizedNextEligible);
+          logger.log("📋 Normalizing nextEligibleDate from nextEligible:", normalizedNextEligible);
           userStats.nextEligibleDate = normalizedNextEligible;
         }
         return userStats;
@@ -389,7 +409,7 @@ export const homeService = {
         if (!isNaN(nextEligibleDateObj.getTime())) {
           const now = new Date();
           const isCurrentlyEligible = now >= nextEligibleDateObj;
-          console.log("📅 Deriving eligibility from nextEligible:", {
+          logger.log("📅 Deriving eligibility from nextEligible:", {
             normalizedNextEligible,
             isCurrentlyEligible,
           });
@@ -404,10 +424,12 @@ export const homeService = {
         const lastDonation = new Date(userStats.lastDonationDate);
         if (!isNaN(lastDonation.getTime())) {
           const nextEligible = new Date(lastDonation);
-          nextEligible.setDate(nextEligible.getDate() + 120); // ~4 months
+          nextEligible.setDate(
+            nextEligible.getDate() + FALLBACK_DONATION_INTERVAL_DAYS
+          );
           const now = new Date();
           const isEligible = now >= nextEligible;
-          console.log("📅 Fallback eligibility calculation:", {
+          logger.log("📅 Fallback eligibility calculation:", {
             lastDonation: lastDonation.toISOString(),
             nextEligible: nextEligible.toISOString(),
             isEligible,
@@ -418,12 +440,15 @@ export const homeService = {
         }
       }
 
-      // Default when no data is available
-      userStats.eligibleToDonate = true;
+      // No eligibility info at all: a donor with zero recorded donations is
+      // genuinely eligible; anyone with donation history but missing dates is
+      // treated as unknown (undefined) rather than assumed eligible.
+      userStats.eligibleToDonate =
+        userStats.totalDonations === 0 ? true : undefined;
       userStats.nextEligibleDate = undefined;
       return userStats;
     } catch (error) {
-      console.error("❌ Error enhancing user stats:", error);
+      logger.error("❌ Error enhancing user stats:", error);
       return userStats; // Return original stats if enhancement fails
     }
   },
@@ -436,7 +461,9 @@ export const homeService = {
       totalDonations: 0,
       totalPoints: 0,
       donationStreak: 0,
-      eligibleToDonate: true,
+      // Failure fallback: leave eligibility undefined ("unknown") rather than
+      // claiming a donor is eligible when their real stats couldn't be loaded.
+      eligibleToDonate: undefined,
       lastUpdated: new Date().toISOString(),
     };
   },
@@ -444,29 +471,29 @@ export const homeService = {
   // Get user stats only
   async getUserStats(): Promise<UserHomeStats> {
     try {
-      console.log("📈 Fetching user stats...");
+      logger.log("📈 Fetching user stats...");
       const response = await apiRequestWithAuth(API_ENDPOINTS.HOME_STATS);
       
       let userStats = this.normalizeUserStats(response.data || response);
-      console.log("📊 Raw user stats:", userStats);
+      logger.log("📊 Raw user stats:", userStats);
       
       // Enhance with eligibility calculation
       userStats = await this.enhanceUserStatsWithEligibility(userStats);
       
-      console.log("✅ Enhanced user stats:", userStats);
+      logger.log("✅ Enhanced user stats:", userStats);
       return userStats;
     } catch (error) {
-      console.error("❌ Failed to fetch user stats:", error);
+      logger.error("❌ Failed to fetch user stats:", error);
       
       // Try alternative endpoint
       try {
-        console.log("🔄 Trying alternative USER_STATS endpoint...");
+        logger.log("🔄 Trying alternative USER_STATS endpoint...");
         const response = await apiRequestWithAuth(API_ENDPOINTS.USER_STATS);
         let userStats = this.normalizeUserStats(response.data || response);
         userStats = await this.enhanceUserStatsWithEligibility(userStats);
         return userStats;
       } catch (altError) {
-        console.error("❌ Alternative endpoint also failed:", altError);
+        logger.error("❌ Alternative endpoint also failed:", altError);
         throw error;
       }
     }
@@ -498,7 +525,7 @@ export const homeService = {
 
       return appointments;
     } catch (error) {
-      console.error("Failed to fetch upcoming appointments:", error);
+      logger.error("Failed to fetch upcoming appointments:", error);
       // Return empty array instead of throwing for graceful handling
       return [];
     }
@@ -512,7 +539,7 @@ export const homeService = {
       );
       return response.data.activities;
     } catch (error) {
-      console.error("Failed to fetch recent activities:", error);
+      logger.error("Failed to fetch recent activities:", error);
       throw error;
     }
   },
@@ -525,7 +552,7 @@ export const homeService = {
       );
       return response.data.emergencies;
     } catch (error) {
-      console.error("Failed to fetch active emergencies:", error);
+      logger.error("Failed to fetch active emergencies:", error);
       throw error;
     }
   },
@@ -580,7 +607,7 @@ export const homeService = {
 
       throw new Error("Unexpected response format for featured campaigns");
     } catch (error) {
-      console.error("Failed to fetch featured campaigns:", error);
+      logger.error("Failed to fetch featured campaigns:", error);
       throw error;
     }
   },
@@ -593,7 +620,7 @@ export const homeService = {
       );
       return response.data.notifications;
     } catch (error) {
-      console.error("Failed to fetch user notifications:", error);
+      logger.error("Failed to fetch user notifications:", error);
       throw error;
     }
   },

@@ -5,6 +5,7 @@ import GoalProgress from "../molecules/GoalProgress";
 import { AnalyticsSectionProps } from "../types";
 import { campaignService } from "../../../services/campaignService";
 
+import { logger } from "../../../utils/logger";
 interface ExtendedAnalyticsSectionProps extends AnalyticsSectionProps {
   campaignId?: string;
   onStatsUpdated?: (stats: any) => void;
@@ -38,7 +39,7 @@ export default function AnalyticsSection({
       onStatsUpdated?.(updatedStats);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error("Failed to refresh stats:", error);
+      logger.error("Failed to refresh stats:", error);
     } finally {
       setIsRefreshing(false);
     }

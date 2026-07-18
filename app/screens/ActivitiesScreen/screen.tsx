@@ -22,6 +22,7 @@ import LocalActivitiesList from "./molecules/LocalActivitiesList";
 import { DonationActivity } from "./molecules/ActivityCard";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../constants/theme";
 
+import { logger } from "../../utils/logger";
 const ActivitiesScreen: React.FC = () => {
   const [activities, setActivities] = useState<DonationActivity[]>([]);
   const [filteredActivities, setFilteredActivities] = useState<DonationActivity[]>([]);
@@ -108,7 +109,7 @@ const ActivitiesScreen: React.FC = () => {
       const localActivityData = await localActivityService.getActivities(filter);
       setLocalActivities(localActivityData);
     } catch (error) {
-      console.error('Failed to load local activities:', error);
+      logger.error('Failed to load local activities:', error);
     }
   };
 
@@ -142,7 +143,7 @@ const ActivitiesScreen: React.FC = () => {
             formattedDate = activity.createdAt.split('T')[0];
           }
         } catch (error) {
-          console.warn('Error formatting date:', error);
+          logger.warn('Error formatting date:', error);
         }
         
         return {
@@ -175,7 +176,7 @@ const ActivitiesScreen: React.FC = () => {
       setHasMore(response.pagination.hasNext);
       
     } catch (error) {
-      console.error("Failed to load activities:", error);
+      logger.error("Failed to load activities:", error);
       // Set empty arrays on error - show "No activities" message
       if (page === 1 || isRefresh) {
         setActivities([]);

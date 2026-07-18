@@ -5,6 +5,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useAuthUser, EnhancedUserInfo } from '../../../hooks/useAuthUser';
 import { AuthUserData } from '../../../services/authUserService';
 
+import { logger } from "../../../utils/logger";
 interface AuthHandlerProps {
   authData: AuthUserData | null;
   onAuthComplete: (user: EnhancedUserInfo) => void;
@@ -39,23 +40,23 @@ export const AuthHandler: React.FC<AuthHandlerProps> = ({
     setIsProcessingAuth(true);
     
     try {
-      console.log('Processing auth data for user:', authData.email);
+      logger.log('Processing auth data for user:', authData.email);
       
       const userInfo = await processAuthUser(authData);
       
       if (userInfo) {
         if (userInfo.needsProfileCompletion) {
-          console.log('User needs profile completion');
+          logger.log('User needs profile completion');
           onProfileCompletion(userInfo.id);
         } else {
-          console.log('User auth completed successfully');
+          logger.log('User auth completed successfully');
           onAuthComplete(userInfo);
         }
       } else {
         onAuthError('Failed to process authentication data');
       }
     } catch (error: any) {
-      console.error('Auth handler error:', error);
+      logger.error('Auth handler error:', error);
       onAuthError(error.message || 'Authentication failed');
     } finally {
       setIsProcessingAuth(false);

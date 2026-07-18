@@ -1,6 +1,7 @@
 // Authentication User Service - Handle user creation and login from auth provider
 import { API_BASE_URL, API_ENDPOINTS } from './api';
 
+import { logger } from "../utils/logger";
 // Types for auth provider response
 export interface AuthUserData {
   birthdate: string;
@@ -75,7 +76,7 @@ class AuthUserService {
       const result: UserCreateResponse = await response.json();
       return result;
     } catch (error) {
-      console.error('Error in createOrLoginUser:', error);
+      logger.error('Error in createOrLoginUser:', error);
       throw error;
     }
   }
@@ -103,7 +104,7 @@ class AuthUserService {
       const result: UserCreateResponse = await response.json();
       return result;
     } catch (error) {
-      console.error('Error in completeProfile:', error);
+      logger.error('Error in completeProfile:', error);
       throw error;
     }
   }
@@ -131,7 +132,7 @@ class AuthUserService {
       const result = await response.json();
       return result.exists;
     } catch (error) {
-      console.error('Error checking user existence:', error);
+      logger.error('Error checking user existence:', error);
       return false;
     }
   }
@@ -152,7 +153,7 @@ class AuthUserService {
 
       return response;
     } catch (error) {
-      console.error('Error getting user profile:', error);
+      logger.error('Error getting user profile:', error);
       throw error;
     }
   }

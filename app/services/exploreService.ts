@@ -1,5 +1,6 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 
+import { logger } from "../utils/logger";
 // Types for explore screen data
 export interface ExploreData {
   campaigns: Campaign[];
@@ -160,7 +161,7 @@ export const exploreService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch explore data:", error);
+      logger.error("Failed to fetch explore data:", error);
       throw error;
     }
   },
@@ -183,7 +184,7 @@ export const exploreService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch campaigns:", error);
+      logger.error("Failed to fetch campaigns:", error);
       throw error;
     }
   },
@@ -231,7 +232,7 @@ export const exploreService = {
           
           const isLive = startTime <= now && endTime > now && campaign.isActive && isApproved;
           if (isLive) {
-            console.log(`✅ Live campaign found: ${campaign.title}`, {
+            logger.log(`✅ Live campaign found: ${campaign.title}`, {
               startTime: startTimeStr,
               endTime: endTimeStr,
               now: new Date(now).toISOString()
@@ -249,11 +250,11 @@ export const exploreService = {
           hasMore: limit ? liveCampaigns.length > limit : false,
         };
       } catch (error) {
-        console.error("Failed to fetch live campaigns:", error);
+        logger.error("Failed to fetch live campaigns:", error);
         return { campaigns: [], hasMore: false };
       }
     } catch (error) {
-      console.error("Failed to fetch live campaigns:", error);
+      logger.error("Failed to fetch live campaigns:", error);
       throw error;
     }
   },
@@ -293,10 +294,10 @@ export const exploreService = {
       }
 
       // If empty array or not an array, continue to fallbacks
-      console.log("Primary endpoint returned empty or invalid data, trying fallbacks...");
+      logger.log("Primary endpoint returned empty or invalid data, trying fallbacks...");
       throw new Error("No campaigns found in primary endpoint");
     } catch (error) {
-      console.warn("Primary upcoming campaigns endpoint failed, attempting fallbacks...", error);
+      logger.warn("Primary upcoming campaigns endpoint failed, attempting fallbacks...", error);
 
       // Fallback strategies for compatibility with backend changes
       const fallbackUrls: string[] = [];
@@ -332,19 +333,19 @@ export const exploreService = {
           const res = await apiRequestWithAuth(url);
           const data = res?.data?.campaigns || res?.campaigns || res?.data || res;
           if (Array.isArray(data) && data.length > 0) {
-            console.log(`Fallback successful: ${url} returned ${data.length} campaigns`);
+            logger.log(`Fallback successful: ${url} returned ${data.length} campaigns`);
             return data as Campaign[];
           }
         } catch (e) {
           // Continue to next fallback
-          console.log(`Fallback failed: ${url}`, e);
+          logger.log(`Fallback failed: ${url}`, e);
         }
       }
 
       // 4) As a last resort: fetch all campaigns and filter on client
       // For development: show active campaigns even if they're in the past
       try {
-        console.log("Attempting final fallback: fetching all campaigns...");
+        logger.log("Attempting final fallback: fetching all campaigns...");
         const res = await apiRequestWithAuth(API_ENDPOINTS.CAMPAIGNS);
         const data = res?.data?.campaigns || res?.campaigns || res?.data || res;
         if (Array.isArray(data)) {
@@ -367,7 +368,7 @@ export const exploreService = {
               
               const isUpcoming = Number.isFinite(start) && start > now && active && approved;
               if (isUpcoming) {
-                console.log(`✅ Upcoming campaign found: ${c.title}`, {
+                logger.log(`✅ Upcoming campaign found: ${c.title}`, {
                   startTime: startTimeStr,
                   now: new Date(now).toISOString()
                 });
@@ -381,7 +382,7 @@ export const exploreService = {
           // If no upcoming campaigns, for development purposes, show all active campaigns
           // (even if in the past or pending approval)
           if (filtered.length === 0) {
-            console.log("No truly upcoming campaigns found. Showing all active campaigns for development.");
+            logger.log("No truly upcoming campaigns found. Showing all active campaigns for development.");
             filtered = (data as any[]).filter((c) => {
               const active = c.isActive !== undefined ? !!c.isActive : true;
               return active;
@@ -406,16 +407,16 @@ export const exploreService = {
           const limit = params?.limit ? Number(params.limit) : undefined;
           const result = limit ? filtered.slice(0, limit) : filtered;
           
-          console.log(`Final fallback: returning ${result.length} campaigns`);
+          logger.log(`Final fallback: returning ${result.length} campaigns`);
           return result as Campaign[];
         }
       } catch (e) {
-        console.error("Final fallback failed:", e);
+        logger.error("Final fallback failed:", e);
         // fall through to rethrow original error
       }
 
       // If all attempts failed, rethrow the original error
-      console.error("Failed to fetch upcoming campaigns after fallbacks.", error);
+      logger.error("Failed to fetch upcoming campaigns after fallbacks.", error);
       throw error;
     }
   },
@@ -428,7 +429,7 @@ export const exploreService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch campaign details:", error);
+      logger.error("Failed to fetch campaign details:", error);
       throw error;
     }
   },
@@ -452,7 +453,7 @@ export const exploreService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to join campaign:", error);
+      logger.error("Failed to join campaign:", error);
       throw error;
     }
   },
@@ -475,7 +476,7 @@ export const exploreService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch emergencies:", error);
+      logger.error("Failed to fetch emergencies:", error);
       throw error;
     }
   },
@@ -488,7 +489,7 @@ export const exploreService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch emergency details:", error);
+      logger.error("Failed to fetch emergency details:", error);
       throw error;
     }
   },
@@ -513,7 +514,7 @@ export const exploreService = {
       );
       return apiResponse.data;
     } catch (error) {
-      console.error("Failed to respond to emergency:", error);
+      logger.error("Failed to respond to emergency:", error);
       throw error;
     }
   },
@@ -527,7 +528,7 @@ export const exploreService = {
       );
       return response.data.establishments;
     } catch (error) {
-      console.error("Failed to fetch medical establishments:", error);
+      logger.error("Failed to fetch medical establishments:", error);
       throw error;
     }
   },
@@ -544,7 +545,7 @@ export const exploreService = {
       const response = await apiRequestWithAuth(`/search?${queryString}`);
       return response.data;
     } catch (error) {
-      console.error("Failed to search content:", error);
+      logger.error("Failed to search content:", error);
       throw error;
     }
   },
@@ -555,7 +556,7 @@ export const exploreService = {
       const response = await apiRequestWithAuth("/explore/filters");
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch explore filters:", error);
+      logger.error("Failed to fetch explore filters:", error);
       throw error;
     }
   },
@@ -566,7 +567,7 @@ export const exploreService = {
       const response = await apiRequestWithAuth("/explore/statistics");
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch explore statistics:", error);
+      logger.error("Failed to fetch explore statistics:", error);
       throw error;
     }
   },

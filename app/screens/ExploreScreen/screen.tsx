@@ -25,6 +25,7 @@ import CampaignDetailsModal from "./organisms/CampaignDetailsModal";
 import { Campaign, FilterCriteria } from "./types";
 import { filterCampaigns, parseSearchText, formatDateRange } from "./utils";
 
+import { logger } from "../../utils/logger";
 const ExploreScreen: React.FC = () => {
   // State management
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -94,7 +95,7 @@ const ExploreScreen: React.FC = () => {
         });
       }
       
-      console.log(`${campaignStatus} campaigns loaded from API:`, campaignsData.length);
+      logger.log(`${campaignStatus} campaigns loaded from API:`, campaignsData.length);
       
       // Client-side validation: filter campaigns by actual time to ensure correct categorization
       const now = new Date();
@@ -108,7 +109,7 @@ const ExploreScreen: React.FC = () => {
           // Live: started but not ended
           const isLive = now >= startTime && now <= endTime;
           if (!isLive) {
-            console.log(`⚠️ Filtering out non-live campaign: ${campaign.title}`, {
+            logger.log(`⚠️ Filtering out non-live campaign: ${campaign.title}`, {
               start: startTimeStr,
               end: endTimeStr,
               now: now.toISOString()
@@ -119,7 +120,7 @@ const ExploreScreen: React.FC = () => {
           // Upcoming: not started yet
           const isUpcoming = now < startTime;
           if (!isUpcoming) {
-            console.log(`⚠️ Filtering out non-upcoming campaign: ${campaign.title}`, {
+            logger.log(`⚠️ Filtering out non-upcoming campaign: ${campaign.title}`, {
               start: startTimeStr,
               now: now.toISOString()
             });
@@ -128,7 +129,7 @@ const ExploreScreen: React.FC = () => {
         }
       });
       
-      console.log(`After client-side validation: ${clientFilteredCampaigns.length} campaigns`);
+      logger.log(`After client-side validation: ${clientFilteredCampaigns.length} campaigns`);
       
       // Map service Campaign type to screen Campaign type and fetch participant count
       const mappedCampaigns = await Promise.all(
@@ -139,10 +140,10 @@ const ExploreScreen: React.FC = () => {
             const { count } = await campaignService.getCampaignParticipantCount(campaign.id);
             if (typeof count === "number" && count >= 0) {
               participantCount = count;
-              console.log(`✅ Campaign ${campaign.id}: ${count} participants`);
+              logger.log(`✅ Campaign ${campaign.id}: ${count} participants`);
             }
           } catch (e) {
-            console.log("Could not fetch participant count for campaign:", campaign.id);
+            logger.log("Could not fetch participant count for campaign:", campaign.id);
           }
           
           return {
@@ -168,10 +169,10 @@ const ExploreScreen: React.FC = () => {
       setCampaigns(mappedCampaigns);
       
       if (campaignsData.length === 0) {
-        console.log(`No ${campaignStatus} campaigns found`);
+        logger.log(`No ${campaignStatus} campaigns found`);
       }
     } catch (error) {
-      console.error("Failed to load campaigns:", error);
+      logger.error("Failed to load campaigns:", error);
       // Set empty array on error - show "No campaigns" message
       setCampaigns([]);
     } finally {
@@ -211,7 +212,7 @@ const ExploreScreen: React.FC = () => {
             text: "Login", 
             onPress: () => {
               // Navigation to login would go here
-              console.log("Navigate to login");
+              logger.log("Navigate to login");
             }
           },
         ]
@@ -257,7 +258,7 @@ const ExploreScreen: React.FC = () => {
                   setCampaigns(updatedCampaigns);
                 }
               } catch (error) {
-                console.error("Unregister campaign error:", error);
+                logger.error("Unregister campaign error:", error);
                 const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
                 
                 Alert.alert(
@@ -308,7 +309,7 @@ const ExploreScreen: React.FC = () => {
         setCampaigns(updatedCampaigns);
         
         // Store registration details for future reference
-        console.log("Campaign registration details:", result.registrationDetails);
+        logger.log("Campaign registration details:", result.registrationDetails);
       } else {
         Alert.alert(
           "Registration Info",
@@ -317,7 +318,7 @@ const ExploreScreen: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error("Join campaign error:", error);
+      logger.error("Join campaign error:", error);
 
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       

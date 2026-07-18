@@ -18,6 +18,7 @@ import { qrService, QRScanResult, AttendanceMarkResult } from "../../../services
 import { useAuth } from "../../../context/AuthContext";
 import { useLanguage } from "../../../context/LanguageContext";
 
+import { logger } from "../../../utils/logger";
 interface QRScannerModalProps {
   visible: boolean;
   onClose: () => void;
@@ -63,9 +64,9 @@ export default function QRScannerModal({
     Vibration.vibrate(100);
 
     try {
-      console.log("🔍 QR SCAN DEBUG: Raw scanned data:", data);
-      console.log("🔍 QR SCAN DEBUG: Data type:", typeof data);
-      console.log("🔍 QR SCAN DEBUG: Data length:", data.length);
+      logger.log("🔍 QR SCAN DEBUG: Raw scanned data:", data);
+      logger.log("🔍 QR SCAN DEBUG: Data type:", typeof data);
+      logger.log("🔍 QR SCAN DEBUG: Data length:", data.length);
 
       let userId: string;
       let donorData: any = null;
@@ -73,7 +74,7 @@ export default function QRScannerModal({
       // Try to parse as JSON first (new format)
       try {
         const parsedData = JSON.parse(data);
-        console.log("🔍 QR SCAN DEBUG: Successfully parsed as JSON:", parsedData);
+        logger.log("🔍 QR SCAN DEBUG: Successfully parsed as JSON:", parsedData);
         
         // Check if it's the expected donor format: {name, email, uid, timestamp}
         if (parsedData.uid && parsedData.name && parsedData.email) {
@@ -84,34 +85,34 @@ export default function QRScannerModal({
             uid: parsedData.uid,
             timestamp: parsedData.timestamp
           };
-          console.log("🔍 QR SCAN DEBUG: Detected donor QR format, extracted userId:", userId);
-          console.log("🔍 QR SCAN DEBUG: Donor data:", donorData);
+          logger.log("🔍 QR SCAN DEBUG: Detected donor QR format, extracted userId:", userId);
+          logger.log("🔍 QR SCAN DEBUG: Donor data:", donorData);
         } else {
-          console.log("🔍 QR SCAN DEBUG: JSON doesn't have expected donor format");
+          logger.log("🔍 QR SCAN DEBUG: JSON doesn't have expected donor format");
           throw new Error("Invalid QR format");
         }
       } catch (jsonError: any) {
-        console.log("🔍 QR SCAN DEBUG: JSON parse failed, trying legacy format:", jsonError.message);
+        logger.log("🔍 QR SCAN DEBUG: JSON parse failed, trying legacy format:", jsonError.message);
         // Fallback to old format - direct UUID string
         if (data && data.length >= 36) {
           userId = data;
-          console.log("🔍 QR SCAN DEBUG: Using legacy UUID format:", userId);
+          logger.log("🔍 QR SCAN DEBUG: Using legacy UUID format:", userId);
         } else {
-          console.log("🔍 QR SCAN DEBUG: Data too short for UUID:", data.length);
+          logger.log("🔍 QR SCAN DEBUG: Data too short for UUID:", data.length);
           throw new Error(t("qr_scanner.invalid_qr"));
         }
       }
 
       // Validate userId
       if (!userId) {
-        console.log("🔍 QR SCAN DEBUG: No userId extracted");
+        logger.log("🔍 QR SCAN DEBUG: No userId extracted");
         throw new Error(t("qr_scanner.invalid_qr"));
       }
 
-      console.log("🔍 QR SCAN DEBUG: Final userId to send:", userId);
-      console.log("🔍 QR SCAN DEBUG: campaignId:", campaignId);
-      console.log("🔍 QR SCAN DEBUG: scanType:", scanType);
-      console.log("🔍 QR SCAN DEBUG: donorData metadata:", donorData);
+      logger.log("🔍 QR SCAN DEBUG: Final userId to send:", userId);
+      logger.log("🔍 QR SCAN DEBUG: campaignId:", campaignId);
+      logger.log("🔍 QR SCAN DEBUG: scanType:", scanType);
+      logger.log("🔍 QR SCAN DEBUG: donorData metadata:", donorData);
 
       const scanRequest = {
         qrData: userId, // Send only the user ID, not the full JSON
@@ -125,7 +126,7 @@ export default function QRScannerModal({
         },
       };
 
-      console.log("🔍 QR SCAN DEBUG: Full request payload:", scanRequest);
+      logger.log("🔍 QR SCAN DEBUG: Full request payload:", scanRequest);
 
       const scanResult = await qrService.scanQR(scanRequest);
 
@@ -154,7 +155,7 @@ export default function QRScannerModal({
         throw new Error(scanResult.message || t("qr_scanner.scan_failed"));
       }
     } catch (error: any) {
-      console.error("QR Scan error:", error);
+      logger.error("QR Scan error:", error);
       Alert.alert(
         t("qr_scanner.scan_error"),
         error.message || t("qr_scanner.unknown_error"),
@@ -209,7 +210,7 @@ export default function QRScannerModal({
         throw new Error(result.message || t("qr_scanner.attendance_failed"));
       }
     } catch (error: any) {
-      console.error("Mark attendance error:", error);
+      logger.error("Mark attendance error:", error);
       
       // Handle the case where participation doesn't exist - offer to auto-register
       if (error.message?.includes("Participation not found") || error.message?.includes("not registered")) {

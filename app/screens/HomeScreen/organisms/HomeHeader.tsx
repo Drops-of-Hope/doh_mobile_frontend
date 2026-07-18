@@ -8,7 +8,6 @@ interface HomeHeaderProps {
   donorLevel?: string;
   searchText: string;
   onSearchTextChange: (text: string) => void;
-  onLogout: () => void;
 }
 
 export default function HomeHeader({
@@ -16,15 +15,10 @@ export default function HomeHeader({
   donorLevel,
   searchText,
   onSearchTextChange,
-  onLogout,
 }: HomeHeaderProps) {
   return (
     <View style={styles.header}>
-      <HeaderSection
-        firstName={firstName}
-        donorLevel={donorLevel}
-        onLogout={onLogout}
-      />
+      <HeaderSection firstName={firstName} donorLevel={donorLevel} />
     </View>
   );
 }

@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import SplashContent from "../shared/organisms/SplashContent";
 
+import { logger } from "../../utils/logger";
 type RootStackParamList = {
   Splash: undefined;
   Entry: undefined;
@@ -109,7 +110,7 @@ export default function SplashScreen() {
 
     // Navigate to Entry screen after animations
     const timer = setTimeout(() => {
-      console.log("🚀 SplashScreen: Navigating to Entry screen");
+      logger.log("🚀 SplashScreen: Navigating to Entry screen");
       navigation.replace("Entry");
     }, 3000); // Reduced from 4000ms to 3000ms
 

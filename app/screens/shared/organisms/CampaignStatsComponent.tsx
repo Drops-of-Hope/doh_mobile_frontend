@@ -15,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { qrService, CampaignStats, CampaignParticipant } from "../../../services/qrService";
 import { useLanguage } from "../../../context/LanguageContext";
 
+import { logger } from "../../../utils/logger";
 interface CampaignStatsComponentProps {
   campaignId: string;
   onScanQR?: () => void;
@@ -47,7 +48,7 @@ export default function CampaignStatsComponent({
       setStats(statsData);
       setParticipants(participantsData.participants);
     } catch (error) {
-      console.error("Failed to load campaign stats:", error);
+      logger.error("Failed to load campaign stats:", error);
       Alert.alert(
         t("campaign_stats.error"),
         t("campaign_stats.load_error"),
@@ -63,7 +64,7 @@ export default function CampaignStatsComponent({
       setRefreshing(true);
       await loadStats();
     } catch (error) {
-      console.error("Failed to refresh stats:", error);
+      logger.error("Failed to refresh stats:", error);
     } finally {
       setRefreshing(false);
     }
@@ -101,7 +102,7 @@ export default function CampaignStatsComponent({
         ]
       );
     } catch (error) {
-      console.error("Export error:", error);
+      logger.error("Export error:", error);
     }
   };
 
@@ -115,7 +116,7 @@ export default function CampaignStatsComponent({
       );
       // In a real app, you would open the download URL or share the file
     } catch (error) {
-      console.error("Export error:", error);
+      logger.error("Export error:", error);
       Alert.alert(
         t("campaign_stats.error"),
         t("campaign_stats.export_error"),

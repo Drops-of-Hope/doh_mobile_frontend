@@ -8,6 +8,7 @@ import DonationTimerCard from "./DonationTimerCard";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 import { UserProfile } from "../types";
 
+import { logger } from "../../../utils/logger";
 interface QRSectionProps {
   userProfile: UserProfile | null;
   attendanceMarked: boolean;
@@ -40,7 +41,7 @@ export default function QRSection({
   onRetryPolling,
 }: QRSectionProps) {
   // Debug log to see state
-  console.log("🎯 QRSection render state:", {
+  logger.log("🎯 QRSection render state:", {
     attendanceMarked,
     isPolling,
     pollingComplete,

@@ -3,6 +3,7 @@ import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
 
+import { logger } from "../utils/logger";
 // Ensure auth sessions are properly completed on iOS (and generally safe to call once in module scope)
 WebBrowser.maybeCompleteAuthSession();
 
@@ -32,7 +33,7 @@ const redirectUri = isExpoGo
       path: "auth",
     });
 
-console.log("Redirect URI:", redirectUri);
+logger.log("Redirect URI:", redirectUri);
 
 // Types for user information
 export interface UserInfo {
@@ -57,7 +58,7 @@ const saveAuthState = async (authState: AuthState) => {
   try {
     await SecureStore.setItemAsync("authState", JSON.stringify(authState));
   } catch (error) {
-    console.error("Failed to save auth state:", error);
+    logger.error("Failed to save auth state:", error);
   }
 };
 
@@ -66,7 +67,7 @@ const getAuthState = async (): Promise<AuthState | null> => {
     const authState = await SecureStore.getItemAsync("authState");
     return authState ? JSON.parse(authState) : null;
   } catch (error) {
-    console.error("Failed to retrieve auth state:", error);
+    logger.error("Failed to retrieve auth state:", error);
     return null;
   }
 };
@@ -82,14 +83,14 @@ const getUserInfo = async (accessToken: string): Promise<UserInfo | null> => {
 
     if (response.ok) {
       const userInfo = await response.json();
-      console.log("User info retrieved:", userInfo);
+      logger.log("User info retrieved:", userInfo);
       return userInfo;
     } else {
-      console.error("Failed to fetch user info:", response.status);
+      logger.error("Failed to fetch user info:", response.status);
       return null;
     }
   } catch (error) {
-    console.error("Error fetching user info:", error);
+    logger.error("Error fetching user info:", error);
     return null;
   }
 };
@@ -98,7 +99,7 @@ const clearAuthState = async () => {
   try {
     await SecureStore.deleteItemAsync("authState");
   } catch (error) {
-    console.error("Failed to clear auth state:", error);
+    logger.error("Failed to clear auth state:", error);
   }
 };
 
@@ -107,7 +108,7 @@ export const authenticate = async (
   isSignup = false,
 ): Promise<AuthState | null> => {
   try {
-    console.log("Starting authentication with redirect URI:", redirectUri);
+    logger.log("Starting authentication with redirect URI:", redirectUri);
 
     // Create proper AuthRequest with PKCE (required by Asgardeo)
     const authRequest = new AuthSession.AuthRequest({
@@ -128,10 +129,10 @@ export const authenticate = async (
 
   const result = await authRequest.promptAsync(discovery);
 
-    console.log("Auth result:", result);
+    logger.log("Auth result:", result);
 
     if (result.type === "success") {
-      console.log(
+      logger.log(
         `${isSignup ? "Signup" : "Login"} successful:`,
         result.params,
       );
@@ -169,18 +170,18 @@ export const authenticate = async (
         return authState;
       }
     } else if (result.type === "error") {
-      console.error("Auth error:", result.error);
+      logger.error("Auth error:", result.error);
       throw new Error(
         `Authentication error: ${result.error?.message || "Unknown error"}`,
       );
     } else {
-      console.log("Authentication cancelled");
+      logger.log("Authentication cancelled");
       throw new Error("Authentication was cancelled");
     }
 
     throw new Error("Authentication failed");
   } catch (error) {
-    console.error(`${isSignup ? "Signup" : "Login"} failed:`, error);
+    logger.error(`${isSignup ? "Signup" : "Login"} failed:`, error);
     throw error;
   }
 };
@@ -197,7 +198,7 @@ export const initiatePasswordReset = async (email?: string) => {
     // For now, we'll return the URL so the app can handle it
     return resetUrl;
   } catch (error) {
-    console.error("Password reset initiation failed", error);
+    logger.error("Password reset initiation failed", error);
     throw error;
   }
 };
@@ -215,7 +216,7 @@ export const refreshToken = async (refreshToken: string) => {
     await saveAuthState(tokenResult);
     return tokenResult;
   } catch (error) {
-    console.error("Token refresh failed", error);
+    logger.error("Token refresh failed", error);
     throw error;
   }
 };
@@ -237,9 +238,9 @@ export const logout = async () => {
             },
             body: `token=${authState.accessToken}&client_id=${authConfig.clientId}&token_type_hint=access_token`,
           });
-          console.log("Access token revoked successfully");
+          logger.log("Access token revoked successfully");
         } catch (error) {
-          console.error("Failed to revoke access token:", error);
+          logger.error("Failed to revoke access token:", error);
           // Continue with logout even if token revocation fails
         }
       }
@@ -255,9 +256,9 @@ export const logout = async () => {
             },
             body: `token=${authState.refreshToken}&client_id=${authConfig.clientId}&token_type_hint=refresh_token`,
           });
-          console.log("Refresh token revoked successfully");
+          logger.log("Refresh token revoked successfully");
         } catch (error) {
-          console.error("Failed to revoke refresh token:", error);
+          logger.error("Failed to revoke refresh token:", error);
           // Continue with logout even if token revocation fails
         }
       }
@@ -281,10 +282,10 @@ export const logout = async () => {
             redirectUri,
           );
 
-          console.log("Logout session result:", result);
-          console.log("Asgardeo session cleared successfully");
+          logger.log("Logout session result:", result);
+          logger.log("Asgardeo session cleared successfully");
         } catch (error) {
-          console.error("Failed to clear Asgardeo session:", error);
+          logger.error("Failed to clear Asgardeo session:", error);
           // Continue with logout even if session clear fails
         }
       }
@@ -292,11 +293,11 @@ export const logout = async () => {
 
     // Step 4: Always clear local auth state
     await clearAuthState();
-    console.log(
+    logger.log(
       "Logged out successfully - all tokens revoked and session cleared",
     );
   } catch (error) {
-    console.error("Logout failed:", error);
+    logger.error("Logout failed:", error);
     // Even if logout fails, clear local state to ensure user is logged out locally
     await clearAuthState();
     throw error;
@@ -313,7 +314,7 @@ export const getCurrentUser = async (): Promise<UserInfo | null> => {
     const authState = await getAuthState();
     return authState?.userInfo || null;
   } catch (error) {
-    console.error("Error getting current user:", error);
+    logger.error("Error getting current user:", error);
     return null;
   }
 };
@@ -326,7 +327,7 @@ export const getUserRole = async (): Promise<string | null> => {
     }
     return user?.userType || null;
   } catch (error) {
-    console.error("Error getting user role:", error);
+    logger.error("Error getting user role:", error);
     return null;
   }
 };
@@ -339,7 +340,7 @@ export const hasRole = async (roleName: string): Promise<boolean> => {
     }
     return user?.userType === roleName;
   } catch (error) {
-    console.error("Error checking user role:", error);
+    logger.error("Error checking user role:", error);
     return false;
   }
 };
@@ -350,23 +351,23 @@ export const ensureValidAuth = async (): Promise<boolean> => {
     const authState = await getAuthState();
 
     if (!authState || !authState.accessToken) {
-      console.log("No auth state found");
+      logger.log("No auth state found");
       return false;
     }
 
     // Check if the current token is valid
     const isValid = await isTokenValid(authState.accessToken);
     if (isValid) {
-      console.log("Token is valid");
+      logger.log("Token is valid");
       return true;
     }
 
-    console.log("Access token invalid, attempting refresh...");
+    logger.log("Access token invalid, attempting refresh...");
 
     // If access token is invalid, try refresh
     if (authState.refreshToken) {
       try {
-        console.log("Attempting token refresh...");
+        logger.log("Attempting token refresh...");
         const refreshResult = await AuthSession.refreshAsync(
           {
             clientId: authConfig.clientId,
@@ -388,25 +389,25 @@ export const ensureValidAuth = async (): Promise<boolean> => {
         if (userInfo) {
           newAuthState.userInfo = userInfo;
           await saveAuthState(newAuthState);
-          console.log("Token refresh successful");
+          logger.log("Token refresh successful");
           return true;
         } else {
-          console.log("Refreshed token invalid");
+          logger.log("Refreshed token invalid");
           await handleExpiredToken();
           return false;
         }
       } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
+        logger.error("Token refresh failed:", refreshError);
         await handleExpiredToken();
         return false;
       }
     }
 
-    console.log("No refresh token available, auth invalid");
+    logger.log("No refresh token available, auth invalid");
     await handleExpiredToken();
     return false;
   } catch (error) {
-    console.error("Error ensuring valid auth:", error);
+    logger.error("Error ensuring valid auth:", error);
     await handleExpiredToken();
     return false;
   }
@@ -422,32 +423,32 @@ const isTokenValid = async (accessToken: string): Promise<boolean> => {
     });
     return response.ok;
   } catch (error) {
-    console.error("Error validating token:", error);
+    logger.error("Error validating token:", error);
     return false;
   }
 };
 
 // Handle expired/invalid tokens by clearing state
 export const handleExpiredToken = async (): Promise<void> => {
-  console.log("Token expired or invalid, clearing auth state");
+  logger.log("Token expired or invalid, clearing auth state");
   await clearAuthState();
 };
 
 // Global auth error handler for API calls
 export const handleAuthError = async (error: any): Promise<boolean> => {
   if (error?.status === 401 || error?.message?.includes("unauthorized")) {
-    console.log("401 error detected, checking auth state...");
+    logger.log("401 error detected, checking auth state...");
 
     // Try to refresh the token
     const isValid = await ensureValidAuth();
 
     if (!isValid) {
-      console.log("Token refresh failed, user needs to re-authenticate");
+      logger.log("Token refresh failed, user needs to re-authenticate");
       // This will trigger the AuthContext to update and show EntryScreen
       return false;
     }
 
-    console.log("Token refreshed successfully");
+    logger.log("Token refreshed successfully");
     return true; // Indicate that the caller should retry the request
   }
 
@@ -470,7 +471,7 @@ export const apiCallWithAuth = async <T>(
       if (attempts <= maxRetries) {
         const shouldRetry = await handleAuthError(error);
         if (shouldRetry) {
-          console.log(`Retrying API call (attempt ${attempts + 1})`);
+          logger.log(`Retrying API call (attempt ${attempts + 1})`);
           continue;
         }
       }

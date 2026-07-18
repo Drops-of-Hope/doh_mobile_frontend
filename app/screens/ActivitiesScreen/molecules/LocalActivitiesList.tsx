@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../../../constants/theme';
 import { LocalActivity } from '../../../services/localActivityService';
 
+import { logger } from "../../../utils/logger";
 interface LocalActivityCardProps {
   activity: LocalActivity;
   onPress?: (activity: LocalActivity) => void;
@@ -91,7 +92,7 @@ function LocalActivityCard({ activity, onPress }: LocalActivityCardProps) {
         }
       }
     } catch (error) {
-      console.warn('Error formatting date:', timestamp, error);
+      logger.warn('Error formatting date:', timestamp, error);
       return 'Unknown time';
     }
   };

@@ -6,6 +6,7 @@ import TitlePage from "../shared/molecules/TitlePage";
 import { useAuth } from "../../context/AuthContext";
 import { authenticate } from "../../services/auth";
 
+import { logger } from "../../utils/logger";
 export default function EntryScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { refreshAuthState, isAuthenticated } = useAuth();
@@ -14,7 +15,7 @@ export default function EntryScreen() {
   useEffect(() => {
     const checkSilentAuth = async () => {
       if (!isAuthenticated) {
-        console.log("Checking for existing valid authentication...");
+        logger.log("Checking for existing valid authentication...");
         // This will automatically handle token refresh if possible
         await refreshAuthState();
       }
@@ -26,16 +27,16 @@ export default function EntryScreen() {
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      console.log("Starting authentication...");
+      logger.log("Starting authentication...");
 
       const authResult = await authenticate(false);
       if (authResult) {
-        console.log("Authentication successful, refreshing state...");
+        logger.log("Authentication successful, refreshing state...");
         await refreshAuthState();
-        console.log("Auth state refreshed successfully");
+        logger.log("Auth state refreshed successfully");
       }
     } catch (error) {
-      console.error("Authentication failed:", error);
+      logger.error("Authentication failed:", error);
 
       // More user-friendly error handling
       let errorMessage =

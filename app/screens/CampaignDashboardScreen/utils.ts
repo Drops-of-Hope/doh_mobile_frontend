@@ -2,6 +2,7 @@ import { campaignService } from "../../services/campaignService";
 import { DashboardStats, CampaignType } from "./types";
 import { getDatabaseUserId } from "../../utils/userIdUtils";
 
+import { logger } from "../../utils/logger";
 export const loadUserCampaigns = async (
   userId: string,
 ): Promise<CampaignType[]> => {
@@ -10,25 +11,25 @@ export const loadUserCampaigns = async (
     const databaseUserId = await getDatabaseUserId();
     
     if (!databaseUserId) {
-      console.error('No database user ID available');
+      logger.error('No database user ID available');
       return [];
     }
 
-    console.log('Loading campaigns for database user ID:', databaseUserId);
-    console.log('Original userId parameter was:', userId);
+    logger.log('Loading campaigns for database user ID:', databaseUserId);
+    logger.log('Original userId parameter was:', userId);
     
     const campaigns = await campaignService.getOrganizerCampaigns(databaseUserId);
-    console.log("Loaded campaigns:", campaigns);
+    logger.log("Loaded campaigns:", campaigns);
     
     // Ensure we always return an array
     if (!campaigns || !Array.isArray(campaigns)) {
-      console.warn("Invalid campaigns data received:", campaigns);
+      logger.warn("Invalid campaigns data received:", campaigns);
       return [];
     }
     
     return campaigns;
   } catch (error) {
-    console.error("Failed to load campaigns:", error);
+    logger.error("Failed to load campaigns:", error);
     return []; // Return empty array instead of throwing
   }
 };
@@ -39,7 +40,7 @@ export const loadCampaignStats = async (
   try {
     return await campaignService.getCampaignStats(campaignId);
   } catch (error) {
-    console.error("Failed to load campaign stats:", error);
+    logger.error("Failed to load campaign stats:", error);
     // Return empty stats on error
     return {
       totalAttendance: 0,

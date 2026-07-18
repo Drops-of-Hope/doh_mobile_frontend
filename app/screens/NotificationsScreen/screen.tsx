@@ -6,6 +6,7 @@ import NotificationsList from "./organisms/NotificationsList";
 import EmptyNotifications from "./molecules/EmptyNotifications";
 import { NotificationType, Notification } from "../../../types/notifications";
 
+import { logger } from "../../utils/logger";
 export default function NotificationsScreen({
   navigation,
 }: {
@@ -96,18 +97,18 @@ export default function NotificationsScreen({
     switch (notification.type) {
       case "emergency":
         // Navigate to emergency details or donation flow
-        console.log("Navigate to emergency donation");
+        logger.log("Navigate to emergency donation");
         break;
       case "appointment":
         // Navigate to appointment details
-        console.log("Navigate to appointment details");
+        logger.log("Navigate to appointment details");
         break;
       case "campaign":
         // Navigate to campaign details
-        console.log("Navigate to campaign details");
+        logger.log("Navigate to campaign details");
         break;
       default:
-        console.log("Notification opened:", notification.title);
+        logger.log("Notification opened:", notification.title);
     }
   };
 

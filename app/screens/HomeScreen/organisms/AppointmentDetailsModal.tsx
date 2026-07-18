@@ -6,6 +6,7 @@ import ModalActions from "../molecules/ModalActions";
 import DetailRow from "../atoms/DetailRow";
 import { Appointment } from "../types";
 
+import { logger } from "../../../utils/logger";
 interface AppointmentDetailsModalProps {
   visible: boolean;
   appointment: Appointment | null;
@@ -30,7 +31,7 @@ export default function AppointmentDetailsModal({
           `ID: ${textToCopy}\n\nThis has been prepared for copying.`,
           [{ text: "OK" }]
         );
-        console.log("Appointment ID ready to copy:", textToCopy);
+        logger.log("Appointment ID ready to copy:", textToCopy);
       } catch (error) {
         Alert.alert("Error", "Failed to copy appointment ID");
       }

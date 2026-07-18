@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { authUserService, AuthUserData, UserCreateResponse } from '../services/authUserService';
 import * as SecureStore from 'expo-secure-store';
 
+import { logger } from "../utils/logger";
 export interface EnhancedUserInfo {
   id: string;
   email: string;
@@ -45,7 +46,7 @@ export const useAuthUser = () => {
       await SecureStore.setItemAsync('userAuthData', JSON.stringify(authData));
 
       // Log the process for debugging
-      console.log('User processing completed:', {
+      logger.log('User processing completed:', {
         isNewUser: userResponse.isNewUser,
         needsProfileCompletion: userResponse.needsProfileCompletion,
         userId: authData.sub,
@@ -53,7 +54,7 @@ export const useAuthUser = () => {
 
       return enhancedUserInfo;
     } catch (error: any) {
-      console.error('Error processing auth user:', error);
+      logger.error('Error processing auth user:', error);
       setError(error.message || 'Failed to process user authentication');
       return null;
     } finally {
@@ -94,10 +95,10 @@ export const useAuthUser = () => {
       // Update stored user data
       await SecureStore.setItemAsync('userData', JSON.stringify(enhancedUserInfo));
 
-      console.log('Profile completion successful for user:', userId);
+      logger.log('Profile completion successful for user:', userId);
       return enhancedUserInfo;
     } catch (error: any) {
-      console.error('Error completing user profile:', error);
+      logger.error('Error completing user profile:', error);
       setError(error.message || 'Failed to complete user profile');
       return null;
     } finally {
@@ -113,7 +114,7 @@ export const useAuthUser = () => {
       const userData = await SecureStore.getItemAsync('userData');
       return userData ? JSON.parse(userData) : null;
     } catch (error) {
-      console.error('Error getting stored user data:', error);
+      logger.error('Error getting stored user data:', error);
       return null;
     }
   }, []);
@@ -126,7 +127,7 @@ export const useAuthUser = () => {
       await SecureStore.deleteItemAsync('userData');
       await SecureStore.deleteItemAsync('userAuthData');
     } catch (error) {
-      console.error('Error clearing stored user data:', error);
+      logger.error('Error clearing stored user data:', error);
     }
   }, []);
 
@@ -138,7 +139,7 @@ export const useAuthUser = () => {
       const userData = await getStoredUserData();
       return userData ? !userData.isProfileComplete : true;
     } catch (error) {
-      console.error('Error checking profile completion:', error);
+      logger.error('Error checking profile completion:', error);
       return true;
     }
   }, [getStoredUserData]);

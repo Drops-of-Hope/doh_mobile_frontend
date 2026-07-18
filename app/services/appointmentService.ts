@@ -1,6 +1,7 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 import { District, DISTRICT_TO_PROVINCE } from "../../constants/districts";
 
+import { logger } from "../utils/logger";
 // Medical Establishment interface
 export interface MedicalEstablishment {
   id: string;
@@ -59,7 +60,7 @@ export const appointmentService = {
     district: District
   ): Promise<MedicalEstablishment[]> => {
     try {
-      console.log(`Fetching medical establishments for district: ${district}`);
+      logger.log(`Fetching medical establishments for district: ${district}`);
       
       const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.MEDICAL_ESTABLISHMENTS}?district=${district}`,
@@ -72,7 +73,7 @@ export const appointmentService = {
         }
       );
       
-      console.log("Medical establishments response:", response);
+      logger.log("Medical establishments response:", response);
       
       // Handle different response formats
       let establishments: MedicalEstablishment[] = [];
@@ -84,7 +85,7 @@ export const appointmentService = {
       } else if (response?.establishments && Array.isArray(response.establishments)) {
         establishments = response.establishments;
       } else {
-        console.warn("Unexpected response format for medical establishments:", response);
+        logger.warn("Unexpected response format for medical establishments:", response);
         return [];
       }
       
@@ -93,11 +94,11 @@ export const appointmentService = {
         est && typeof est === 'object' && est.id && est.name
       );
       
-      console.log(`Validated ${validEstablishments.length} medical establishments`);
+      logger.log(`Validated ${validEstablishments.length} medical establishments`);
       return validEstablishments;
       
     } catch (error) {
-      console.error("Error fetching medical establishments:", error);
+      logger.error("Error fetching medical establishments:", error);
       // Don't throw here, let the caller handle the empty array
       return [];
     }
@@ -124,7 +125,7 @@ export const appointmentService = {
         },
       });
 
-      console.log("AppointmentSlot response:", response);
+      logger.log("AppointmentSlot response:", response);
       
       // Handle different response formats
       let slots: AppointmentSlot[] = [];
@@ -149,10 +150,10 @@ export const appointmentService = {
         tokenNumber: slot.tokenNumber || slot.donorsPerSlot || 0,
       }));
       
-      console.log("✅ Processed available slots:", availableSlots);
+      logger.log("✅ Processed available slots:", availableSlots);
       return availableSlots;
     } catch (error) {
-      console.error("❌ Error fetching appointment slots:", error);
+      logger.error("❌ Error fetching appointment slots:", error);
       throw error;
     }
   },
@@ -164,14 +165,14 @@ export const appointmentService = {
     try {
       // fail fast if medicalEstablishmentId is not provided
       if (!bookingRequest.medicalEstablishmentId) {
-        console.warn(
+        logger.warn(
           "Booking request missing medicalEstablishmentId:",
           bookingRequest
         );
         throw new Error("medicalEstablishmentId is required in bookingRequest");
       }
 
-      console.log("Booking request:", bookingRequest);
+      logger.log("Booking request:", bookingRequest);
       const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.CREATE_APPOINTMENT}`,
         {
@@ -186,7 +187,7 @@ export const appointmentService = {
 
       return response as Appointment;
     } catch (error) {
-      console.error("Error booking appointment:", error);
+      logger.error("Error booking appointment:", error);
       throw error;
     }
   },
@@ -194,8 +195,8 @@ export const appointmentService = {
   // Get user's appointments
   getUserAppointments: async (userId: string): Promise<Appointment[]> => {
     try {
-      console.log("🔍 Fetching appointments for user:", userId);
-      console.log("🌐 API Endpoint:", API_ENDPOINTS.USER_APPOINTMENTS);
+      logger.log("🔍 Fetching appointments for user:", userId);
+      logger.log("🌐 API Endpoint:", API_ENDPOINTS.USER_APPOINTMENTS);
       
       // Try without userId first (backend might get user from auth token)
       const response = await apiRequestWithAuth(
@@ -216,83 +217,83 @@ export const appointmentService = {
       if (response?.success === true && response?.data) {
         if (Array.isArray(response.data)) {
           appointments = response.data;
-          console.log("📋 Using response.data array (success format)");
+          logger.log("📋 Using response.data array (success format)");
         } else {
-          console.warn("📋 Response has success=true but data is not an array:", response.data);
+          logger.warn("📋 Response has success=true but data is not an array:", response.data);
           return [];
         }
       } else if (Array.isArray(response)) {
         appointments = response;
-        console.log("📋 Using direct array response");
+        logger.log("📋 Using direct array response");
       } else if (response?.data && Array.isArray(response.data)) {
         appointments = response.data;
-        console.log("📋 Using response.data array");
+        logger.log("📋 Using response.data array");
       } else if (response?.appointments && Array.isArray(response.appointments)) {
         appointments = response.appointments;
-        console.log("📋 Using response.appointments array");
+        logger.log("📋 Using response.appointments array");
       } else if (response?.success && response?.data === null) {
         // API returned success with null data (no appointments)
-        console.log("📋 User has no appointments yet (success with null data)");
+        logger.log("📋 User has no appointments yet (success with null data)");
         return [];
       } else if (response === null || response === undefined) {
         // API returned null/undefined (no appointments)
-        console.log("📋 User has no appointments yet (null/undefined response)");
+        logger.log("📋 User has no appointments yet (null/undefined response)");
         return [];
       } else {
-        console.warn("📋 Unexpected response format for user appointments:", response);
-        console.warn("📋 Keys in response:", Object.keys(response || {}));
+        logger.warn("📋 Unexpected response format for user appointments:", response);
+        logger.warn("📋 Keys in response:", Object.keys(response || {}));
         return [];
       }
       
-      console.log(`✅ Found ${appointments.length} appointments for user`);
+      logger.log(`✅ Found ${appointments.length} appointments for user`);
       
       // Log each appointment's medicalEstablishment data in detail
       appointments.forEach((apt, index) => {
-        console.log(`\n📋 ============ Appointment ${index + 1} ============`);
-        console.log(`   ID: ${apt.id}`);
-        console.log(`   Appointment Date: ${apt.appointmentDate}`);
-        console.log(`   Scheduled Status: ${apt.scheduled}`);
-        console.log(`   Has medicalEstablishment: ${!!apt.medicalEstablishment}`);
+        logger.log(`\n📋 ============ Appointment ${index + 1} ============`);
+        logger.log(`   ID: ${apt.id}`);
+        logger.log(`   Appointment Date: ${apt.appointmentDate}`);
+        logger.log(`   Scheduled Status: ${apt.scheduled}`);
+        logger.log(`   Has medicalEstablishment: ${!!apt.medicalEstablishment}`);
         
         if (apt.medicalEstablishment) {
-          console.log(`   Medical Establishment Details:`);
-          console.log(`     - ID: ${apt.medicalEstablishment.id}`);
-          console.log(`     - Name: ${apt.medicalEstablishment.name || 'MISSING'}`);
-          console.log(`     - Address: ${apt.medicalEstablishment.address || 'MISSING'}`);
-          console.log(`     - District: ${apt.medicalEstablishment.district || 'N/A'}`);
+          logger.log(`   Medical Establishment Details:`);
+          logger.log(`     - ID: ${apt.medicalEstablishment.id}`);
+          logger.log(`     - Name: ${apt.medicalEstablishment.name || 'MISSING'}`);
+          logger.log(`     - Address: ${apt.medicalEstablishment.address || 'MISSING'}`);
+          logger.log(`     - District: ${apt.medicalEstablishment.district || 'N/A'}`);
         } else {
-          console.warn(`   ⚠️ NO medicalEstablishment data for appointment ${apt.id}`);
+          logger.warn(`   ⚠️ NO medicalEstablishment data for appointment ${apt.id}`);
         }
         
         if (apt.slot) {
-          console.log(`   Slot Details:`);
-          console.log(`     - ID: ${apt.slot.id}`);
-          console.log(`     - Start: ${apt.slot.startTime}`);
-          console.log(`     - End: ${apt.slot.endTime}`);
+          logger.log(`   Slot Details:`);
+          logger.log(`     - ID: ${apt.slot.id}`);
+          logger.log(`     - Start: ${apt.slot.startTime}`);
+          logger.log(`     - End: ${apt.slot.endTime}`);
         }
-        console.log(`   ==========================================\n`);
+        logger.log(`   ==========================================\n`);
       });
       
       return appointments;
       
     } catch (error: any) {
-      console.error("❌ Error fetching user appointments:", error);
-      console.error("❌ Error type:", typeof error);
-      console.error("❌ Error message:", error?.message);
-      console.error("❌ Error status:", error?.status);
-      console.error("❌ Full error object:", JSON.stringify(error, null, 2));
+      logger.error("❌ Error fetching user appointments:", error);
+      logger.error("❌ Error type:", typeof error);
+      logger.error("❌ Error message:", error?.message);
+      logger.error("❌ Error status:", error?.status);
+      logger.error("❌ Full error object:", JSON.stringify(error, null, 2));
       
       // For new users who don't have appointments yet, don't throw an error
       if (error.message?.includes("404") || 
           error.message?.includes("not found") ||
           error.message?.includes("Network request failed") ||
           error.status === 404) {
-        console.log("ℹ️ User likely has no appointments yet, returning empty array");
+        logger.log("ℹ️ User likely has no appointments yet, returning empty array");
         return [];
       }
       
       // For other errors, still return empty array but log it
-      console.warn("⚠️ Returning empty appointments array due to error:", error.message);
+      logger.warn("⚠️ Returning empty appointments array due to error:", error.message);
       return [];
     }
   },
@@ -307,7 +308,7 @@ export const appointmentService = {
         }
       );
     } catch (error) {
-      console.error("Error cancelling appointment:", error);
+      logger.error("Error cancelling appointment:", error);
       throw error;
     }
   },
@@ -332,7 +333,7 @@ export const appointmentService = {
 
       return response;
     } catch (error) {
-      console.error("Error rescheduling appointment:", error);
+      logger.error("Error rescheduling appointment:", error);
       throw error;
     }
   },

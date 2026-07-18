@@ -22,6 +22,7 @@ import { userService, UserProfile } from "../../../services/userService";
 import { useAuth } from "../../../context/AuthContext";
 import { useLanguage } from "../../../context/LanguageContext";
 
+import { logger } from "../../../utils/logger";
 interface UserQRModalProps {
   visible: boolean;
   onClose: () => void;
@@ -52,7 +53,7 @@ export default function UserQRModal({ visible, onClose }: UserQRModalProps) {
       const data = await qrService.generateUserQR();
       setQrData(data);
     } catch (error) {
-      console.error("Failed to load QR data:", error);
+      logger.error("Failed to load QR data:", error);
       Alert.alert(
         t("qr.error_title"),
         t("qr.load_error"),
@@ -68,7 +69,7 @@ export default function UserQRModal({ visible, onClose }: UserQRModalProps) {
       const profile = await userService.getUserProfile();
       setUserProfile(profile);
     } catch (error) {
-      console.error("Failed to load user profile:", error);
+      logger.error("Failed to load user profile:", error);
     }
   };
 
@@ -128,7 +129,7 @@ export default function UserQRModal({ visible, onClose }: UserQRModalProps) {
             [{ text: t("common.ok") }]
           );
         }).catch((error) => {
-          console.error("Failed to save QR code:", error);
+          logger.error("Failed to save QR code:", error);
           Alert.alert(
             t("qr.error_title"),
             t("qr.save_error"),
@@ -137,7 +138,7 @@ export default function UserQRModal({ visible, onClose }: UserQRModalProps) {
         });
       });
     } catch (error) {
-      console.error("Failed to save QR code:", error);
+      logger.error("Failed to save QR code:", error);
       Alert.alert(
         t("qr.error_title"),
         t("qr.save_error"),
@@ -166,7 +167,7 @@ export default function UserQRModal({ visible, onClose }: UserQRModalProps) {
         });
       });
     } catch (error) {
-      console.error("Failed to share QR code:", error);
+      logger.error("Failed to share QR code:", error);
       Alert.alert(
         t("qr.error_title"),
         t("qr.share_error"),

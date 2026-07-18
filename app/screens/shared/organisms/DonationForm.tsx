@@ -17,6 +17,7 @@ import Step4 from "../molecules/Donation/Steps/Step4";
 import Step5 from "../molecules/Donation/Steps/Step5";
 import Step6 from "../molecules/Donation/Steps/Step6";
 
+import { logger } from "../../../utils/logger";
 const StyledView = styled(View);
 const StyledScrollView = styled(ScrollView);
 
@@ -211,7 +212,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
         ],
       );
     } catch (error) {
-      console.error("Donation form submission error:", error);
+      logger.error("Donation form submission error:", error);
       Alert.alert(
         t("common.error"), 
         "Failed to submit donation form. Please try again.",

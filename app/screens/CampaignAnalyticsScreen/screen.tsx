@@ -15,6 +15,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { campaignService } from "../../services/campaignService";
 
+import { logger } from "../../utils/logger";
 interface CampaignAnalyticsScreenProps {
   navigation?: any;
   route?: {
@@ -71,7 +72,7 @@ export default function CampaignAnalyticsScreen({
       const data = await campaignService.getCampaignAnalytics(campaignId);
       setAnalytics(data);
     } catch (error) {
-      console.error("Failed to load analytics:", error);
+      logger.error("Failed to load analytics:", error);
       Alert.alert("Error", "Failed to load campaign analytics.");
     } finally {
       setIsLoading(false);

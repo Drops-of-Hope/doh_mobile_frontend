@@ -20,6 +20,7 @@ import CampaignDetailsSkeleton from "../shared/molecules/skeletons/CampaignDetai
 import { COLORS, SPACING } from "../../../constants/theme";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
 
+import { logger } from "../../utils/logger";
 interface CampaignDetailsScreenProps {
   navigation?: any;
   route?: {
@@ -101,25 +102,25 @@ export default function CampaignDetailsScreen({
       // Try to fetch live stats to ensure progress reflects latest counts
       try {
         const stats = await campaignService.getCampaignStats(campaignId!);
-        console.log("📊 Campaign stats received:", stats);
+        logger.log("📊 Campaign stats received:", stats);
         const merged: CampaignDetails = {
           ...transformedCampaign,
           // Prefer stats-provided numbers when available
           expectedDonors: stats.donationGoal || transformedCampaign.expectedDonors,
           actualDonors: stats.currentDonations ?? transformedCampaign.actualDonors,
         };
-        console.log("✅ Merged campaign data:", {
+        logger.log("✅ Merged campaign data:", {
           expectedDonors: merged.expectedDonors,
           actualDonors: merged.actualDonors,
         });
         setCampaign(merged);
       } catch (e) {
-        console.log("⚠️ Stats fetch failed, using campaign data only:", e);
+        logger.log("⚠️ Stats fetch failed, using campaign data only:", e);
         // If stats endpoint not available, proceed with transformed data
         setCampaign(transformedCampaign);
       }
     } catch (error) {
-      console.error("Failed to load campaign details:", error);
+      logger.error("Failed to load campaign details:", error);
       Alert.alert("Error", "Failed to load campaign details. Please check your connection and try again.");
     } finally {
       setLoading(false);

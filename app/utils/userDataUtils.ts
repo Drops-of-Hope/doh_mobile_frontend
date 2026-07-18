@@ -1,6 +1,7 @@
 // Utility functions for user data management
 import * as SecureStore from 'expo-secure-store';
 
+import { logger } from "./logger";
 /**
  * Clear all user-related stored data
  * This should be called when:
@@ -21,15 +22,15 @@ export const clearAllUserData = async (): Promise<void> => {
       SecureStore.deleteItemAsync(key).catch(error => {
         // Don't throw if key doesn't exist
         if (!error.message?.includes('not found') && !error.message?.includes('does not exist')) {
-          console.warn(`Failed to delete ${key}:`, error);
+          logger.warn(`Failed to delete ${key}:`, error);
         }
       })
     );
 
     await Promise.all(deletePromises);
-    console.log('All user data cleared successfully');
+    logger.log('All user data cleared successfully');
   } catch (error) {
-    console.error('Error clearing user data:', error);
+    logger.error('Error clearing user data:', error);
     throw error;
   }
 };
@@ -40,38 +41,38 @@ export const clearAllUserData = async (): Promise<void> => {
  */
 export const debugUserIds = async (): Promise<void> => {
   try {
-    console.log('=== USER ID DEBUG ===');
+    logger.log('=== USER ID DEBUG ===');
     
     // Check authState
     const authState = await SecureStore.getItemAsync('authState');
     if (authState) {
       const parsed = JSON.parse(authState);
-      console.log('AuthState user ID:', parsed.userInfo?.sub);
+      logger.log('AuthState user ID:', parsed.userInfo?.sub);
     } else {
-      console.log('No authState found');
+      logger.log('No authState found');
     }
 
     // Check userData
     const userData = await SecureStore.getItemAsync('userData');
     if (userData) {
       const parsed = JSON.parse(userData);
-      console.log('UserData user ID:', parsed.id);
+      logger.log('UserData user ID:', parsed.id);
     } else {
-      console.log('No userData found');
+      logger.log('No userData found');
     }
 
     // Check userAuthData
     const userAuthData = await SecureStore.getItemAsync('userAuthData');
     if (userAuthData) {
       const parsed = JSON.parse(userAuthData);
-      console.log('UserAuthData user ID:', parsed.sub);
+      logger.log('UserAuthData user ID:', parsed.sub);
     } else {
-      console.log('No userAuthData found');
+      logger.log('No userAuthData found');
     }
 
-    console.log('=== END USER ID DEBUG ===');
+    logger.log('=== END USER ID DEBUG ===');
   } catch (error) {
-    console.error('Error debugging user IDs:', error);
+    logger.error('Error debugging user IDs:', error);
   }
 };
 
@@ -111,7 +112,7 @@ export const validateUserDataConsistency = async (): Promise<boolean> => {
     }
 
     if (userIds.length === 0) {
-      console.log('No user data found - consistency check passed');
+      logger.log('No user data found - consistency check passed');
       return true;
     }
 
@@ -120,17 +121,17 @@ export const validateUserDataConsistency = async (): Promise<boolean> => {
     const isConsistent = userIds.every(item => item.id === firstId);
 
     if (!isConsistent) {
-      console.error('User data inconsistency detected:');
+      logger.error('User data inconsistency detected:');
       userIds.forEach(item => {
-        console.error(`- ${item.source}: ${item.id}`);
+        logger.error(`- ${item.source}: ${item.id}`);
       });
     } else {
-      console.log(`User data consistent for user: ${firstId}`);
+      logger.log(`User data consistent for user: ${firstId}`);
     }
 
     return isConsistent;
   } catch (error) {
-    console.error('Error validating user data consistency:', error);
+    logger.error('Error validating user data consistency:', error);
     return false;
   }
 };

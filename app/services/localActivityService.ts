@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { logger } from "../utils/logger";
 export interface LocalActivity {
   id: string;
   type: 'appointment_created' | 'campaign_created' | 'campaign_joined' | 'donation_completed' | 'profile_updated';
@@ -41,7 +42,7 @@ class LocalActivityService {
       
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(trimmedActivities));
     } catch (error) {
-      console.error('Failed to record activity:', error);
+      logger.error('Failed to record activity:', error);
     }
   }
 
@@ -60,7 +61,7 @@ class LocalActivityService {
 
       return activities;
     } catch (error) {
-      console.error('Failed to get activities:', error);
+      logger.error('Failed to get activities:', error);
       return [];
     }
   }
@@ -96,7 +97,7 @@ class LocalActivityService {
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
     } catch (error) {
-      console.error('Failed to clear activities:', error);
+      logger.error('Failed to clear activities:', error);
     }
   }
 

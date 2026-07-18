@@ -9,6 +9,7 @@ import {
 import { useRoleBasedAccess } from "../../../../hooks/useRoleBasedAccess";
 import { useLanguage } from "../../../../context/LanguageContext";
 
+import { logger } from "../../../../utils/logger";
 interface TabsConfigProps {
   activeTab: string;
 }
@@ -25,7 +26,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
   const roleColors = getRoleColors();
 
   // Debug logging to understand role-based access
-  console.log("BottomTabBar Debug:", {
+  logger.log("BottomTabBar Debug:", {
     currentRole,
     canDonate: canDonate(),
     canVolunteer: canVolunteer(),
@@ -93,7 +94,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
     ];
 
     // Debug what we're checking
-    // console.log("BottomTabBar - Full debug info:", {
+    // logger.log("BottomTabBar - Full debug info:", {
     //   currentRole,
     //   canDonate: canDonate(),
     //   canVolunteer: canVolunteer(),
@@ -101,7 +102,7 @@ export function useTabsConfig({ activeTab }: TabsConfigProps) {
     //   showingAllTabs: true,
     // });
 
-    // console.log(
+    // logger.log(
     //   "Generated tabs:",
     //   allTabs.map((tab) => tab.label)
     // );

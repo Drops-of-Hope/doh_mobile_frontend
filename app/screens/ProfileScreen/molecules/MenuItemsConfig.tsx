@@ -9,6 +9,7 @@ import CampOrganizerIcon from "../atoms/CampOrganizerIcon";
 import { useLanguage } from "../../../context/LanguageContext";
 import { useAuth, USER_ROLES } from "../../../context/AuthContext";
 
+import { logger } from "../../../utils/logger";
 interface MenuItemsConfigProps {
   onMyDonations?: () => void;
   onDonationEligibility?: () => void;
@@ -36,14 +37,14 @@ export function useMenuItemsConfig({
   const isDonor = hasRole(USER_ROLES.DONOR);
   const isSelfSignup = hasRole(USER_ROLES.SELFSIGNUP);
 
-  console.log("MenuItemsConfig: User roles check:", {
+  logger.log("MenuItemsConfig: User roles check:", {
     isCampOrganizer,
     isDonor,
     isSelfSignup,
     campOrganizerRole: USER_ROLES.CAMP_ORGANIZER,
   });
 
-  console.log("MenuItemsConfig: Conditional logic result:", {
+  logger.log("MenuItemsConfig: Conditional logic result:", {
     showCampaignDashboard: isCampOrganizer,
     showBecomeOrganizer: !isCampOrganizer && (isDonor || isSelfSignup),
     showNotifications: !isCampOrganizer && !(isDonor || isSelfSignup),

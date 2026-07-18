@@ -25,6 +25,7 @@ import { getAppointmentService } from "../../../services/appointmentConfig";
 import { useContext } from "react";
 import { useAuth } from "../../../context/AuthContext";
 
+import { logger } from "../../../utils/logger";
 interface AppointmentBookingFormProps {
   onClose: () => void;
   onBookingSuccess: () => void;
@@ -106,7 +107,7 @@ export default function AppointmentBookingForm({
         "Error",
         "Failed to load medical establishments. Please try again."
       );
-      console.error("Error loading medical establishments:", error);
+      logger.error("Error loading medical establishments:", error);
     } finally {
       setLoading(false);
     }
@@ -128,7 +129,7 @@ export default function AppointmentBookingForm({
         "Error",
         "Failed to load available time slots. Please try again."
       );
-      console.error("Error loading slots:", error);
+      logger.error("Error loading slots:", error);
     } finally {
       setLoading(false);
     }
@@ -194,7 +195,7 @@ export default function AppointmentBookingForm({
       );
     } catch (error) {
       Alert.alert("Error", "Failed to book appointment. Please try again.");
-      console.error("Error booking appointment:", error);
+      logger.error("Error booking appointment:", error);
     } finally {
       setLoading(false);
     }

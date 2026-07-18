@@ -14,6 +14,7 @@ import {
   validateUserDataConsistency,
 } from "../utils/userDataUtils";
 
+import { logger } from "../utils/logger";
 interface UserInfo {
   sub: string;
   email: string;
@@ -54,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const authState = await SecureStore.getItemAsync("authState");
       return authState ? JSON.parse(authState) : null;
     } catch (error) {
-      console.error("Failed to retrieve auth state:", error);
+      logger.error("Failed to retrieve auth state:", error);
       return null;
     }
   };
@@ -64,14 +65,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await SecureStore.deleteItemAsync("authState");
     } catch (error) {
-      console.error("Failed to clear auth state:", error);
+      logger.error("Failed to clear auth state:", error);
     }
   };
 
   const refreshAuthState = async () => {
     try {
       setIsLoading(true);
-      console.log("AuthContext: Starting auth state refresh...");
+      logger.log("AuthContext: Starting auth state refresh...");
 
       // Wrap everything in an additional safety layer
       try {
@@ -81,22 +82,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         );
 
         // Use the enhanced validation that handles token refresh
-        console.log("AuthContext: Calling ensureValidAuth...");
+        logger.log("AuthContext: Calling ensureValidAuth...");
         const isValid = await ensureValidAuth();
-        console.log("AuthContext: ensureValidAuth result:", isValid);
+        logger.log("AuthContext: ensureValidAuth result:", isValid);
 
         if (isValid) {
-          console.log("AuthContext: Getting current user...");
+          logger.log("AuthContext: Getting current user...");
           const currentUser = await getCurrentUser();
-          console.log("AuthContext: Current user:", currentUser);
-          console.log("AuthContext: Current user sub (ID):", currentUser?.sub);
+          logger.log("AuthContext: Current user:", currentUser);
+          logger.log("AuthContext: Current user sub (ID):", currentUser?.sub);
 
           // Debug current user data consistency
           await debugUserIds();
           const isConsistent = await validateUserDataConsistency();
 
           if (!isConsistent) {
-            console.log(
+            logger.log(
               "AuthContext: User data inconsistency detected, clearing all data"
             );
             await clearAllUserData();
@@ -104,30 +105,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           // Clear any stored user data from previous sessions if the user ID has changed
           if (user && currentUser && user.sub !== currentUser.sub) {
-            console.log(
+            logger.log(
               "AuthContext: User ID changed, clearing stored user data"
             );
-            console.log("AuthContext: Previous user ID:", user.sub);
-            console.log("AuthContext: New user ID:", currentUser.sub);
+            logger.log("AuthContext: Previous user ID:", user.sub);
+            logger.log("AuthContext: New user ID:", currentUser.sub);
 
             await clearAllUserData();
           }
 
           setIsAuthenticatedState(true);
           setUser(currentUser);
-          console.log("Auth state valid/refreshed successfully");
+          logger.log("Auth state valid/refreshed successfully");
         } else {
-          console.log("AuthContext: Auth invalid, clearing state...");
+          logger.log("AuthContext: Auth invalid, clearing state...");
           setIsAuthenticatedState(false);
           setUser(null);
 
           // Also clear stored user data when auth is invalid
           await clearAllUserData();
 
-          console.log("Auth state invalid, user needs to re-authenticate");
+          logger.log("Auth state invalid, user needs to re-authenticate");
         }
       } catch (authError: any) {
-        console.error(
+        logger.error(
           "AuthContext: Auth operation failed silently:",
           authError?.message
         );
@@ -137,14 +138,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await clearAllUserData();
       }
     } catch (error: any) {
-      console.error("AuthContext: Critical error in refresh process:", error);
+      logger.error("AuthContext: Critical error in refresh process:", error);
       // Absolutely ensure we clear state on any error
       setIsAuthenticatedState(false);
       setUser(null);
       await clearAllUserData();
     } finally {
       setIsLoading(false);
-      console.log("AuthContext: Auth refresh completed, loading:", false);
+      logger.log("AuthContext: Auth refresh completed, loading:", false);
     }
   };
 
@@ -171,9 +172,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsAuthenticatedState(false);
 
-      console.log("Logout completed successfully");
+      logger.log("Logout completed successfully");
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error:", error);
 
       // Even if logout fails, clear local state to ensure user is logged out locally
       setUser(null);
@@ -189,7 +190,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       user?.roles && user.roles.length > 0
         ? user.roles[0]
         : user?.userType || null;
-    // console.log("AuthContext getUserRole:", {
+    // logger.log("AuthContext getUserRole:", {
     //   userRoles: user?.roles,
     //   userType: user?.userType,
     //   returnedRole: role,
@@ -202,7 +203,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const hasRole = (role: string): boolean => {
-    // console.log("hasRole check:", {
+    // logger.log("hasRole check:", {
     //   role,
     //   userRoles: user?.roles,
     //   userType: user?.userType,
@@ -211,12 +212,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     if (user?.roles) {
       const hasRoleResult = user.roles.includes(role);
-      //console.log("hasRole result (from roles array):", hasRoleResult);
+      //logger.log("hasRole result (from roles array):", hasRoleResult);
       return hasRoleResult;
     }
 
     const userTypeMatch = getUserType() === role;
-    //console.log("hasRole result (from userType):", userTypeMatch);
+    //logger.log("hasRole result (from userType):", userTypeMatch);
     return userTypeMatch;
   };
 

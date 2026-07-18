@@ -1,5 +1,6 @@
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
 
+import { logger } from "../utils/logger";
 // Types for user data
 export interface UserProfile {
   id: string;
@@ -81,7 +82,7 @@ export const userService = {
       const response = await apiRequestWithAuth(API_ENDPOINTS.USER_PROFILE);
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch user profile:", error);
+      logger.error("Failed to fetch user profile:", error);
       throw error;
     }
   },
@@ -92,7 +93,7 @@ export const userService = {
       const response = await apiRequestWithAuth(API_ENDPOINTS.USER_STATS);
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch user home stats:", error);
+      logger.error("Failed to fetch user home stats:", error);
       throw error;
     }
   },
@@ -114,7 +115,7 @@ export const userService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch user activities:", error);
+      logger.error("Failed to fetch user activities:", error);
       throw error;
     }
   },
@@ -136,7 +137,7 @@ export const userService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch user notifications:", error);
+      logger.error("Failed to fetch user notifications:", error);
       throw error;
     }
   },
@@ -150,7 +151,7 @@ export const userService = {
       });
       return response.data;
     } catch (error) {
-      console.error("Failed to update profile:", error);
+      logger.error("Failed to update profile:", error);
       throw error;
     }
   },
@@ -165,7 +166,7 @@ export const userService = {
         }
       );
     } catch (error) {
-      console.error("Failed to mark notification as read:", error);
+      logger.error("Failed to mark notification as read:", error);
       throw error;
     }
   },
@@ -180,7 +181,7 @@ export const userService = {
         }
       );
     } catch (error) {
-      console.error("Failed to mark all notifications as read:", error);
+      logger.error("Failed to mark all notifications as read:", error);
       throw error;
     }
   },
@@ -195,7 +196,7 @@ export const userService = {
         }
       );
     } catch (error) {
-      console.error("Failed to mark activity as read:", error);
+      logger.error("Failed to mark activity as read:", error);
       throw error;
     }
   },
@@ -208,7 +209,7 @@ export const userService = {
     role?: string;
   }> {
     try {
-      console.log("📞 Requesting Campaign Organizer role from backend...");
+      logger.log("📞 Requesting Campaign Organizer role from backend...");
       const response = await apiRequestWithAuth(
         API_ENDPOINTS.REQUEST_CAMPAIGN_ORGANIZER_ROLE,
         {
@@ -216,10 +217,10 @@ export const userService = {
         }
       );
       
-      console.log("✅ Role request response:", response);
+      logger.log("✅ Role request response:", response);
       return response.data || response;
     } catch (error: any) {
-      console.error("❌ Failed to request campaign organizer role:", error);
+      logger.error("❌ Failed to request campaign organizer role:", error);
       throw error;
     }
   },
