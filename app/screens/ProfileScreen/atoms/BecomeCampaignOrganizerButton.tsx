@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 import { userService } from "../../../services/userService";
 
@@ -41,12 +41,9 @@ const BecomeCampaignOrganizerButton: React.FC<
   const handleRequestRole = async () => {
     try {
       setIsLoading(true);
-      logger.log("🚀 Requesting Campaign Organizer role...");
 
       // Call backend to assign Asgardeo role
       const result = await userService.requestCampaignOrganizerRole();
-
-      logger.log("✅ Role assignment result:", result);
 
       if (result.success) {
         // Show success message with logout instruction

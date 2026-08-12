@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
 
 // Import refactored components
@@ -63,8 +63,7 @@ export default function CampaignDashboardScreen({
 
   const categorizeByStatus = (campaigns: CampaignType[]): CampaignSection => {
     const now = new Date();
-    logger.log('Current time:', now.toISOString(), '| Local:', now.toLocaleString());
-    
+
     const categorized: CampaignSection = {
       active: [],
       upcoming: [],
@@ -79,7 +78,6 @@ export default function CampaignDashboardScreen({
         campaign.status === 'cancelled';
         
       if (isCancelled) {
-        logger.log('Campaign:', campaign.title, '→ CANCELLED');
         categorized.cancelled.push(campaign);
         return;
       }
@@ -91,21 +89,11 @@ export default function CampaignDashboardScreen({
       const startTime = new Date(startTimeStr);
       const endTime = new Date(endTimeStr);
       
-      logger.log('Campaign:', campaign.title);
-      logger.log('  Start string:', campaign.startTime, '→ stripped:', startTimeStr);
-      logger.log('  End string:', campaign.endTime, '→ stripped:', endTimeStr);
-      logger.log('  Start parsed:', startTime.toISOString(), '| Local:', startTime.toLocaleString());
-      logger.log('  End parsed:', endTime.toISOString(), '| Local:', endTime.toLocaleString());
-      logger.log('  Now >= Start?', now >= startTime, '| Now <= End?', now <= endTime);
-
       if (now >= startTime && now <= endTime) {
-        logger.log('  → Categorized as ACTIVE');
         categorized.active.push(campaign);
       } else if (now < startTime) {
-        logger.log('  → Categorized as UPCOMING');
         categorized.upcoming.push(campaign);
       } else {
-        logger.log('  → Categorized as PREVIOUS');
         categorized.previous.push(campaign);
       }
     });
@@ -132,9 +120,7 @@ export default function CampaignDashboardScreen({
   const loadCampaigns = async () => {
     try {
       if (user?.sub) {
-        logger.log("Loading campaigns for user:", user.sub);
         const userCampaigns = await loadUserCampaigns(user.sub);
-        logger.log("Received campaigns:", userCampaigns);
 
         if (Array.isArray(userCampaigns)) {
           const categorized = categorizeByStatus(userCampaigns);
@@ -201,12 +187,8 @@ export default function CampaignDashboardScreen({
   };
 
   const handleDebugUserIds = async () => {
-    logger.log("=== MANUAL USER ID DEBUG TRIGGERED ===");
     await debugAllUserIds();
-    logger.log("Auth context user:", user);
-    logger.log("Auth context user.sub:", user?.sub);
 
-    logger.log("=== TESTING BACKEND ENDPOINTS ===");
     await testBackendEndpoints();
 
     Alert.alert(

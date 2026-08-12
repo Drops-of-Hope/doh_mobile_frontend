@@ -40,16 +40,12 @@ export const AuthHandler: React.FC<AuthHandlerProps> = ({
     setIsProcessingAuth(true);
     
     try {
-      logger.log('Processing auth data for user:', authData.email);
-      
       const userInfo = await processAuthUser(authData);
-      
+
       if (userInfo) {
         if (userInfo.needsProfileCompletion) {
-          logger.log('User needs profile completion');
           onProfileCompletion(userInfo.id);
         } else {
-          logger.log('User auth completed successfully');
           onAuthComplete(userInfo);
         }
       } else {

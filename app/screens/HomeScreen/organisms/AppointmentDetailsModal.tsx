@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal, View, ScrollView, StyleSheet, Alert, TouchableOpacity, Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import ModalHeader from "../molecules/ModalHeader";
 import ModalActions from "../molecules/ModalActions";
 import DetailRow from "../atoms/DetailRow";
@@ -31,7 +31,6 @@ export default function AppointmentDetailsModal({
           `ID: ${textToCopy}\n\nThis has been prepared for copying.`,
           [{ text: "OK" }]
         );
-        logger.log("Appointment ID ready to copy:", textToCopy);
       } catch (error) {
         Alert.alert("Error", "Failed to copy appointment ID");
       }

@@ -32,23 +32,9 @@ export function useMenuItemsConfig({
   const { t } = useLanguage();
   const { hasRole } = useAuth();
 
-  // Debug: Log the user's roles to help verify the conditional logic
   const isCampOrganizer = hasRole(USER_ROLES.CAMP_ORGANIZER);
   const isDonor = hasRole(USER_ROLES.DONOR);
   const isSelfSignup = hasRole(USER_ROLES.SELFSIGNUP);
-
-  logger.log("MenuItemsConfig: User roles check:", {
-    isCampOrganizer,
-    isDonor,
-    isSelfSignup,
-    campOrganizerRole: USER_ROLES.CAMP_ORGANIZER,
-  });
-
-  logger.log("MenuItemsConfig: Conditional logic result:", {
-    showCampaignDashboard: isCampOrganizer,
-    showBecomeOrganizer: !isCampOrganizer && (isDonor || isSelfSignup),
-    showNotifications: !isCampOrganizer && !(isDonor || isSelfSignup),
-  });
 
   const mainMenuItems = [
     {

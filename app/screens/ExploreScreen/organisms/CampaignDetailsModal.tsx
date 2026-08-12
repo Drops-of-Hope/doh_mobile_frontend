@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Campaign } from "../types";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 

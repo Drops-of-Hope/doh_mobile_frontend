@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import Button from "../../shared/atoms/Button";
 import DonationAdviceCarousel from "./DonationAdviceCarousel";
 import NICCard from "./NICCard";
@@ -8,7 +8,6 @@ import DonationTimerCard from "./DonationTimerCard";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 import { UserProfile } from "../types";
 
-import { logger } from "../../../utils/logger";
 interface QRSectionProps {
   userProfile: UserProfile | null;
   attendanceMarked: boolean;
@@ -40,17 +39,6 @@ export default function QRSection({
   retryCountdown = 0,
   onRetryPolling,
 }: QRSectionProps) {
-  // Debug log to see state
-  logger.log("🎯 QRSection render state:", {
-    attendanceMarked,
-    isPolling,
-    pollingComplete,
-    pollingAttempts,
-    qrScanned,
-    canRetry,
-    retryCountdown
-  });
-
   return (
     <View style={styles.container}>
       {!attendanceMarked ? (

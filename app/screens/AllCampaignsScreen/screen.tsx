@@ -98,9 +98,6 @@ export default function AllCampaignsScreen({
                   `You have successfully registered for "${campaign.title}".\n\nParticipation ID: ${result.participationId}\n\nYou will receive notifications with campaign updates and instructions.`,
                   [{ text: "OK" }]
                 );
-                
-                // Store registration locally for future reference
-                logger.log("Campaign registration details:", result.registrationDetails);
               } else {
                 Alert.alert(
                   "Registration Info",

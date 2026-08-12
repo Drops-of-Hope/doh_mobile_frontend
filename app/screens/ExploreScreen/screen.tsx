@@ -95,8 +95,6 @@ const ExploreScreen: React.FC = () => {
         });
       }
       
-      logger.log(`${campaignStatus} campaigns loaded from API:`, campaignsData.length);
-      
       // Client-side validation: filter campaigns by actual time to ensure correct categorization
       const now = new Date();
       const clientFilteredCampaigns = campaignsData.filter(campaign => {
@@ -108,29 +106,14 @@ const ExploreScreen: React.FC = () => {
         if (campaignStatus === "live") {
           // Live: started but not ended
           const isLive = now >= startTime && now <= endTime;
-          if (!isLive) {
-            logger.log(`⚠️ Filtering out non-live campaign: ${campaign.title}`, {
-              start: startTimeStr,
-              end: endTimeStr,
-              now: now.toISOString()
-            });
-          }
           return isLive;
         } else {
           // Upcoming: not started yet
           const isUpcoming = now < startTime;
-          if (!isUpcoming) {
-            logger.log(`⚠️ Filtering out non-upcoming campaign: ${campaign.title}`, {
-              start: startTimeStr,
-              now: now.toISOString()
-            });
-          }
           return isUpcoming;
         }
       });
-      
-      logger.log(`After client-side validation: ${clientFilteredCampaigns.length} campaigns`);
-      
+
       // Map service Campaign type to screen Campaign type and fetch participant count
       const mappedCampaigns = await Promise.all(
         clientFilteredCampaigns.map(async campaign => {
@@ -140,10 +123,9 @@ const ExploreScreen: React.FC = () => {
             const { count } = await campaignService.getCampaignParticipantCount(campaign.id);
             if (typeof count === "number" && count >= 0) {
               participantCount = count;
-              logger.log(`✅ Campaign ${campaign.id}: ${count} participants`);
             }
           } catch (e) {
-            logger.log("Could not fetch participant count for campaign:", campaign.id);
+            // Ignore error, fallback to default participant count
           }
           
           return {
@@ -168,9 +150,6 @@ const ExploreScreen: React.FC = () => {
       
       setCampaigns(mappedCampaigns);
       
-      if (campaignsData.length === 0) {
-        logger.log(`No ${campaignStatus} campaigns found`);
-      }
     } catch (error) {
       logger.error("Failed to load campaigns:", error);
       // Set empty array on error - show "No campaigns" message
@@ -212,7 +191,6 @@ const ExploreScreen: React.FC = () => {
             text: "Login", 
             onPress: () => {
               // Navigation to login would go here
-              logger.log("Navigate to login");
             }
           },
         ]
@@ -307,9 +285,6 @@ const ExploreScreen: React.FC = () => {
           } : c
         );
         setCampaigns(updatedCampaigns);
-        
-        // Store registration details for future reference
-        logger.log("Campaign registration details:", result.registrationDetails);
       } else {
         Alert.alert(
           "Registration Info",

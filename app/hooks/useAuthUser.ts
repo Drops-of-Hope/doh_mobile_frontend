@@ -45,13 +45,6 @@ export const useAuthUser = () => {
       await SecureStore.setItemAsync('userData', JSON.stringify(enhancedUserInfo));
       await SecureStore.setItemAsync('userAuthData', JSON.stringify(authData));
 
-      // Log the process for debugging
-      logger.log('User processing completed:', {
-        isNewUser: userResponse.isNewUser,
-        needsProfileCompletion: userResponse.needsProfileCompletion,
-        userId: authData.sub,
-      });
-
       return enhancedUserInfo;
     } catch (error: any) {
       logger.error('Error processing auth user:', error);
@@ -95,7 +88,6 @@ export const useAuthUser = () => {
       // Update stored user data
       await SecureStore.setItemAsync('userData', JSON.stringify(enhancedUserInfo));
 
-      logger.log('Profile completion successful for user:', userId);
       return enhancedUserInfo;
     } catch (error: any) {
       logger.error('Error completing user profile:', error);

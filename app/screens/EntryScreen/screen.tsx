@@ -15,7 +15,6 @@ export default function EntryScreen() {
   useEffect(() => {
     const checkSilentAuth = async () => {
       if (!isAuthenticated) {
-        logger.log("Checking for existing valid authentication...");
         // This will automatically handle token refresh if possible
         await refreshAuthState();
       }
@@ -27,13 +26,9 @@ export default function EntryScreen() {
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      logger.log("Starting authentication...");
-
       const authResult = await authenticate(false);
       if (authResult) {
-        logger.log("Authentication successful, refreshing state...");
         await refreshAuthState();
-        logger.log("Auth state refreshed successfully");
       }
     } catch (error) {
       logger.error("Authentication failed:", error);

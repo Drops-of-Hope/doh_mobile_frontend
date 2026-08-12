@@ -231,13 +231,6 @@ export const exploreService = {
             : campaign.isApproved === "ACCEPTED";
           
           const isLive = startTime <= now && endTime > now && campaign.isActive && isApproved;
-          if (isLive) {
-            logger.log(`✅ Live campaign found: ${campaign.title}`, {
-              startTime: startTimeStr,
-              endTime: endTimeStr,
-              now: new Date(now).toISOString()
-            });
-          }
           return isLive;
         });
 
@@ -294,7 +287,6 @@ export const exploreService = {
       }
 
       // If empty array or not an array, continue to fallbacks
-      logger.log("Primary endpoint returned empty or invalid data, trying fallbacks...");
       throw new Error("No campaigns found in primary endpoint");
     } catch (error) {
       logger.warn("Primary upcoming campaigns endpoint failed, attempting fallbacks...", error);
@@ -333,19 +325,16 @@ export const exploreService = {
           const res = await apiRequestWithAuth(url);
           const data = res?.data?.campaigns || res?.campaigns || res?.data || res;
           if (Array.isArray(data) && data.length > 0) {
-            logger.log(`Fallback successful: ${url} returned ${data.length} campaigns`);
             return data as Campaign[];
           }
         } catch (e) {
           // Continue to next fallback
-          logger.log(`Fallback failed: ${url}`, e);
         }
       }
 
       // 4) As a last resort: fetch all campaigns and filter on client
       // For development: show active campaigns even if they're in the past
       try {
-        logger.log("Attempting final fallback: fetching all campaigns...");
         const res = await apiRequestWithAuth(API_ENDPOINTS.CAMPAIGNS);
         const data = res?.data?.campaigns || res?.campaigns || res?.data || res;
         if (Array.isArray(data)) {
@@ -367,12 +356,6 @@ export const exploreService = {
                 : true;
               
               const isUpcoming = Number.isFinite(start) && start > now && active && approved;
-              if (isUpcoming) {
-                logger.log(`✅ Upcoming campaign found: ${c.title}`, {
-                  startTime: startTimeStr,
-                  now: new Date(now).toISOString()
-                });
-              }
               return isUpcoming;
             } catch {
               return false;
@@ -382,7 +365,6 @@ export const exploreService = {
           // If no upcoming campaigns, for development purposes, show all active campaigns
           // (even if in the past or pending approval)
           if (filtered.length === 0) {
-            logger.log("No truly upcoming campaigns found. Showing all active campaigns for development.");
             filtered = (data as any[]).filter((c) => {
               const active = c.isActive !== undefined ? !!c.isActive : true;
               return active;
@@ -406,8 +388,7 @@ export const exploreService = {
           // Apply limit if provided
           const limit = params?.limit ? Number(params.limit) : undefined;
           const result = limit ? filtered.slice(0, limit) : filtered;
-          
-          logger.log(`Final fallback: returning ${result.length} campaigns`);
+
           return result as Campaign[];
         }
       } catch (e) {

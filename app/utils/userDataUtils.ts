@@ -28,7 +28,6 @@ export const clearAllUserData = async (): Promise<void> => {
     );
 
     await Promise.all(deletePromises);
-    logger.log('All user data cleared successfully');
   } catch (error) {
     logger.error('Error clearing user data:', error);
     throw error;
@@ -41,36 +40,9 @@ export const clearAllUserData = async (): Promise<void> => {
  */
 export const debugUserIds = async (): Promise<void> => {
   try {
-    logger.log('=== USER ID DEBUG ===');
-    
-    // Check authState
-    const authState = await SecureStore.getItemAsync('authState');
-    if (authState) {
-      const parsed = JSON.parse(authState);
-      logger.log('AuthState user ID:', parsed.userInfo?.sub);
-    } else {
-      logger.log('No authState found');
-    }
-
-    // Check userData
-    const userData = await SecureStore.getItemAsync('userData');
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      logger.log('UserData user ID:', parsed.id);
-    } else {
-      logger.log('No userData found');
-    }
-
-    // Check userAuthData
-    const userAuthData = await SecureStore.getItemAsync('userAuthData');
-    if (userAuthData) {
-      const parsed = JSON.parse(userAuthData);
-      logger.log('UserAuthData user ID:', parsed.sub);
-    } else {
-      logger.log('No userAuthData found');
-    }
-
-    logger.log('=== END USER ID DEBUG ===');
+    await SecureStore.getItemAsync('authState');
+    await SecureStore.getItemAsync('userData');
+    await SecureStore.getItemAsync('userAuthData');
   } catch (error) {
     logger.error('Error debugging user IDs:', error);
   }
@@ -112,7 +84,6 @@ export const validateUserDataConsistency = async (): Promise<boolean> => {
     }
 
     if (userIds.length === 0) {
-      logger.log('No user data found - consistency check passed');
       return true;
     }
 
@@ -125,8 +96,6 @@ export const validateUserDataConsistency = async (): Promise<boolean> => {
       userIds.forEach(item => {
         logger.error(`- ${item.source}: ${item.id}`);
       });
-    } else {
-      logger.log(`User data consistent for user: ${firstId}`);
     }
 
     return isConsistent;

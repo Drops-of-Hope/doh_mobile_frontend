@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../../context/AuthContext";
@@ -102,20 +102,14 @@ export default function CampaignDetailsScreen({
       // Try to fetch live stats to ensure progress reflects latest counts
       try {
         const stats = await campaignService.getCampaignStats(campaignId!);
-        logger.log("📊 Campaign stats received:", stats);
         const merged: CampaignDetails = {
           ...transformedCampaign,
           // Prefer stats-provided numbers when available
           expectedDonors: stats.donationGoal || transformedCampaign.expectedDonors,
           actualDonors: stats.currentDonations ?? transformedCampaign.actualDonors,
         };
-        logger.log("✅ Merged campaign data:", {
-          expectedDonors: merged.expectedDonors,
-          actualDonors: merged.actualDonors,
-        });
         setCampaign(merged);
       } catch (e) {
-        logger.log("⚠️ Stats fetch failed, using campaign data only:", e);
         // If stats endpoint not available, proceed with transformed data
         setCampaign(transformedCampaign);
       }

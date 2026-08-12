@@ -11,7 +11,7 @@ import {
   Vibration,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { qrService, QRScanResult, AttendanceMarkResult } from "../../../services/qrService";
@@ -64,18 +64,13 @@ export default function QRScannerModal({
     Vibration.vibrate(100);
 
     try {
-      logger.log("🔍 QR SCAN DEBUG: Raw scanned data:", data);
-      logger.log("🔍 QR SCAN DEBUG: Data type:", typeof data);
-      logger.log("🔍 QR SCAN DEBUG: Data length:", data.length);
-
       let userId: string;
       let donorData: any = null;
 
       // Try to parse as JSON first (new format)
       try {
         const parsedData = JSON.parse(data);
-        logger.log("🔍 QR SCAN DEBUG: Successfully parsed as JSON:", parsedData);
-        
+
         // Check if it's the expected donor format: {name, email, uid, timestamp}
         if (parsedData.uid && parsedData.name && parsedData.email) {
           userId = parsedData.uid;
@@ -85,34 +80,22 @@ export default function QRScannerModal({
             uid: parsedData.uid,
             timestamp: parsedData.timestamp
           };
-          logger.log("🔍 QR SCAN DEBUG: Detected donor QR format, extracted userId:", userId);
-          logger.log("🔍 QR SCAN DEBUG: Donor data:", donorData);
         } else {
-          logger.log("🔍 QR SCAN DEBUG: JSON doesn't have expected donor format");
           throw new Error("Invalid QR format");
         }
       } catch (jsonError: any) {
-        logger.log("🔍 QR SCAN DEBUG: JSON parse failed, trying legacy format:", jsonError.message);
         // Fallback to old format - direct UUID string
         if (data && data.length >= 36) {
           userId = data;
-          logger.log("🔍 QR SCAN DEBUG: Using legacy UUID format:", userId);
         } else {
-          logger.log("🔍 QR SCAN DEBUG: Data too short for UUID:", data.length);
           throw new Error(t("qr_scanner.invalid_qr"));
         }
       }
 
       // Validate userId
       if (!userId) {
-        logger.log("🔍 QR SCAN DEBUG: No userId extracted");
         throw new Error(t("qr_scanner.invalid_qr"));
       }
-
-      logger.log("🔍 QR SCAN DEBUG: Final userId to send:", userId);
-      logger.log("🔍 QR SCAN DEBUG: campaignId:", campaignId);
-      logger.log("🔍 QR SCAN DEBUG: scanType:", scanType);
-      logger.log("🔍 QR SCAN DEBUG: donorData metadata:", donorData);
 
       const scanRequest = {
         qrData: userId, // Send only the user ID, not the full JSON
@@ -125,8 +108,6 @@ export default function QRScannerModal({
           donorInfo: donorData, // Include donor data in metadata if available
         },
       };
-
-      logger.log("🔍 QR SCAN DEBUG: Full request payload:", scanRequest);
 
       const scanResult = await qrService.scanQR(scanRequest);
 

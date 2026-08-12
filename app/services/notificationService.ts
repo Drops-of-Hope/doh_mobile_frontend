@@ -235,18 +235,10 @@ class NotificationService {
       
       const ws = new WebSocket(wsUrl);
       
-      ws.onopen = () => {
-        logger.log("Connected to notification stream");
-      };
-      
       ws.onerror = (error) => {
         logger.error("WebSocket error:", error);
       };
-      
-      ws.onclose = () => {
-        logger.log("Disconnected from notification stream");
-      };
-      
+
       return ws;
     } catch (error) {
       logger.error("Failed to subscribe to notifications:", error);
@@ -325,8 +317,6 @@ class NotificationService {
       if (filters?.limit) queryParams.append("limit", filters.limit.toString());
 
       const endpoint = `${API_ENDPOINTS.USER_NOTIFICATIONS}?${queryParams.toString()}`;
-      logger.log("🌐 Fetching notifications from:", endpoint);
-      logger.log("🌐 Filters:", JSON.stringify(filters));
 
       const response = await apiRequestWithAuth(
         endpoint,
@@ -334,10 +324,8 @@ class NotificationService {
           method: "GET",
         }
       );
-      
+
       // apiRequestWithAuth already returns the parsed JSON data directly
-      logger.log("🌐 Response data:", JSON.stringify(response, null, 2));
-      
       return response || { notifications: [], unreadCount: 0 };
     } catch (error) {
       logger.error("Failed to fetch user notifications:", error);
@@ -349,17 +337,11 @@ class NotificationService {
   // Get latest notification of a specific type
   async getLatestNotificationByType(userId: string, type: string): Promise<any | null> {
     try {
-      logger.log(`🔔 Getting latest notification for user ${userId}, type: ${type}`);
       const result = await this.getUserNotifications(userId, {
         type: [type],
         limit: 1,
       });
-      
-      logger.log(`🔔 Result notifications count: ${result.notifications.length}`);
-      if (result.notifications.length > 0) {
-        logger.log(`🔔 Latest notification:`, JSON.stringify(result.notifications[0], null, 2));
-      }
-      
+
       return result.notifications.length > 0 ? result.notifications[0] : null;
     } catch (error) {
       logger.error("Failed to fetch latest notification:", error);

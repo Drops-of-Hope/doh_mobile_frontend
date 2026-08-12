@@ -232,12 +232,10 @@ export const homeService = {
   // Get user eligibility status
   async getUserEligibility(): Promise<DonationEligibility> {
     try {
-      logger.log("🩸 Fetching user eligibility status...");
       const response = await apiRequestWithAuth(API_ENDPOINTS.USER_ELIGIBILITY);
-      
+
       const eligibility = response.data || response;
-      logger.log("✅ User eligibility data:", eligibility);
-      
+
       return eligibility;
     } catch (error) {
       logger.error("❌ Failed to fetch user eligibility:", error);
@@ -303,24 +301,10 @@ export const homeService = {
   // Get complete home screen data in one call
   async getHomeData(): Promise<HomeScreenData> {
     try {
-      logger.log("🏠 Fetching home data from API endpoint:", API_ENDPOINTS.HOME_DATA);
       const response = await apiRequestWithAuth(API_ENDPOINTS.HOME_DATA);
-      
-      logger.log("📊 Raw home data response structure:", {
-        hasData: !!response?.data,
-        hasUserStats: !!response?.data?.userStats || !!response?.userStats,
-        userStatsKeys: Object.keys(response?.data?.userStats || response?.userStats || {}),
-        fullResponse: response
-      });
-      
+
       // Ensure we have the data structure we expect
       let homeData = response.data || response;
-      
-      // Log todaysAppointment specifically
-      logger.log("📅 Today's Appointment Check:", {
-        hasTodaysAppointment: !!homeData.todaysAppointment,
-        todaysAppointment: homeData.todaysAppointment
-      });
 
       // Try to fetch authoritative stats from /home/stats and merge
       try {
@@ -349,14 +333,12 @@ export const homeService = {
           );
         }
       }
-      
-      logger.log("✅ Enhanced home data:", homeData);
+
       return homeData;
     } catch (error) {
       logger.error("❌ Failed to fetch home data:", error);
-      
+
       // If the API fails, try to get individual pieces of data
-      logger.log("🔄 Attempting to fetch data components individually...");
       try {
         const [userStats, upcomingAppointments, emergencies] = await Promise.allSettled([
           this.getUserStats(),
@@ -387,8 +369,6 @@ export const homeService = {
   // Enhance user stats with proper eligibility calculation
   async enhanceUserStatsWithEligibility(userStats: UserHomeStats): Promise<UserHomeStats> {
     try {
-      logger.log("🔍 Enhancing user stats with eligibility data:", userStats);
-      
       // Normalize nextEligibleDate from different possible field names
       const eligibleProvided = (userStats as any).__eligibleProvided === true;
       const hasEligibleFlag = eligibleProvided && typeof userStats.eligibleToDonate === "boolean";
@@ -397,7 +377,6 @@ export const homeService = {
       // If backend provided eligibleToDonate, trust it and only normalize nextEligibleDate
       if (hasEligibleFlag) {
         if (!userStats.nextEligibleDate && normalizedNextEligible) {
-          logger.log("📋 Normalizing nextEligibleDate from nextEligible:", normalizedNextEligible);
           userStats.nextEligibleDate = normalizedNextEligible;
         }
         return userStats;
@@ -409,10 +388,6 @@ export const homeService = {
         if (!isNaN(nextEligibleDateObj.getTime())) {
           const now = new Date();
           const isCurrentlyEligible = now >= nextEligibleDateObj;
-          logger.log("📅 Deriving eligibility from nextEligible:", {
-            normalizedNextEligible,
-            isCurrentlyEligible,
-          });
           userStats.eligibleToDonate = isCurrentlyEligible;
           userStats.nextEligibleDate = isCurrentlyEligible ? undefined : normalizedNextEligible;
           return userStats;
@@ -429,11 +404,6 @@ export const homeService = {
           );
           const now = new Date();
           const isEligible = now >= nextEligible;
-          logger.log("📅 Fallback eligibility calculation:", {
-            lastDonation: lastDonation.toISOString(),
-            nextEligible: nextEligible.toISOString(),
-            isEligible,
-          });
           userStats.eligibleToDonate = isEligible;
           userStats.nextEligibleDate = isEligible ? undefined : nextEligible.toISOString();
           return userStats;
@@ -471,23 +441,19 @@ export const homeService = {
   // Get user stats only
   async getUserStats(): Promise<UserHomeStats> {
     try {
-      logger.log("📈 Fetching user stats...");
       const response = await apiRequestWithAuth(API_ENDPOINTS.HOME_STATS);
-      
+
       let userStats = this.normalizeUserStats(response.data || response);
-      logger.log("📊 Raw user stats:", userStats);
-      
+
       // Enhance with eligibility calculation
       userStats = await this.enhanceUserStatsWithEligibility(userStats);
-      
-      logger.log("✅ Enhanced user stats:", userStats);
+
       return userStats;
     } catch (error) {
       logger.error("❌ Failed to fetch user stats:", error);
-      
+
       // Try alternative endpoint
       try {
-        logger.log("🔄 Trying alternative USER_STATS endpoint...");
         const response = await apiRequestWithAuth(API_ENDPOINTS.USER_STATS);
         let userStats = this.normalizeUserStats(response.data || response);
         userStats = await this.enhanceUserStatsWithEligibility(userStats);

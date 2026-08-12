@@ -149,13 +149,7 @@ class CampaignService {
   // Get campaigns for an organizer - STRICT mode: only returns campaigns organized by the specific user
   async getOrganizerCampaigns(organizerId: string): Promise<Campaign[]> {
     try {
-      logger.log(
-        "Fetching campaigns for organizer (STRICT mode):",
-        organizerId
-      );
-
       let response;
-      let usedEndpoint = "";
 
       // Try only organizer-specific endpoints - NO fallback to all campaigns
       const endpointsToTry = [
@@ -178,27 +172,17 @@ class CampaignService {
 
       for (const endpoint of endpointsToTry) {
         try {
-          logger.log(`Trying ${endpoint.name}: ${endpoint.url}`);
           response = await apiRequestWithAuth(endpoint.url, {
             method: "GET",
           });
 
-          logger.log(`✅ Success with ${endpoint.name}:`, response);
-          usedEndpoint = endpoint.name;
           break; // If successful, exit the loop
         } catch (error) {
-          logger.log(
-            `❌ Failed with ${endpoint.name}:`,
-            error instanceof Error ? error.message : error
-          );
           // Continue to next endpoint
         }
       }
 
       if (!response) {
-        logger.log(
-          "❌ All organizer-specific endpoints failed - returning empty array (no fallback)"
-        );
         return [];
       }
 
@@ -208,31 +192,12 @@ class CampaignService {
       // Check if response has campaigns directly (no .data wrapper)
       if (response && response.campaigns && Array.isArray(response.campaigns)) {
         campaignsData = response.campaigns;
-        logger.log(
-          `📋 Found ${campaignsData.length} campaigns in response.campaigns (direct)`
-        );
       }
       // Check if response.data exists and has campaigns
       else if (response && response.data) {
-        logger.log(
-          "🔍 PARSING DEBUG: response.data keys:",
-          Object.keys(response.data)
-        );
-        logger.log(
-          "🔍 PARSING DEBUG: response.data.campaigns exists:",
-          !!response.data.campaigns
-        );
-        logger.log(
-          "🔍 PARSING DEBUG: response.data.campaigns is array:",
-          Array.isArray(response.data.campaigns)
-        );
-
         // If response.data is an array
         if (Array.isArray(response.data)) {
           campaignsData = response.data;
-          logger.log(
-            `📋 Found ${campaignsData.length} campaigns in response.data`
-          );
         }
         // If response.data has a campaigns property
         else if (
@@ -240,9 +205,6 @@ class CampaignService {
           Array.isArray(response.data.campaigns)
         ) {
           campaignsData = response.data.campaigns;
-          logger.log(
-            `📋 Found ${campaignsData.length} campaigns in response.data.campaigns`
-          );
         }
         // If response.data has other array properties
         else if (
@@ -250,59 +212,21 @@ class CampaignService {
           Array.isArray(response.data.results)
         ) {
           campaignsData = response.data.results;
-          logger.log(
-            `📋 Found ${campaignsData.length} campaigns in response.data.results`
-          );
         } else {
-          logger.log(
-            "🔍 response.data structure:",
-            Object.keys(response.data)
-          );
           return [];
         }
       }
       // If response itself is an array
       else if (Array.isArray(response)) {
         campaignsData = response;
-        logger.log(
-          `📋 Response is direct array with ${campaignsData.length} campaigns`
-        );
       }
 
-      logger.log(
-        "🔍 FINAL DEBUG: campaignsData length:",
-        campaignsData.length
-      );
-      logger.log("🔍 FINAL DEBUG: campaignsData content:", campaignsData);
-
       if (campaignsData.length === 0) {
-        logger.log("📭 No campaigns found for this organizer");
         return [];
       }
 
-      // Log campaign details for debugging
-      logger.log("🔎 Campaign details:");
-      campaignsData.forEach((campaign, index) => {
-        // Handle both organizer as string and as object
-        let organizerInfo;
-        if (typeof campaign.organizer === "object" && campaign.organizer) {
-          const organizerId = campaign.organizer.id || campaign.organizerId;
-          organizerInfo = `object {id: ${organizerId}, name: ${campaign.organizer.name}, email: ${campaign.organizer.email}}`;
-        } else {
-          organizerInfo = campaign.organizer || campaign.organizerId;
-        }
-        logger.log(
-          `  ${index + 1}. ${campaign.title} (organizer: ${organizerInfo})`
-        );
-      });
-
       // Since we used organizer-specific endpoints, we can trust the API response
       // No need for additional filtering - the API already filtered by organizerId
-      logger.log(
-        `✅ Returning ${campaignsData.length} campaigns from organizer-specific endpoint`
-      );
-      logger.log("✅ Final result:", campaignsData);
-
       return campaignsData;
     } catch (error) {
       logger.error("❌ Failed to fetch organizer campaigns:", error);
@@ -356,8 +280,7 @@ class CampaignService {
         currentDonations: campaignData.actualDonors || 0,
         donationGoal: campaignData.expectedDonors || 0,
       };
-      
-      logger.log("Transformed campaign stats:", transformedStats);
+
       return transformedStats;
     } catch (error) {
       logger.error("Failed to fetch campaign stats:", error);
@@ -468,8 +391,6 @@ class CampaignService {
         }
       );
 
-      logger.log("API Response data:", apiData);
-
       if (!apiData || !apiData.id) {
         throw new Error("Invalid campaign data received from API");
       }
@@ -535,7 +456,6 @@ class CampaignService {
         additionalNotes: "",
       };
 
-      logger.log("Transformed campaign:", transformedCampaign);
       return transformedCampaign;
     } catch (error) {
       logger.error("Failed to get campaign details:", error);
@@ -726,8 +646,6 @@ class CampaignService {
     };
   }> {
     try {
-      logger.log("🏥 Joining campaign:", campaignId, "with data:", registrationData);
-      
       const payload = {
         campaignId,
         contactNumber: registrationData?.contactNumber || "",
@@ -745,8 +663,6 @@ class CampaignService {
         }
       );
 
-      logger.log("✅ Campaign registration successful:", response);
-      
       return {
         success: true,
         participationId: response.data?.participationId || response.data?.id,
@@ -798,17 +714,13 @@ class CampaignService {
     registeredAt?: string;
   }> {
     try {
-      logger.log("🔍 Checking participation status for campaign:", campaignId);
-      
       const response = await apiRequestWithAuth(
         API_ENDPOINTS.CAMPAIGN_PARTICIPATION_STATUS.replace(":id", campaignId),
         {
           method: "GET",
         }
       );
-      
-      logger.log("✅ Participation status response:", response);
-      
+
       return {
         isRegistered: response.data?.isRegistered || false,
         participationId: response.data?.participationId,
@@ -831,17 +743,13 @@ class CampaignService {
     message: string;
   }> {
     try {
-      logger.log("🚪 Leaving campaign:", campaignId);
-      
       const response = await apiRequestWithAuth(
         API_ENDPOINTS.LEAVE_CAMPAIGN.replace(":id", campaignId),
         {
           method: "DELETE",
         }
       );
-      
-      logger.log("✅ Successfully left campaign:", response);
-      
+
       return {
         success: true,
         message: response.data?.message || "Successfully unregistered from campaign",
@@ -857,7 +765,6 @@ class CampaignService {
     campaignId: string
   ): Promise<{ success: boolean; count: number }> {
     try {
-      logger.log("📊 Fetching participant count for campaign:", campaignId);
       const response = await apiRequestWithAuth(
         API_ENDPOINTS.CAMPAIGN_PARTICIPATION_STATUS.replace(":id", campaignId),
         { method: "GET" }
@@ -872,7 +779,6 @@ class CampaignService {
           : 0;
 
       const success = Boolean(response?.success);
-      logger.log("📊 Participant count response:", { success, count });
 
       return { success, count };
     } catch (error) {
