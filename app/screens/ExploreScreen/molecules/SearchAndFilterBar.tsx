@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import SearchBar from "../atoms/SearchBar";
 import FilterButton from "../atoms/FilterButton";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";

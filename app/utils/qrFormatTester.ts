@@ -1,9 +1,5 @@
-import { logger } from "./logger";
 // QR Data Format Testing Utility
 export const testQRFormats = (originalData: string) => {
-  logger.log("🧪 TESTING QR FORMATS:");
-  logger.log("Original scanned data:", originalData);
-  
   // Test different formats the backend might expect
   const testFormats = [
     // Format 1: Direct UUID
@@ -21,10 +17,6 @@ export const testQRFormats = (originalData: string) => {
     // Format 5: Base64 encoded
     btoa(originalData),
   ];
-  
-  testFormats.forEach((format, index) => {
-    logger.log(`Format ${index + 1}:`, format);
-  });
   
   return testFormats;
 };

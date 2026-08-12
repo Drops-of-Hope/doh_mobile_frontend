@@ -96,10 +96,22 @@ android {
         versionName "1.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
-        
+
         manifestPlaceholders = [
             appAuthRedirectScheme: 'com.dropsofhope'
         ]
+
+        // The React Native Gradle Plugin only applies `reactNativeArchitectures`
+        // (from gradle.properties) to `ndk.abiFilters` when the New Architecture
+        // is enabled (see NdkConfiguratorUtils.kt: "For Old Arch, we don't need
+        // to setup the NDK"). This project runs Old Architecture (newArchEnabled=
+        // false), so without this explicit filter every prebuilt .so dependency
+        // (react-android, hermes-android, expo modules, etc.) ships for all 4
+        // ABIs regardless of the property. Set it directly to match.
+        ndk {
+            abiFilters.clear()
+            abiFilters.addAll(reactNativeArchitectures.split(",").collect { it.trim() })
+        }
     }
     signingConfigs {
         debug {

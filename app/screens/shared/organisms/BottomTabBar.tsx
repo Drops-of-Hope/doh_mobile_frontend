@@ -6,7 +6,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTabsConfig } from "../molecules/BottomTabBar/TabsConfig";
 import TabItem from "../atoms/BottomTabBar/TabItem";
 
-import { logger } from "../../../utils/logger";
 // NativeWind components
 const StyledView = styled(View);
 
@@ -50,7 +49,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab = "home" }) => {
         navigation.navigate("Profile");
         break;
       default:
-        logger.log(`Navigation to ${route} not implemented`);
+        break;
     }
   };
 

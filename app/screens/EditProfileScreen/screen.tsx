@@ -65,9 +65,7 @@ export default function EditProfileScreen({
         setIsLoading(true);
         
         // Fetch full user profile from backend
-        logger.log("📥 Fetching user profile from backend...");
         const userProfile = await userService.getUserProfile();
-        logger.log("✅ User profile received:", userProfile);
 
         if (userProfile) {
           // Split name into first and last

@@ -97,18 +97,15 @@ export default function NotificationsScreen({
     switch (notification.type) {
       case "emergency":
         // Navigate to emergency details or donation flow
-        logger.log("Navigate to emergency donation");
         break;
       case "appointment":
         // Navigate to appointment details
-        logger.log("Navigate to appointment details");
         break;
       case "campaign":
         // Navigate to campaign details
-        logger.log("Navigate to campaign details");
         break;
       default:
-        logger.log("Notification opened:", notification.title);
+        break;
     }
   };
 

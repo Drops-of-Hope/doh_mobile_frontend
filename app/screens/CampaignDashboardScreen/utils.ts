@@ -15,12 +15,8 @@ export const loadUserCampaigns = async (
       return [];
     }
 
-    logger.log('Loading campaigns for database user ID:', databaseUserId);
-    logger.log('Original userId parameter was:', userId);
-    
     const campaigns = await campaignService.getOrganizerCampaigns(databaseUserId);
-    logger.log("Loaded campaigns:", campaigns);
-    
+
     // Ensure we always return an array
     if (!campaigns || !Array.isArray(campaigns)) {
       logger.warn("Invalid campaigns data received:", campaigns);

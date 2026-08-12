@@ -39,7 +39,11 @@ import {
   validateUserDataConsistency,
   clearAllUserData,
 } from "../../utils/userDataUtils";
+import { getDatabaseUserId } from "../../utils/userIdUtils";
+import { badgeService } from "../../services/badgeService";
 import { COLORS, SPACING } from "../../../constants/theme";
+import { EMERGENCY_RESPONDER_BADGE_DISPLAY } from "../../../constants/badgeDisplay";
+import BadgeChip from "../shared/atoms/BadgeChip";
 
 // Import the profile completion screen
 import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
@@ -73,10 +77,29 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [hasEmergencyResponderBadge, setHasEmergencyResponderBadge] = useState(false);
 
   useEffect(() => {
     loadUserData();
   }, [user]);
+
+  useEffect(() => {
+    const loadAchievements = async () => {
+      try {
+        const databaseUserId = await getDatabaseUserId();
+        if (!databaseUserId) return;
+
+        const badgeInfo = await badgeService.getBadgeInfo(databaseUserId);
+        setHasEmergencyResponderBadge(badgeInfo.emergencyResponderBadge);
+      } catch (error) {
+        logger.error("ProfileScreen: Failed to load achievements:", error);
+      }
+    };
+
+    if (!isLoadingProfile) {
+      loadAchievements();
+    }
+  }, [isLoadingProfile]);
 
   // New effect to handle auth user processing
   useEffect(() => {
@@ -89,8 +112,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           if (!storedUserData) {
             // User is authenticated but not in our database
             // Process the auth user (create or login)
-            logger.log("🔄 Processing auth user for database creation...");
-            logger.log("👤 User data from AuthContext:", user);
 
             // Transform user data to the format expected by processAuthUser
             const authData = {
@@ -105,11 +126,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               username: user.username || user.email,
             };
 
-            logger.log("📡 Sending auth data to backend:", authData);
-
             try {
-              const result = await processAuthUser(authData);
-              logger.log("✅ Backend response:", result);
+              await processAuthUser(authData);
 
               // After processing, reload user data which will trigger profile completion if needed
               await loadUserData();
@@ -134,35 +152,22 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       setIsLoadingProfile(true);
 
       if (user) {
-        logger.log("ProfileScreen: Loading user data for user ID:", user.sub);
-        logger.log("ProfileScreen: Current user from AuthContext:", user);
-
         // Debug user data consistency
         await debugUserIds();
         const isConsistent = await validateUserDataConsistency();
 
         if (!isConsistent) {
-          logger.log(
-            "ProfileScreen: User data inconsistency detected, clearing all data"
-          );
           await clearAllUserData();
 
           // Set basic loading state - user needs to complete profile or re-authenticate
-          logger.log("ProfileScreen: Data cleared, showing profile completion");
           setShowProfileCompletion(true);
           return;
         }
 
         // First, get stored user data from auth service
         const storedUserData = await getStoredUserData();
-        logger.log("ProfileScreen: Stored user data:", storedUserData);
 
         if (storedUserData) {
-          logger.log(
-            "ProfileScreen: Using stored user data for user ID:",
-            storedUserData.id
-          );
-
           // Verify the stored data matches the current authenticated user
           if (storedUserData.id !== user.sub) {
             logger.warn("ProfileScreen: Stored user data ID mismatch!");
@@ -174,7 +179,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             await clearAllUserData();
 
             // Show profile completion for user to re-authenticate or complete profile
-            logger.log("ProfileScreen: Data mismatch cleared, showing profile completion");
             setShowProfileCompletion(true);
             return;
           }
@@ -183,13 +187,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           const needsCompletion = !storedUserData.isProfileComplete;
 
           if (needsCompletion) {
-            logger.log("ProfileScreen: Profile needs completion");
             setShowProfileCompletion(true);
             return;
           }
 
           // Update userData with real data
-          logger.log("ProfileScreen: Setting user data from stored data");
           setUserData({
             name: storedUserData.name,
             email: storedUserData.email,
@@ -200,7 +202,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             membershipType: getRoleMembershipType(userRole),
           });
         } else {
-          logger.log("ProfileScreen: No stored user data, need profile completion");
           // Show profile completion screen if no stored data
           setShowProfileCompletion(true);
         }
@@ -209,7 +210,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       logger.error("ProfileScreen: Error loading user data:", error);
       // Show profile completion on error
       if (user) {
-        logger.log("ProfileScreen: Error occurred, showing profile completion");
         setShowProfileCompletion(true);
       }
     } finally {
@@ -286,9 +286,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   // Handler for successful campaign organizer role assignment
   const handleCampaignOrganizerSuccess = async () => {
-    logger.log("🎉 Campaign Organizer role assigned successfully!");
-    logger.log("🚪 Logging out user to refresh roles...");
-    
     // Directly call logout without confirmation since user already confirmed
     try {
       await logout();
@@ -340,13 +337,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       {showProfileCompletion ? (
         <ProfileCompletionScreen
           userId={user?.sub || ""}
-          onComplete={(userInfo) => {
-            logger.log("🎉 Profile completion successful:", userInfo);
+          onComplete={() => {
             setShowProfileCompletion(false);
             loadUserData(); // Reload data after profile completion
           }}
           onSkip={() => {
-            logger.log("⏭️ Profile completion skipped");
             setShowProfileCompletion(false);
           }}
         />
@@ -367,6 +362,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               userData={userData}
               onEditProfile={handleEditProfile}
             />
+
+            {hasEmergencyResponderBadge && (
+              <View style={styles.achievementsSection}>
+                <Text style={styles.achievementsTitle}>Achievements</Text>
+                <BadgeChip
+                  icon={EMERGENCY_RESPONDER_BADGE_DISPLAY.icon}
+                  label={EMERGENCY_RESPONDER_BADGE_DISPLAY.label}
+                  color={EMERGENCY_RESPONDER_BADGE_DISPLAY.color}
+                />
+              </View>
+            )}
 
             <MenuSection
               title="Account"
@@ -427,5 +433,15 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 100,
+  },
+  achievementsSection: {
+    paddingHorizontal: SPACING.MD,
+    marginBottom: SPACING.SM,
+  },
+  achievementsTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: SPACING.XS,
   },
 });

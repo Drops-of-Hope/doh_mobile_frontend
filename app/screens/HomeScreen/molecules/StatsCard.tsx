@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import StatsNumber from "../atoms/StatsNumber";
 import StatusIndicator from "../atoms/StatusIndicator";
 import { useLanguage } from "../../../context/LanguageContext";

@@ -9,7 +9,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 
 // Import components
@@ -19,6 +19,7 @@ import QRScannerModal from "../shared/organisms/QRScannerModal";
 // Import services
 import { campaignService } from "../../services/campaignService";
 import { qrService, QRScanResult } from "../../services/qrService";
+import { badgeService } from "../../services/badgeService";
 
 // Import context
 import { useAuth } from "../../context/AuthContext";
@@ -26,6 +27,8 @@ import { useLanguage } from "../../context/LanguageContext";
 
 // Import utilities
 import { getDatabaseUserId } from "../../utils/userIdUtils";
+import { ORGANIZER_BADGE_DISPLAY } from "../../../constants/badgeDisplay";
+import BadgeChip from "../shared/atoms/BadgeChip";
 
 import { logger } from "../../utils/logger";
 interface CampaignOrganizerDashboardProps {
@@ -47,6 +50,7 @@ export default function CampaignOrganizerDashboard({
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [myCampaigns, setMyCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [organizerBadge, setOrganizerBadge] = useState<{ label: string; color: string; icon: string } | null>(null);
 
   const { user, hasRole } = useAuth();
   const { t } = useLanguage();
@@ -67,7 +71,23 @@ export default function CampaignOrganizerDashboard({
     }
 
     loadMyCampaigns();
+    loadOrganizerBadge();
   }, []);
+
+  const loadOrganizerBadge = async () => {
+    try {
+      const databaseUserId = await getDatabaseUserId();
+      if (!databaseUserId) return;
+
+      const badgeInfo = await badgeService.getOrganizerBadgeInfo(databaseUserId);
+      const display = ORGANIZER_BADGE_DISPLAY[badgeInfo.currentBadge.badge];
+      if (display) {
+        setOrganizerBadge(display);
+      }
+    } catch (error) {
+      logger.error("Failed to load organizer badge:", error);
+    }
+  };
 
   const loadMyCampaigns = async () => {
     try {
@@ -78,18 +98,13 @@ export default function CampaignOrganizerDashboard({
 
       if (!databaseUserId) {
         logger.warn("No database user ID available for campaign retrieval");
-        logger.log("Auth user sub for reference:", user?.sub);
         setMyCampaigns([]);
         return;
       }
 
-      logger.log("Loading campaigns for database user ID:", databaseUserId);
-      logger.log("Auth user sub for reference:", user?.sub);
-
       const campaigns = await campaignService.getOrganizerCampaigns(
         databaseUserId
       );
-      logger.log("Received campaigns:", campaigns);
 
       // Ensure we have an array
       const campaignArray = Array.isArray(campaigns) ? campaigns : [];
@@ -160,6 +175,16 @@ export default function CampaignOrganizerDashboard({
             <Text style={styles.headerSubtitle}>
               {selectedCampaign?.title || t("dashboard.no_campaign_selected")}
             </Text>
+            {organizerBadge && (
+              <View style={styles.organizerBadgeContainer}>
+                <BadgeChip
+                  icon={organizerBadge.icon as any}
+                  label={organizerBadge.label}
+                  color="#FFFFFF"
+                  size="small"
+                />
+              </View>
+            )}
           </View>
 
           <TouchableOpacity style={styles.menuButton}>
@@ -291,6 +316,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.8)",
     marginTop: 2,
+  },
+  organizerBadgeContainer: {
+    marginTop: 8,
   },
   menuButton: {
     padding: 8,

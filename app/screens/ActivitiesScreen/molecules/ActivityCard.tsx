@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import StatusBadge from "../atoms/StatusBadge";
 import InfoRow from "../atoms/InfoRow";
 import DetailRow from "../atoms/DetailRow";

@@ -70,25 +70,14 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
   // Load user appointments
   const loadUserAppointments = async () => {
     if (!userProfile?.id) {
-      logger.log("⚠️ No user profile ID available, skipping appointment load");
       return;
     }
-    
+
     try {
       setAppointmentsLoading(true);
-      logger.log("📅 ============ LOADING APPOINTMENTS ============");
-      logger.log("📅 User ID:", userProfile.id);
-      logger.log("📅 Calling getUserAppointments...");
-      
+
       const appointmentData = await getUserAppointments(userProfile.id);
-      
-      logger.log("📅 ============ APPOINTMENTS LOADED ============");
-      logger.log("📅 Upcoming count:", appointmentData.upcoming.length);
-      logger.log("📅 History count:", appointmentData.history.length);
-      logger.log("📅 Upcoming appointments:", JSON.stringify(appointmentData.upcoming, null, 2));
-      logger.log("📅 History appointments:", JSON.stringify(appointmentData.history, null, 2));
-      logger.log("📅 ============================================\n");
-      
+
       setAppointments(appointmentData);
     } catch (error) {
       logger.error("❌ Error loading user appointments:", error);
@@ -120,25 +109,16 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
   // Polling function to check for attendance notification
   const pollForAttendanceNotification = async () => {
     if (!userProfile?.id) {
-      logger.log("⚠️ No user ID available for polling");
       return false;
     }
 
     try {
-      logger.log(`🔍 Polling attempt ${pollingAttempts + 1}/3 for attendance notification`);
-      logger.log(`🔍 User ID: ${userProfile.id}`);
-      
       const notification = await notificationService.getLatestNotificationByType(
         userProfile.id,
         "DONATION_ELIGIBLE"
       );
-      
-      logger.log("📬 Notification received:", JSON.stringify(notification, null, 2));
-      logger.log("📬 Notification type:", notification?.type);
-      logger.log("📬 Notification title:", notification?.title);
-      
+
       if (notification && notification.title === "QR scanned") {
-        logger.log("✅ Attendance notification found!", notification);
         setAttendanceMarked(true);
         setQrScanned(true);
         setIsPolling(false);
@@ -151,16 +131,8 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
         }
         
         return true;
-      } else {
-        logger.log("❌ Notification not found or doesn't match criteria");
-        if (notification) {
-          logger.log(`   - Has notification: YES`);
-          logger.log(`   - Title match: ${notification.title} === "QR scanned" ? ${notification.title === "QR scanned"}`);
-        } else {
-          logger.log(`   - Has notification: NO`);
-        }
       }
-      
+
       return false;
     } catch (error) {
       logger.error("❌ Error polling for notification:", error);
@@ -170,7 +142,6 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
 
   // Start polling after QR shown
   const startPolling = () => {
-    logger.log("🚀 Starting attendance polling (3 attempts, 3s intervals)");
     setIsPolling(true);
     setPollingAttempts(0);
     setPollingComplete(false);
@@ -190,7 +161,6 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
       pollingIntervalRef.current = setInterval(async () => {
         if (attempts >= maxAttempts) {
           // Polling failed, enable retry
-          logger.log("⏱️ Polling complete - no notification found");
           setIsPolling(false);
           setPollingComplete(true);
           startRetryCountdown();
@@ -294,9 +264,6 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
   // Handle route parameters (e.g., opening form from TodaysAppointmentCard)
   useEffect(() => {
     if (route?.params?.openBloodDonationForm) {
-      logger.log("📋 Opening blood donation form from route params");
-      logger.log("📋 Appointment ID:", route.params.appointmentId);
-      
       // Store the appointmentId in state
       if (route.params.appointmentId) {
         setCurrentAppointmentId(route.params.appointmentId);
@@ -321,7 +288,6 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
       );
       return;
     }
-    logger.log("📱 Opening QR Modal for user:", userProfile?.id);
     setShowQRModal(true);
   };
 
@@ -357,10 +323,7 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
     setShowQRModal(false);
     // Only start polling if we haven't already started or completed polling
     if (!isPolling && !pollingComplete && !attendanceMarked) {
-      logger.log("🔔 QR Modal closed, starting polling...");
       startPolling();
-    } else {
-      logger.log("⏭️ QR Modal closed, but polling already in progress or completed");
     }
   };
 

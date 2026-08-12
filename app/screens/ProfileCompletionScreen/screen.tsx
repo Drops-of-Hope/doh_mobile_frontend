@@ -93,9 +93,6 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
   ];
 
   const handleComplete = async () => {
-    logger.log("Starting profile completion...");
-    logger.log("User ID being sent to backend:", userId);
-    
     // Comprehensive validation using ValidationUtils
     const formData = {
       nic,
@@ -129,12 +126,8 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
         phoneNumber: phoneNumber ? ValidationUtils.cleanPhoneNumber(phoneNumber) : undefined,
         emergencyContact: emergencyContact ? ValidationUtils.cleanPhoneNumber(emergencyContact) : undefined,
       };
-      
-      logger.log("Profile data being sent:", profileData);
-      
+
       const userInfo = await completeUserProfile(userId, profileData);
-      
-      logger.log("Profile completion response:", userInfo);
 
       if (userInfo) {
         Alert.alert('Success', 'Profile completed successfully!', [

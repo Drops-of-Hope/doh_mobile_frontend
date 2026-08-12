@@ -37,28 +37,22 @@ export default function UpcomingAppointmentScreen({
 
   const loadUserAppointments = async () => {
     if (!user?.id && !user?.sub) {
-      logger.log("⚠️ No user ID available");
       return;
     }
-    
+
     try {
       setLoading(true);
       const userId = user.id || user.sub;
-      logger.log("🔍 Loading appointments for user:", userId);
-      
+
       const userAppointments = await appointmentService.getUserAppointments(userId);
-      logger.log("📅 Raw appointments from API:", userAppointments);
-      
+
       if (!userAppointments || userAppointments.length === 0) {
-        logger.log("📅 No appointments found");
         setAppointments([]);
         return;
       }
-      
+
       // Transform backend appointments to screen format
       const transformedAppointments: Appointment[] = userAppointments.map(apt => {
-        logger.log("🔄 Transforming appointment:", apt);
-        
         return {
           id: apt.id,
           hospital: "Medical Center", // TODO: Get from medical establishment
@@ -75,8 +69,7 @@ export default function UpcomingAppointmentScreen({
           notes: `Appointment ID: ${apt.id}` // Include appointment ID for reference
         };
       });
-      
-      logger.log("✅ Transformed appointments:", transformedAppointments);
+
       setAppointments(transformedAppointments);
     } catch (error) {
       logger.error("❌ Failed to load appointments:", error);
@@ -131,7 +124,6 @@ export default function UpcomingAppointmentScreen({
 
   const handleBookAppointment = () => {
     // Navigate to booking screen or show booking modal
-    logger.log("Book appointment pressed");
   };
 
   const handleBack = () => {
@@ -140,7 +132,6 @@ export default function UpcomingAppointmentScreen({
 
   const handleAdd = () => {
     // Navigate to add appointment screen
-    logger.log("Add appointment pressed");
   };
 
   const { upcomingAppointments, pastAppointments } =

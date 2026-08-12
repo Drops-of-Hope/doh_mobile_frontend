@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Text, ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, Alert } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import AppointmentCard from "../molecules/AppointmentCard";
 import AppointmentDetailsModal from "../organisms/AppointmentDetailsModal";
 import NoticeCard from "../atoms/NoticeCard";

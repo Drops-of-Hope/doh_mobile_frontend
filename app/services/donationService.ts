@@ -188,8 +188,6 @@ export const donationService = {
       transformedPayload.donorId = userIdToSend;
     }
 
-    logger.log("Submitting donation form with payload:", transformedPayload);
-
     return apiRequestWithAuth(API_ENDPOINTS.DONATION_FORM, {
       method: "POST",
       body: JSON.stringify(transformedPayload),

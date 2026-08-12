@@ -8,7 +8,7 @@ import {
   StatusBar,
   StyleSheet,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 
 interface EligibilityCheck {

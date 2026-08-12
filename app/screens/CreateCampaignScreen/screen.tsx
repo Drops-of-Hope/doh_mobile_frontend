@@ -64,39 +64,33 @@ export default function CreateCampaignScreen({
   const loadMedicalEstablishments = async () => {
     try {
       setLoadingEstablishments(true);
-      logger.log("Loading medical establishments...");
       let allEstablishments: MedicalEstablishment[] = [];
-      
+
       // Try to load from API first
       try {
         const establishments = await appointmentService.getMedicalEstablishmentsByDistrict(District.COLOMBO);
-        logger.log("Loaded establishments from API:", establishments);
         allEstablishments = establishments;
       } catch (apiError) {
-        logger.log("API call failed, trying to load all establishments...");
-        
         // Try different districts
         const districts = [District.COLOMBO, District.KANDY, District.GALLE, District.GAMPAHA];
-        
+
         for (const district of districts) {
           try {
             const establishments = await appointmentService.getMedicalEstablishmentsByDistrict(district);
             allEstablishments.push(...establishments);
           } catch (districtError) {
-            logger.log(`Failed to load from ${district}:`, districtError);
+            // Ignore and continue trying other districts
           }
         }
       }
-      
+
       // If we got some establishments, use them
       if (allEstablishments.length > 0) {
-        logger.log("Successfully loaded establishments:", allEstablishments.length);
         setMedicalEstablishments(allEstablishments);
         return;
       }
-      
+
       // No establishments found
-      logger.log("No medical establishments found");
       setMedicalEstablishments([]);
     } catch (error) {
       logger.error("Failed to load medical establishments:", error);
@@ -217,9 +211,6 @@ export default function CreateCampaignScreen({
         return;
       }
 
-      logger.log('Creating campaign with database user ID:', databaseUserId);
-      logger.log('Auth sub was:', user?.sub);
-
       // Create date string in YYYY-MM-DD format
       const dateStr = `${formData.year}-${formData.month.padStart(2, '0')}-${formData.day.padStart(2, '0')}`;
       
@@ -227,14 +218,7 @@ export default function CreateCampaignScreen({
       // Store as ISO string but in local time (no UTC conversion)
       const startDateTime = `${dateStr}T${formData.startTime}:00`;
       const endDateTime = `${dateStr}T${formData.endTime}:00`;
-      
-      logger.log('Creating campaign with:');
-      logger.log('  Date:', dateStr);
-      logger.log('  Start Time:', formData.startTime);
-      logger.log('  End Time:', formData.endTime);
-      logger.log('  Full Start DateTime:', startDateTime);
-      logger.log('  Full End DateTime:', endDateTime);
-      
+
       const campaignData = {
         title: formData.title.trim(),
         type: formData.type as "MOBILE" | "FIXED",
@@ -251,8 +235,6 @@ export default function CreateCampaignScreen({
         isApproved: false,
         requirements: formData.requirements ? { notes: formData.requirements.trim() } : {},
       };
-
-      logger.log('Campaign data being sent:', campaignData);
 
       await campaignService.createCampaign(campaignData);
       

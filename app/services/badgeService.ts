@@ -26,6 +26,33 @@ export interface BadgeInfo {
     gradient: string[];
     description: string;
   }>;
+  emergencyResponderBadge: boolean;
+}
+
+export interface OrganizerBadgeInfo {
+  currentBadge: {
+    name: string;
+    color: string;
+    icon: string;
+    gradient: string[];
+    description: string;
+    badge: string;
+  };
+  nextBadge: {
+    nextTier: string;
+    campaignsNeeded: number;
+    threshold: number;
+  } | null;
+  completedCampaigns: number;
+  allBadges: Array<{
+    tier: string;
+    threshold: number;
+    name: string;
+    color: string;
+    icon: string;
+    gradient: string[];
+    description: string;
+  }>;
 }
 
 export interface DonationStatsUpdate {
@@ -49,7 +76,7 @@ export const badgeService = {
   async getBadgeInfo(userId: string): Promise<BadgeInfo> {
     try {
       const response = await apiRequestWithAuth(
-        `${API_ENDPOINTS.USER_PROFILE}/${userId}/badge-info`,
+        `${API_ENDPOINTS.USERS}/${userId}/badge-info`,
         {
           method: "GET",
         }
@@ -66,11 +93,32 @@ export const badgeService = {
     }
   },
 
+  // Get campaign-organizer badge information for a user
+  async getOrganizerBadgeInfo(userId: string): Promise<OrganizerBadgeInfo> {
+    try {
+      const response = await apiRequestWithAuth(
+        `${API_ENDPOINTS.USERS}/${userId}/organizer-badge-info`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (response.data) {
+        return response.data;
+      }
+
+      throw new Error("No organizer badge data received");
+    } catch (error) {
+      logger.error("Failed to fetch organizer badge info:", error);
+      throw new Error("Failed to fetch organizer badge information");
+    }
+  },
+
   // Update donation stats after a donation is completed
   async updateDonationStats(userId: string, pointsEarned: number = 100): Promise<DonationStatsUpdate> {
     try {
       const response = await apiRequestWithAuth(
-        `${API_ENDPOINTS.USER_PROFILE}/${userId}/donation-completed`,
+        `${API_ENDPOINTS.USERS}/${userId}/donation-completed`,
         {
           method: "POST",
           headers: {

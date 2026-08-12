@@ -97,8 +97,6 @@ export const apiRequest = async (
   options: RequestInit = {}
 ): Promise<any> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  logger.log("🌐 API Request:", url);
-  logger.log("🌐 Request method:", options.method || "GET");
 
   // Breadcrumb only records the endpoint path (no host, no query payloads)
   Sentry.addBreadcrumb({
@@ -120,9 +118,7 @@ export const apiRequest = async (
       },
     });
 
-    logger.log("📡 API Response status:", response.status);
     const contentType = response.headers.get("content-type");
-    logger.log("📡 API Response content-type:", contentType);
 
     // Check if response is HTML (common error scenario)
     if (contentType && contentType.includes("text/html")) {
@@ -165,7 +161,6 @@ export const apiRequest = async (
     }
 
     const data = await response.json();
-    logger.log("✅ API Response data received");
     return data;
   } catch (error: any) {
     logger.error("❌ API request failed!");
@@ -197,25 +192,14 @@ export const getAuthToken = async (): Promise<string | null> => {
   try {
     // First try to get from accessToken (legacy)
     let token = await SecureStore.getItemAsync("accessToken");
-    logger.log("🔑 Token from accessToken:", token ? "EXISTS" : "NULL");
 
     if (!token) {
       // If not found, get from authState (current auth system)
       const authState = await SecureStore.getItemAsync("authState");
-      logger.log("🔑 AuthState from storage:", authState ? "EXISTS" : "NULL");
 
       if (authState) {
         const parsedAuthState = JSON.parse(authState);
         token = parsedAuthState.accessToken;
-        logger.log(
-          "🔑 Token extracted from authState:",
-          token ? "EXISTS" : "NULL"
-        );
-
-        // Also log user info from token if it exists
-        if (parsedAuthState.idToken) {
-          logger.log("🔑 User has idToken:", !!parsedAuthState.idToken);
-        }
       }
     }
 

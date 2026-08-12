@@ -3,7 +3,7 @@ import { View, Text, Dimensions, TouchableOpacity } from "react-native";
 import { styled } from "nativewind";
 import QRCode from "react-native-qrcode-svg";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const StyledView = styled(View);
 const StyledText = styled(Text);

@@ -209,15 +209,13 @@ export const userService = {
     role?: string;
   }> {
     try {
-      logger.log("📞 Requesting Campaign Organizer role from backend...");
       const response = await apiRequestWithAuth(
         API_ENDPOINTS.REQUEST_CAMPAIGN_ORGANIZER_ROLE,
         {
           method: "POST",
         }
       );
-      
-      logger.log("✅ Role request response:", response);
+
       return response.data || response;
     } catch (error: any) {
       logger.error("❌ Failed to request campaign organizer role:", error);

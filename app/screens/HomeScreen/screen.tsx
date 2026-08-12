@@ -104,8 +104,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       // If no stored user data but we have an authenticated user, 
       // we need to process/create the user in the backend
       if (!userData && user?.sub) {
-        logger.log("🔄 No stored user data found, processing auth user...");
-        
         // Create AuthUserData from the current user
         const authData = {
           sub: user.sub,
@@ -121,7 +119,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         
         // Process the user (creates in backend if needed)
         userData = await processAuthUser(authData);
-        logger.log("✅ User processed successfully:", userData);
       }
       
       // Now check if profile completion is needed
@@ -144,12 +141,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       const userDataToCheck = userData || await getStoredUserData();
       
       if (!userDataToCheck) {
-        logger.log("⚠️ No user data available for profile check");
         return;
       }
-      
+
       if (userDataToCheck?.needsProfileCompletion) {
-        logger.log("📋 User needs profile completion");
         setShowProfileCompletion(true);
         return;
       }
@@ -184,15 +179,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         const isToday = appointmentUTCYear === todayUTCYear &&
                        appointmentUTCMonth === todayUTCMonth &&
                        appointmentUTCDay === todayUTCDay;
-        
-        logger.log("📅 Frontend Today Check (UTC):", {
-          appointmentDate: appointmentDate.toISOString(),
-          today: today.toISOString(),
-          appointmentUTC: `${appointmentUTCYear}-${appointmentUTCMonth + 1}-${appointmentUTCDay}`,
-          todayUTC: `${todayUTCYear}-${todayUTCMonth + 1}-${todayUTCDay}`,
-          isToday
-        });
-        
+
         if (isToday) {
           // Convert upcoming appointment to todaysAppointment format
           data.todaysAppointment = {
@@ -213,24 +200,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             },
             location: firstAppointment.location || ''
           };
-          logger.log("✅ Created todaysAppointment from upcoming appointment:", data.todaysAppointment);
         }
       }
-      
-      logger.log("🏠 HomeScreen - Data loaded:", {
-        hasTodaysAppointment: !!data?.todaysAppointment,
-        todaysAppointmentDetails: data?.todaysAppointment,
-        upcomingCount: data?.upcomingAppointments?.length
-      });
+
       setHomeData(data);
-      
-      // Additional render check
-      setTimeout(() => {
-        logger.log("🎨 HomeScreen State Check after setState:", {
-          hasTodaysAppointment: !!data?.todaysAppointment,
-          willRenderCard: !!data?.todaysAppointment
-        });
-      }, 100);
     } catch (error) {
       logger.error("Failed to load home data:", error);
       

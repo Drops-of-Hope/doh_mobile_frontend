@@ -7,7 +7,7 @@ import {
   TextInput,
   StyleSheet,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import ModalHeader from "../molecules/ModalHeader";
 import ModalActions from "../molecules/ModalActions";
 import { Emergency, DonationFormData } from "../types";

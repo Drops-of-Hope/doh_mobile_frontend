@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { UserData } from "../types";
 import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
+import { DONOR_BADGE_DISPLAY } from "../../../../constants/badgeDisplay";
+import BadgeChip from "../../shared/atoms/BadgeChip";
 
 // Utility to format blood type from A_POSITIVE to A+
 const formatBloodType = (bloodType: string): string => {
@@ -29,7 +31,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     name,
     email,
     bloodType,
+    donationBadge,
   } = userData;
+
+  const badgeDisplay = donationBadge ? DONOR_BADGE_DISPLAY[donationBadge] : undefined;
 
   return (
     <View style={styles.container}>
@@ -54,6 +59,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <View style={styles.bloodTypeContainer}>
               <Ionicons name="water" size={14} color={COLORS.PRIMARY} />
               <Text style={styles.bloodType}>{formatBloodType(bloodType)}</Text>
+            </View>
+          )}
+          {badgeDisplay && (
+            <View style={styles.badgeContainer}>
+              <BadgeChip icon={badgeDisplay.icon} label={badgeDisplay.label} color={badgeDisplay.color} size="small" />
             </View>
           )}
         </View>
@@ -130,6 +140,9 @@ const styles = StyleSheet.create({
     color: COLORS.PRIMARY,
     fontWeight: "500",
     marginLeft: 4,
+  },
+  badgeContainer: {
+    marginTop: 6,
   },
   editButton: {
     padding: SPACING.SM,

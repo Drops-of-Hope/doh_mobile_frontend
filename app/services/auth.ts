@@ -33,8 +33,6 @@ const redirectUri = isExpoGo
       path: "auth",
     });
 
-logger.log("Redirect URI:", redirectUri);
-
 // Types for user information
 export interface UserInfo {
   sub: string;
@@ -83,7 +81,6 @@ const getUserInfo = async (accessToken: string): Promise<UserInfo | null> => {
 
     if (response.ok) {
       const userInfo = await response.json();
-      logger.log("User info retrieved:", userInfo);
       return userInfo;
     } else {
       logger.error("Failed to fetch user info:", response.status);
@@ -108,8 +105,6 @@ export const authenticate = async (
   isSignup = false,
 ): Promise<AuthState | null> => {
   try {
-    logger.log("Starting authentication with redirect URI:", redirectUri);
-
     // Create proper AuthRequest with PKCE (required by Asgardeo)
     const authRequest = new AuthSession.AuthRequest({
       clientId: authConfig.clientId,
@@ -129,14 +124,7 @@ export const authenticate = async (
 
   const result = await authRequest.promptAsync(discovery);
 
-    logger.log("Auth result:", result);
-
     if (result.type === "success") {
-      logger.log(
-        `${isSignup ? "Signup" : "Login"} successful:`,
-        result.params,
-      );
-
       // Exchange authorization code for tokens with PKCE
       if (result.params.code && authRequest.codeVerifier) {
         const tokenResult = await AuthSession.exchangeCodeAsync(
@@ -175,7 +163,6 @@ export const authenticate = async (
         `Authentication error: ${result.error?.message || "Unknown error"}`,
       );
     } else {
-      logger.log("Authentication cancelled");
       throw new Error("Authentication was cancelled");
     }
 
@@ -238,7 +225,6 @@ export const logout = async () => {
             },
             body: `token=${authState.accessToken}&client_id=${authConfig.clientId}&token_type_hint=access_token`,
           });
-          logger.log("Access token revoked successfully");
         } catch (error) {
           logger.error("Failed to revoke access token:", error);
           // Continue with logout even if token revocation fails
@@ -256,7 +242,6 @@ export const logout = async () => {
             },
             body: `token=${authState.refreshToken}&client_id=${authConfig.clientId}&token_type_hint=refresh_token`,
           });
-          logger.log("Refresh token revoked successfully");
         } catch (error) {
           logger.error("Failed to revoke refresh token:", error);
           // Continue with logout even if token revocation fails
@@ -281,9 +266,6 @@ export const logout = async () => {
             fullLogoutUrl,
             redirectUri,
           );
-
-          logger.log("Logout session result:", result);
-          logger.log("Asgardeo session cleared successfully");
         } catch (error) {
           logger.error("Failed to clear Asgardeo session:", error);
           // Continue with logout even if session clear fails
@@ -293,9 +275,6 @@ export const logout = async () => {
 
     // Step 4: Always clear local auth state
     await clearAuthState();
-    logger.log(
-      "Logged out successfully - all tokens revoked and session cleared",
-    );
   } catch (error) {
     logger.error("Logout failed:", error);
     // Even if logout fails, clear local state to ensure user is logged out locally
@@ -351,23 +330,18 @@ export const ensureValidAuth = async (): Promise<boolean> => {
     const authState = await getAuthState();
 
     if (!authState || !authState.accessToken) {
-      logger.log("No auth state found");
       return false;
     }
 
     // Check if the current token is valid
     const isValid = await isTokenValid(authState.accessToken);
     if (isValid) {
-      logger.log("Token is valid");
       return true;
     }
-
-    logger.log("Access token invalid, attempting refresh...");
 
     // If access token is invalid, try refresh
     if (authState.refreshToken) {
       try {
-        logger.log("Attempting token refresh...");
         const refreshResult = await AuthSession.refreshAsync(
           {
             clientId: authConfig.clientId,
@@ -389,10 +363,8 @@ export const ensureValidAuth = async (): Promise<boolean> => {
         if (userInfo) {
           newAuthState.userInfo = userInfo;
           await saveAuthState(newAuthState);
-          logger.log("Token refresh successful");
           return true;
         } else {
-          logger.log("Refreshed token invalid");
           await handleExpiredToken();
           return false;
         }
@@ -403,7 +375,6 @@ export const ensureValidAuth = async (): Promise<boolean> => {
       }
     }
 
-    logger.log("No refresh token available, auth invalid");
     await handleExpiredToken();
     return false;
   } catch (error) {
@@ -430,25 +401,20 @@ const isTokenValid = async (accessToken: string): Promise<boolean> => {
 
 // Handle expired/invalid tokens by clearing state
 export const handleExpiredToken = async (): Promise<void> => {
-  logger.log("Token expired or invalid, clearing auth state");
   await clearAuthState();
 };
 
 // Global auth error handler for API calls
 export const handleAuthError = async (error: any): Promise<boolean> => {
   if (error?.status === 401 || error?.message?.includes("unauthorized")) {
-    logger.log("401 error detected, checking auth state...");
-
     // Try to refresh the token
     const isValid = await ensureValidAuth();
 
     if (!isValid) {
-      logger.log("Token refresh failed, user needs to re-authenticate");
       // This will trigger the AuthContext to update and show EntryScreen
       return false;
     }
 
-    logger.log("Token refreshed successfully");
     return true; // Indicate that the caller should retry the request
   }
 
@@ -471,7 +437,6 @@ export const apiCallWithAuth = async <T>(
       if (attempts <= maxRetries) {
         const shouldRetry = await handleAuthError(error);
         if (shouldRetry) {
-          logger.log(`Retrying API call (attempt ${attempts + 1})`);
           continue;
         }
       }
