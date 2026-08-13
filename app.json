@@ -6,7 +6,8 @@
     "scheme": "com.dropsofhope",
     "platforms": [
       "ios",
-      "android"
+      "android",
+      "web"
     ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
