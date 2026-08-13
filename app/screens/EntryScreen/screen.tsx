@@ -1,5 +1,5 @@
 // app/screens/EntryScreen.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, Alert } from "react-native";
 import Button from "../shared/atoms/Button";
 import TitlePage from "../shared/molecules/TitlePage";
@@ -9,19 +9,9 @@ import { authenticate } from "../../services/auth";
 import { logger } from "../../utils/logger";
 export default function EntryScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const { refreshAuthState, isAuthenticated } = useAuth();
-
-  // Check if we can silently authenticate when component mounts
-  useEffect(() => {
-    const checkSilentAuth = async () => {
-      if (!isAuthenticated) {
-        // This will automatically handle token refresh if possible
-        await refreshAuthState();
-      }
-    };
-
-    checkSilentAuth();
-  }, [isAuthenticated]);
+  // AuthProvider already performs a silent-auth check (with token refresh) once
+  // on app mount, so this screen doesn't need its own copy of that check.
+  const { refreshAuthState } = useAuth();
 
   const handleLogin = async () => {
     setIsLoading(true);

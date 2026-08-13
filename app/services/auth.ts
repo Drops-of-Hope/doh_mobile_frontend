@@ -33,6 +33,11 @@ const redirectUri = isExpoGo
       path: "auth",
     });
 
+// On web, expo-linking ignores the `scheme` above and resolves this from
+// window.location.origin instead — log it so a redirect-URI mismatch against
+// Asgardeo's allowed list is visible instead of failing silently.
+logger.debug("Auth redirectUri:", redirectUri);
+
 // Types for user information
 export interface UserInfo {
   sub: string;

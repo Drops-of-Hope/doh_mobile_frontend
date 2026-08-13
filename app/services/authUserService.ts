@@ -1,5 +1,5 @@
 // Authentication User Service - Handle user creation and login from auth provider
-import { API_BASE_URL, API_ENDPOINTS } from './api';
+import { API_BASE_URL, API_ENDPOINTS, apiRequestWithAuth } from './api';
 
 import { logger } from "../utils/logger";
 // Types for auth provider response
@@ -51,11 +51,8 @@ class AuthUserService {
    */
   async createOrLoginUser(authData: AuthUserData): Promise<UserCreateResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CREATE_OR_LOGIN_USER}`, {
+      const body = await apiRequestWithAuth(API_ENDPOINTS.CREATE_OR_LOGIN_USER, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           id: authData.sub, // Use sub as the primary key
           email: authData.email,
@@ -69,11 +66,7 @@ class AuthUserService {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to create/login user: ${response.statusText}`);
-      }
-
-      const result: UserCreateResponse = await response.json();
+      const result: UserCreateResponse = body.data;
       return result;
     } catch (error) {
       logger.error('Error in createOrLoginUser:', error);
@@ -86,22 +79,15 @@ class AuthUserService {
    */
   async completeProfile(userId: string, profileData: ProfileCompletionData): Promise<UserCreateResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.COMPLETE_PROFILE}`, {
+      const body = await apiRequestWithAuth(API_ENDPOINTS.COMPLETE_PROFILE, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           userId,
           ...profileData,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to complete profile: ${response.statusText}`);
-      }
-
-      const result: UserCreateResponse = await response.json();
+      const result: UserCreateResponse = body.data;
       return result;
     } catch (error) {
       logger.error('Error in completeProfile:', error);
