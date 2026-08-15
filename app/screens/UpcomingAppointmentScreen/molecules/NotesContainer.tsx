@@ -1,35 +1,27 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, StyleSheet } from "react-native";
+import { Info } from "lucide-react-native";
+import { Text, Icon, useTheme } from "../../../design";
 
 interface NotesContainerProps {
   notes: string;
 }
 
 export default function NotesContainer({ notes }: NotesContainerProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.notesContainer}>
-      <Ionicons name="information-circle" size={16} color="#6B7280" />
-      <Text style={styles.notesText}>{notes}</Text>
+    <View
+      style={[styles.notesContainer, { backgroundColor: theme.color.surfaceSunken, borderRadius: theme.radius.md }]}
+    >
+      <Icon icon={Info} size={16} color={theme.color.inkMuted} />
+      <Text variant="caption" tone="inkMuted" style={styles.notesText}>
+        {notes}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  notesContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    backgroundColor: "#F8F9FA",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  notesText: {
-    fontSize: 14,
-    color: "#4B5563",
-    fontWeight: "500",
-    lineHeight: 20,
-    flex: 1,
-  },
+  notesContainer: { flexDirection: "row", alignItems: "flex-start", gap: 8, padding: 12, marginBottom: 16 },
+  notesText: { flex: 1 },
 });

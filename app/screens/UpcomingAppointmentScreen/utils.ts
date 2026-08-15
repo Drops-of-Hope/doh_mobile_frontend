@@ -1,32 +1,35 @@
+import { CheckCircle2, Clock, Check, XCircle, HelpCircle, LucideIcon } from "lucide-react-native";
 import { Appointment } from "./types";
 
-export const getStatusColor = (status: Appointment["status"]): string => {
+export type StatusTone = "success" | "crimson" | "ink" | "danger";
+
+export const getStatusTone = (status: Appointment["status"]): StatusTone => {
   switch (status) {
     case "confirmed":
-      return "#10B981";
+      return "success";
     case "upcoming":
-      return "#DC2626";
+      return "crimson";
     case "completed":
-      return "#6B7280";
+      return "ink";
     case "cancelled":
-      return "#EF4444";
+      return "danger";
     default:
-      return "#6B7280";
+      return "ink";
   }
 };
 
-export const getStatusIcon = (status: Appointment["status"]): string => {
+export const getStatusIcon = (status: Appointment["status"]): LucideIcon => {
   switch (status) {
     case "confirmed":
-      return "checkmark-circle";
+      return CheckCircle2;
     case "upcoming":
-      return "time";
+      return Clock;
     case "completed":
-      return "checkmark";
+      return Check;
     case "cancelled":
-      return "close-circle";
+      return XCircle;
     default:
-      return "help-circle";
+      return HelpCircle;
   }
 };
 
@@ -47,11 +50,7 @@ export const formatAppointmentDate = (date: string, isPast = false): string => {
   const dateObj = new Date(date);
 
   if (isPast) {
-    return dateObj.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return dateObj.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   }
 
   return dateObj.toLocaleDateString("en-US", {
@@ -62,15 +61,13 @@ export const formatAppointmentDate = (date: string, isPast = false): string => {
   });
 };
 
-// Mock appointments removed - using real backend data only
-
 export const filterAppointments = (appointments: Appointment[]) => {
   const upcomingAppointments = appointments.filter(
-    (apt) => apt.status === "upcoming" || apt.status === "confirmed",
+    (apt) => apt.status === "upcoming" || apt.status === "confirmed"
   );
 
   const pastAppointments = appointments.filter(
-    (apt) => apt.status === "completed" || apt.status === "cancelled",
+    (apt) => apt.status === "completed" || apt.status === "cancelled"
   );
 
   return { upcomingAppointments, pastAppointments };

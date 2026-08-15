@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
+import { CalendarClock, X } from "lucide-react-native";
 import ActionButton from "../atoms/ActionButton";
 
 interface ActionButtonsProps {
@@ -7,36 +8,15 @@ interface ActionButtonsProps {
   onCancel: () => void;
 }
 
-export default function ActionButtons({
-  onReschedule,
-  onCancel,
-}: ActionButtonsProps) {
+export default function ActionButtons({ onReschedule, onCancel }: ActionButtonsProps) {
   return (
     <View style={styles.actionButtons}>
-      <ActionButton
-        icon="calendar"
-        text="Reschedule"
-        color="#DC2626"
-        backgroundColor="#FEF2F2"
-        borderColor="#DC2626"
-        onPress={onReschedule}
-      />
-
-      <ActionButton
-        icon="close"
-        text="Cancel"
-        color="#EF4444"
-        backgroundColor="#FEF2F2"
-        borderColor="#EF4444"
-        onPress={onCancel}
-      />
+      <ActionButton icon={CalendarClock} text="Reschedule" tone="crimson" onPress={onReschedule} />
+      <ActionButton icon={X} text="Cancel" tone="danger" onPress={onCancel} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  actionButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
+  actionButtons: { flexDirection: "row", gap: 12 },
 });

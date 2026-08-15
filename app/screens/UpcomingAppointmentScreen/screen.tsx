@@ -1,34 +1,24 @@
 import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Alert,
-  View,
-  ActivityIndicator,
-} from "react-native";
+import { View, Alert, ActivityIndicator, StyleSheet } from "react-native";
+import { Calendar, ClipboardCheck } from "lucide-react-native";
 
-// Import refactored components
-import AppointmentHeader from "./molecules/AppointmentHeader";
+import { Screen, AppBar, useTheme } from "../../design";
 import AppointmentSection from "./organisms/AppointmentSection";
 import EmptyState from "./organisms/EmptyState";
 
-// Import types and utilities
 import { AppointmentScreenProps, Appointment } from "./types";
 import { filterAppointments } from "./utils";
 import { appointmentService } from "../../services/appointmentService";
 import { useAuth } from "../../context/AuthContext";
 
 import { logger } from "../../utils/logger";
-export default function UpcomingAppointmentScreen({
-  navigation,
-}: AppointmentScreenProps) {
+
+export default function UpcomingAppointmentScreen({ navigation }: AppointmentScreenProps) {
+  const theme = useTheme();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Load user appointments from backend
   useEffect(() => {
     if (user?.id || user?.sub) {
       loadUserAppointments();
@@ -51,61 +41,65 @@ export default function UpcomingAppointmentScreen({
         return;
       }
 
-      // Transform backend appointments to screen format
-      const transformedAppointments: Appointment[] = userAppointments.map(apt => {
-        return {
-          id: apt.id,
-          hospital: "Medical Center", // TODO: Get from medical establishment
-          date: new Date(apt.appointmentDate).toISOString().split('T')[0],
-          time: new Date(apt.appointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          location: "Blood Donation Center", // TODO: Get from medical establishment
-          confirmationId: apt.id,
-          status: apt.scheduled === "PENDING" 
-            ? "upcoming" 
-            : apt.scheduled === "COMPLETED" 
-              ? "completed" 
-              : "cancelled",
-          type: "blood_donation", // Default type
-          notes: `Appointment ID: ${apt.id}` // Include appointment ID for reference
-        };
-      });
+      const transformedAppointments: Appointment[] = userAppointments.map((apt) => ({
+        id: apt.id,
+        hospital: apt.medicalEstablishment?.name || "",
+        date: new Date(apt.appointmentDate).toISOString().split("T")[0],
+        // appointmentDate is stored at UTC midnight, so its clock time is
+        // meaningless — the slot carries the real window.
+        time: apt.slot?.startTime
+          ? `${apt.slot.startTime} - ${apt.slot.endTime}`
+          : new Date(apt.appointmentDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        location: apt.medicalEstablishment?.address || apt.medicalEstablishment?.district || "",
+        confirmationId: apt.id,
+        status:
+          apt.scheduled === "PENDING" ? "upcoming" : apt.scheduled === "COMPLETED" ? "completed" : "cancelled",
+        type: "blood_donation", // Default type
+        notes: `Appointment ID: ${apt.id}`,
+      }));
 
       setAppointments(transformedAppointments);
     } catch (error) {
       logger.error("❌ Failed to load appointments:", error);
-      // Set empty array on error - show "No appointments" message
       setAppointments([]);
+
+      // 404/not found means the user genuinely has no appointments yet;
+      // anything else is a real failure worth surfacing.
+      if (error instanceof Error &&
+          !error.message.includes("404") &&
+          !error.message.includes("not found")) {
+        Alert.alert(
+          "Error",
+          "Failed to load appointments. Please try again later.",
+          [{ text: "OK" }]
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancelAppointment = async (appointmentId: string) => {
-    Alert.alert(
-      "Cancel Appointment",
-      "Are you sure you want to cancel this appointment?",
-      [
-        { text: "No", style: "cancel" },
-        {
-          text: "Yes, Cancel",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await appointmentService.cancelAppointment(appointmentId);
-              // Reload appointments after cancellation
-              await loadUserAppointments();
-              Alert.alert("Success", "Appointment cancelled successfully.");
-            } catch (error) {
-              logger.error("Failed to cancel appointment:", error);
-              Alert.alert("Error", "Failed to cancel appointment. Please try again.");
-            }
-          },
+    Alert.alert("Cancel Appointment", "Are you sure you want to cancel this appointment?", [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes, Cancel",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await appointmentService.cancelAppointment(appointmentId);
+            await loadUserAppointments();
+            Alert.alert("Success", "Appointment cancelled successfully.");
+          } catch (error) {
+            logger.error("Failed to cancel appointment:", error);
+            Alert.alert("Error", "Failed to cancel appointment. Please try again.");
+          }
         },
-      ],
-    );
+      },
+    ]);
   };
 
-  const handleReschedule = async (appointmentId: string) => {
+  const handleReschedule = async () => {
     Alert.alert(
       "Reschedule Appointment",
       "Contact the hospital to reschedule your appointment or book a new one.",
@@ -113,98 +107,59 @@ export default function UpcomingAppointmentScreen({
         { text: "Cancel", style: "cancel" },
         {
           text: "Book New",
-          onPress: () => {
-            // Navigate to booking screen
-            navigation?.navigate('DonationScreen');
-          }
-        }
-      ],
+          onPress: () => navigation?.navigate("Donate"),
+        },
+      ]
     );
   };
 
   const handleBookAppointment = () => {
-    // Navigate to booking screen or show booking modal
+    navigation?.navigate("Donate");
   };
 
-  const handleBack = () => {
-    navigation?.goBack();
-  };
-
-  const handleAdd = () => {
-    // Navigate to add appointment screen
-  };
-
-  const { upcomingAppointments, pastAppointments } =
-    filterAppointments(appointments);
-  const hasNoAppointments =
-    upcomingAppointments.length === 0 && pastAppointments.length === 0;
+  const { upcomingAppointments, pastAppointments } = filterAppointments(appointments);
+  const hasNoAppointments = upcomingAppointments.length === 0 && pastAppointments.length === 0;
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.loadingContainer]}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
-        <ActivityIndicator size="large" color="#DC2626" />
-      </SafeAreaView>
+      <Screen>
+        <AppBar title="My Appointments" onBack={() => navigation?.goBack()} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.color.crimson} />
+        </View>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <Screen scroll>
+      <AppBar title="My Appointments" onBack={() => navigation?.goBack()} />
 
-      <AppointmentHeader
-        title="My Appointments"
-        onBack={handleBack}
-        onAdd={handleAdd}
+      <AppointmentSection
+        title="Upcoming Appointments"
+        icon={Calendar}
+        tone="crimson"
+        appointments={upcomingAppointments}
+        onCancel={handleCancelAppointment}
+        onReschedule={handleReschedule}
+        isPast={false}
       />
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <AppointmentSection
-          title="Upcoming Appointments"
-          icon="calendar"
-          iconColor="#DC2626"
-          appointments={upcomingAppointments}
-          onCancel={handleCancelAppointment}
-          onReschedule={handleReschedule}
-          isPast={false}
-        />
+      <AppointmentSection
+        title="Past Appointments"
+        icon={ClipboardCheck}
+        tone="success"
+        appointments={pastAppointments}
+        onCancel={() => {}}
+        onReschedule={() => {}}
+        isPast={true}
+      />
 
-        <AppointmentSection
-          title="Past Appointments"
-          icon="clipboard"
-          iconColor="#10B981"
-          appointments={pastAppointments}
-          onCancel={() => {}} // No actions for past appointments
-          onReschedule={() => {}}
-          isPast={true}
-        />
-
-        {hasNoAppointments && (
-          <EmptyState onBookAppointment={handleBookAppointment} />
-        )}
-
-        <View style={styles.bottomPadding} />
-      </ScrollView>
-    </SafeAreaView>
+      {hasNoAppointments && <EmptyState onBookAppointment={handleBookAppointment} />}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-  },
-  loadingContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  bottomPadding: {
-    height: 24,
-  },
+  loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
 });

@@ -1,31 +1,21 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, StyleSheet } from "react-native";
+import { Text, Icon, useTheme } from "../../../design";
 import { SectionHeaderProps } from "../types";
 
-export default function SectionHeader({
-  icon,
-  iconColor,
-  title,
-}: SectionHeaderProps) {
+export default function SectionHeader({ icon, tone, title }: SectionHeaderProps) {
+  const theme = useTheme();
   return (
     <View style={styles.sectionTitleRow}>
-      <Ionicons name={icon as any} size={20} color={iconColor} />
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Icon icon={icon} size={20} color={theme.color[tone]} />
+      <Text variant="h2" style={styles.sectionTitle}>
+        {title}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginLeft: 8,
-  },
+  sectionTitleRow: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
+  sectionTitle: { marginLeft: 8 },
 });
