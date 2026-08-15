@@ -39,6 +39,7 @@ export type ProfileStackParamList = {
   CampaignDashboard: undefined;
   CampaignManagement: undefined;
   CampaignAnalytics: { campaignId: string };
+  CampaignDetails: { campaignId: string };
   CreateCampaign: undefined;
   EditCampaign: { campaignId: string };
 };

@@ -151,27 +151,38 @@ export default function CampaignAnalyticsScreen({
               icon={<Icon icon={TrendingUp} size={20} color={theme.color.warning} />}
             />
           </StatRow>
+          <StatRow>
+            <StatTile
+              value={`${analytics.donationRate.toFixed(1)}%`}
+              label="Donation Rate"
+              icon={<Icon icon={TrendingUp} size={20} color={theme.color.crimson} />}
+            />
+          </StatRow>
         </View>
 
         {/* Blood Type Distribution */}
-        <SectionHeader title="Donations by Blood Type" />
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: theme.space.md,
-            marginBottom: theme.space.xxl,
-          }}
-        >
-          {Object.entries(analytics.donationsByBloodType).map(([bloodType, count]) => (
-            <Surface key={bloodType} padding="md" style={{ alignItems: "center", minWidth: 84 }}>
-              <Text variant="h3" tone="crimson" style={{ marginBottom: 4 }}>
-                {bloodType}
-              </Text>
-              <Text variant="h2">{count}</Text>
-            </Surface>
-          ))}
-        </View>
+        {Object.keys(analytics.donationsByBloodType).length > 0 && (
+          <>
+            <SectionHeader title="Donations by Blood Type" />
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: theme.space.md,
+                marginBottom: theme.space.xxl,
+              }}
+            >
+              {Object.entries(analytics.donationsByBloodType).map(([bloodType, count]) => (
+                <Surface key={bloodType} padding="md" style={{ alignItems: "center", minWidth: 84 }}>
+                  <Text variant="h3" tone="crimson" style={{ marginBottom: 4 }}>
+                    {bloodType}
+                  </Text>
+                  <Text variant="h2">{count}</Text>
+                </Surface>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* Top Donors */}
         {analytics.topDonors.length > 0 && (
