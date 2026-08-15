@@ -1,9 +1,7 @@
 import React from "react";
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import SearchBar from "../atoms/SearchBar";
-import FilterButton from "../atoms/FilterButton";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
+import { View, Pressable, StyleSheet } from "react-native";
+import { Search, SlidersHorizontal, Radio, Clock } from "lucide-react-native";
+import { Field, Chip, Icon, useTheme } from "../../../design";
 
 interface SearchAndFilterBarProps {
   searchText: string;
@@ -24,66 +22,49 @@ export default function SearchAndFilterBar({
   campaignStatus,
   onCampaignStatusChange,
 }: SearchAndFilterBarProps) {
+  const theme = useTheme();
+
   return (
     <View style={styles.container}>
-      <View style={styles.searchAndFilterRow}>
-        <View style={styles.searchContainer}>
-          <SearchBar
+      <View style={styles.searchRow}>
+        <View style={styles.searchField}>
+          <Field
             value={searchText}
             onChangeText={onSearchTextChange}
-            onSearchPress={onSearchPress}
+            onSubmitEditing={onSearchPress}
             placeholder="Search campaigns..."
+            leftIcon={<Icon icon={Search} size={18} color={theme.color.inkFaint} />}
+            returnKeyType="search"
           />
         </View>
-        <View style={styles.filterContainer}>
-          <FilterButton
-            onPress={onFilterPress}
-            hasActiveFilters={hasActiveFilters}
-          />
-        </View>
+        <Pressable
+          onPress={onFilterPress}
+          style={[
+            styles.filterButton,
+            {
+              backgroundColor: hasActiveFilters ? theme.color.crimson : theme.color.surface,
+              borderColor: hasActiveFilters ? theme.color.crimson : theme.color.hairline,
+              borderRadius: theme.radius.md,
+            },
+          ]}
+        >
+          <Icon icon={SlidersHorizontal} size={18} color={hasActiveFilters ? theme.color.inverse : theme.color.ink} />
+        </Pressable>
       </View>
-      
-      {/* Status Toggle Row */}
-      <View style={styles.statusToggleRow}>
-        <TouchableOpacity 
-          style={[
-            styles.statusButton, 
-            campaignStatus === "live" && styles.statusButtonActive
-          ]} 
+
+      <View style={styles.chipRow}>
+        <Chip
+          label="Live"
+          selected={campaignStatus === "live"}
           onPress={() => onCampaignStatusChange("live")}
-        >
-          <Ionicons 
-            name="radio-button-on" 
-            size={18} 
-            color={campaignStatus === "live" ? COLORS.BACKGROUND : COLORS.TEXT_SECONDARY} 
-          />
-          <Text style={[
-            styles.statusButtonText,
-            campaignStatus === "live" && styles.statusButtonTextActive
-          ]}>
-            Live
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[
-            styles.statusButton, 
-            campaignStatus === "upcoming" && styles.statusButtonActive
-          ]} 
+          icon={<Icon icon={Radio} size={14} color={campaignStatus === "live" ? theme.color.crimson : theme.color.inkMuted} />}
+        />
+        <Chip
+          label="Upcoming"
+          selected={campaignStatus === "upcoming"}
           onPress={() => onCampaignStatusChange("upcoming")}
-        >
-          <Ionicons 
-            name="time-outline" 
-            size={18} 
-            color={campaignStatus === "upcoming" ? COLORS.BACKGROUND : COLORS.TEXT_SECONDARY} 
-          />
-          <Text style={[
-            styles.statusButtonText,
-            campaignStatus === "upcoming" && styles.statusButtonTextActive
-          ]}>
-            Upcoming
-          </Text>
-        </TouchableOpacity>
+          icon={<Icon icon={Clock} size={14} color={campaignStatus === "upcoming" ? theme.color.crimson : theme.color.inkMuted} />}
+        />
       </View>
     </View>
   );
@@ -91,48 +72,29 @@ export default function SearchAndFilterBar({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: SPACING.MD,
-    marginTop: SPACING.MD,
-    paddingHorizontal: SPACING.MD,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
-  searchAndFilterRow: {
+  searchRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.SM,
+    alignItems: "flex-start",
+    gap: 8,
   },
-  searchContainer: {
+  searchField: {
     flex: 1,
   },
-  filterContainer: {
-    // The filter button will have its own styles
-  },
-  statusToggleRow: {
-    flexDirection: "row",
-    marginTop: SPACING.MD,
-    gap: SPACING.SM,
-  },
-  statusButton: {
-    flex: 1,
-    flexDirection: "row",
+  filterButton: {
+    width: 48,
+    height: 48,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.BACKGROUND,
-    borderRadius: BORDER_RADIUS.MD,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-    paddingVertical: SPACING.SM + 2,
-    gap: SPACING.XS + 2,
+    borderWidth: 1.5,
   },
-  statusButtonActive: {
-    backgroundColor: COLORS.PRIMARY,
-    borderColor: COLORS.PRIMARY,
-  },
-  statusButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.TEXT_SECONDARY,
-  },
-  statusButtonTextActive: {
-    color: COLORS.BACKGROUND,
+  chipRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 4,
+    marginBottom: 8,
   },
 });

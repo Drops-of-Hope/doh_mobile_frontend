@@ -1,16 +1,8 @@
 import React from "react";
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Alert,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, Alert, StyleSheet } from "react-native";
+import { Calendar, Clock, MapPin, Users } from "lucide-react-native";
+import { Sheet, Surface, Text, Icon, Button, ProgressTrack, useTheme } from "../../../design";
 import { Campaign } from "../types";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 
 interface CampaignDetailsModalProps {
   visible: boolean;
@@ -27,6 +19,8 @@ export default function CampaignDetailsModal({
   onJoin,
   isLiveCampaign = false,
 }: CampaignDetailsModalProps) {
+  const theme = useTheme();
+
   const handleJoinPress = () => {
     if (!campaign) return;
 
@@ -37,219 +31,136 @@ export default function CampaignDetailsModal({
       `${action} Campaign`,
       `Are you sure you want to ${action.toLowerCase()} "${campaign.title}"?`,
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: confirmText,
           style: campaign.isRegistered ? "destructive" : "default",
           onPress: () => onJoin(campaign),
         },
-      ],
+      ]
     );
   };
 
+  const hasGoal = !!campaign?.expectedDonors && campaign.expectedDonors > 0;
+  const progress =
+    hasGoal && campaign ? campaign.participants / (campaign.expectedDonors as number) : undefined;
+
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Campaign Details</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
+    <Sheet visible={visible} onClose={onClose} title="Campaign Details">
+      {campaign ? (
+        <View>
+          <Text variant="h2" style={styles.title}>
+            {campaign.title}
+          </Text>
 
-          <ScrollView
-            style={styles.modalContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {campaign && (
-              <View>
-                <Text style={styles.campaignTitle}>{campaign.title}</Text>
+          {campaign.description ? (
+            <Text variant="body" tone="inkMuted" style={styles.description}>
+              {campaign.description}
+            </Text>
+          ) : null}
 
-                <View style={styles.detailSection}>
-                  <Text style={styles.detailLabel}>Description</Text>
-                  <Text style={styles.detailText}>{campaign.description}</Text>
-                </View>
-
-                {campaign.location && (
-                  <View style={styles.detailSection}>
-                    <Text style={styles.detailLabel}>Location</Text>
-                    <Text style={styles.detailText}>{campaign.location}</Text>
-                  </View>
-                )}
-
-                {campaign.date && (
-                  <View style={styles.detailSection}>
-                    <Text style={styles.detailLabel}>Date</Text>
-                    <Text style={styles.detailText}>{campaign.date}</Text>
-                  </View>
-                )}
-
-                {campaign.time && (
-                  <View style={styles.detailSection}>
-                    <Text style={styles.detailLabel}>Time</Text>
-                    <Text style={styles.detailText}>{campaign.time}</Text>
-                  </View>
-                )}
-
-                <View style={styles.detailSection}>
-                  <Text style={styles.detailLabel}>Participants</Text>
-                  <Text style={styles.detailText}>
-                    {campaign.participants} people have joined
+          <Surface tone="sunken" style={styles.infoSurface}>
+            {campaign.location ? (
+              <View style={styles.infoRow}>
+                <Icon icon={MapPin} size={18} color={theme.color.inkMuted} />
+                <View style={styles.infoTextWrap}>
+                  <Text variant="caption" tone="inkMuted">
+                    Location
                   </Text>
+                  <Text variant="bodyBold">{campaign.location}</Text>
                 </View>
               </View>
-            )}
-          </ScrollView>
-
-          <View style={styles.modalButtons}>
-            <TouchableOpacity
-              style={[
-                styles.closeActionButton,
-                isLiveCampaign && styles.closeActionButtonFull // Full width if live campaign
-              ]}
-              onPress={onClose}
-            >
-              <Text style={[
-                styles.closeActionText,
-                isLiveCampaign && styles.closeActionTextWhite
-              ]}>
-                Close
-              </Text>
-            </TouchableOpacity>
-            {/* Hide Join button for live campaigns since users can just go there directly */}
-            {!isLiveCampaign && (
-              <TouchableOpacity
-                style={[
-                  styles.joinButton,
-                  campaign?.isRegistered && styles.unregisterButton
-                ]}
-                onPress={handleJoinPress}
-              >
-                <Text style={styles.joinButtonText}>
-                  {campaign?.isRegistered ? "Unregister" : "Join Campaign"}
+            ) : null}
+            {campaign.date ? (
+              <View style={styles.infoRow}>
+                <Icon icon={Calendar} size={18} color={theme.color.inkMuted} />
+                <View style={styles.infoTextWrap}>
+                  <Text variant="caption" tone="inkMuted">
+                    Date
+                  </Text>
+                  <Text variant="bodyBold">{campaign.date}</Text>
+                </View>
+              </View>
+            ) : null}
+            {campaign.time ? (
+              <View style={styles.infoRow}>
+                <Icon icon={Clock} size={18} color={theme.color.inkMuted} />
+                <View style={styles.infoTextWrap}>
+                  <Text variant="caption" tone="inkMuted">
+                    Time
+                  </Text>
+                  <Text variant="bodyBold">{campaign.time}</Text>
+                </View>
+              </View>
+            ) : null}
+            <View style={[styles.infoRow, styles.infoRowLast]}>
+              <Icon icon={Users} size={18} color={theme.color.inkMuted} />
+              <View style={styles.infoTextWrap}>
+                <Text variant="caption" tone="inkMuted">
+                  Participants
                 </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+                <Text variant="bodyBold">{campaign.participants} people have joined</Text>
+              </View>
+            </View>
+          </Surface>
+
+          {progress !== undefined ? (
+            <View style={styles.progressWrap}>
+              <ProgressTrack progress={progress} />
+            </View>
+          ) : null}
         </View>
+      ) : null}
+
+      <View style={styles.buttonRow}>
+        <View style={styles.buttonHalf}>
+          <Button title="Close" variant="outline" onPress={onClose} />
+        </View>
+        {!isLiveCampaign ? (
+          <View style={styles.buttonHalf}>
+            <Button
+              title={campaign?.isRegistered ? "Unregister" : "Join Campaign"}
+              variant={campaign?.isRegistered ? "danger" : "solid"}
+              onPress={handleJoinPress}
+            />
+          </View>
+        ) : null}
       </View>
-    </Modal>
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+  title: {
+    marginBottom: 8,
   },
-  modalContainer: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    width: "90%",
-    maxHeight: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1F2937",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  modalContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    maxHeight: 400,
-  },
-  campaignTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 20,
-  },
-  detailSection: {
+  description: {
     marginBottom: 16,
   },
-  detailLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#6B7280",
-    marginBottom: 4,
+  infoSurface: {
+    gap: 0,
   },
-  detailText: {
-    fontSize: 16,
-    color: "#374151",
-    lineHeight: 22,
-  },
-  modalButtons: {
+  infoRow: {
     flexDirection: "row",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
+    alignItems: "center",
     gap: 12,
+    marginBottom: 14,
   },
-  closeActionButton: {
+  infoRowLast: {
+    marginBottom: 0,
+  },
+  infoTextWrap: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignItems: "center",
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
   },
-  closeActionButtonFull: {
-    backgroundColor: COLORS.PRIMARY,
-    borderColor: COLORS.PRIMARY,
+  progressWrap: {
+    marginTop: 16,
   },
-  closeActionText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
+  buttonRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
   },
-  closeActionTextWhite: {
-    color: "#FFFFFF",
-  },
-  joinButton: {
+  buttonHalf: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: BORDER_RADIUS.LG,
-    alignItems: "center",
-    backgroundColor: COLORS.PRIMARY,
-  },
-  unregisterButton: {
-    backgroundColor: COLORS.SECONDARY,
-  },
-  joinButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "white",
   },
 });

@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  SafeAreaView,
-  Alert,
-  StyleSheet,
-  StatusBar,
-  ActivityIndicator,
-  Text,
-} from "react-native";
-import BottomTabBar from "../shared/organisms/BottomTabBar";
+import { View, Alert, StyleSheet, ActivityIndicator } from "react-native";
 import { exploreService } from "../../services/exploreService";
 import { campaignService } from "../../services/campaignService";
 import { useAuth } from "../../context/AuthContext";
 import ExploreScreenSkeleton from "../shared/molecules/skeletons/ExploreScreenSkeleton";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
+import { Screen, Text, useTheme } from "../../design";
 
 // Import refactored components
 import SearchAndFilterBar from "./molecules/SearchAndFilterBar";
@@ -27,6 +19,7 @@ import { filterCampaigns, parseSearchText, formatDateRange } from "./utils";
 
 import { logger } from "../../utils/logger";
 const ExploreScreen: React.FC = () => {
+  const theme = useTheme();
   // State management
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
@@ -133,6 +126,7 @@ const ExploreScreen: React.FC = () => {
             title: campaign.title,
             description: campaign.description,
             participants: participantCount,
+            expectedDonors: campaign.expectedDonors,
             location: campaign.location,
             date: new Date(campaign.startTime.replace(/\.000Z$/, '')).toLocaleDateString('en-GB', {
               day: '2-digit',
@@ -338,17 +332,19 @@ const ExploreScreen: React.FC = () => {
 
   if (isFirstLoad) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+      <Screen edges={["top", "bottom"]}>
         <ExploreScreenSkeleton />
-        <BottomTabBar activeTab="explore" />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
+  const noCampaigns = !loading && displayedCampaigns.length === 0;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <Screen edges={["top", "bottom"]}>
+      <View style={styles.headerRow}>
+        <Text variant="h1">Explore</Text>
+      </View>
 
       <SearchAndFilterBar
         searchText={searchText}
@@ -360,23 +356,24 @@ const ExploreScreen: React.FC = () => {
         onCampaignStatusChange={handleCampaignStatusChange}
       />
 
-      <CampaignList
-        campaigns={displayedCampaigns}
-        onCampaignPress={handleViewDetails}
-        loading={loading}
-        hasMore={hasMore}
-        onViewMore={handleViewMore}
-      />
-
-      {/* Show message when no campaigns are available */}
-      {!loading && displayedCampaigns.length === 0 && (
-        <View style={styles.noCampaignsContainer}>
-          <Text style={styles.noCampaignsText}>
-            {campaigns.length === 0 
-              ? `No ${campaignStatus} campaigns available at the moment.`
-              : "No campaigns match your search criteria."}
-          </Text>
+      {noCampaigns ? (
+        <View style={styles.emptyWrap}>
+          <CampaignList
+            campaigns={displayedCampaigns}
+            onCampaignPress={handleViewDetails}
+            loading={loading}
+            hasMore={hasMore}
+            onViewMore={handleViewMore}
+          />
         </View>
+      ) : (
+        <CampaignList
+          campaigns={displayedCampaigns}
+          onCampaignPress={handleViewDetails}
+          loading={loading}
+          hasMore={hasMore}
+          onViewMore={handleViewMore}
+        />
       )}
 
       <FilterModal
@@ -398,41 +395,26 @@ const ExploreScreen: React.FC = () => {
       {/* Loading Overlay for Campaign Registration */}
       {joiningCampaign && (
         <View style={styles.loadingOverlay}>
-          <View style={styles.loadingCard}>
-            <ActivityIndicator size="large" color="#DC2626" />
-            <Text style={styles.loadingText}>Joining Campaign...</Text>
+          <View style={[styles.loadingCard, { backgroundColor: theme.color.surface, borderColor: theme.color.hairline }]}>
+            <ActivityIndicator size="large" color={theme.color.crimson} />
+            <Text variant="bodyBold" style={styles.loadingText}>
+              Joining Campaign...
+            </Text>
           </View>
         </View>
       )}
 
-      <BottomTabBar activeTab="explore" />
-    </SafeAreaView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-    paddingTop: StatusBar.currentHeight || 0,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  noCampaignsContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  headerRow: {
     paddingHorizontal: 20,
-    marginTop: 100,
+    paddingTop: 8,
   },
-  noCampaignsText: {
-    fontSize: 16,
-    color: "#6B7280",
-    textAlign: "center",
-    lineHeight: 24,
+  emptyWrap: {
+    flex: 1,
   },
   loadingOverlay: {
     position: "absolute",
@@ -440,27 +422,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(26, 25, 23, 0.5)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,
   },
   loadingCard: {
-    backgroundColor: "white",
     padding: 24,
     borderRadius: 12,
+    borderWidth: 1.5,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
   },
 });
 
