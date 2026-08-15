@@ -1,14 +1,7 @@
 import React, { useState } from "react";
-import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  View,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
+import { View, Alert, StyleSheet } from "react-native";
+import { Megaphone } from "lucide-react-native";
+import { Button, Icon, useTheme } from "../../../design";
 import { userService } from "../../../services/userService";
 
 import { logger } from "../../../utils/logger";
@@ -16,9 +9,8 @@ interface BecomeCampaignOrganizerButtonProps {
   onSuccess: () => void; // Callback to trigger logout after success
 }
 
-const BecomeCampaignOrganizerButton: React.FC<
-  BecomeCampaignOrganizerButtonProps
-> = ({ onSuccess }) => {
+const BecomeCampaignOrganizerButton: React.FC<BecomeCampaignOrganizerButtonProps> = ({ onSuccess }) => {
+  const theme = useTheme();
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePress = () => {
@@ -48,7 +40,7 @@ const BecomeCampaignOrganizerButton: React.FC<
       if (result.success) {
         // Show success message with logout instruction
         Alert.alert(
-          "✅ Success!",
+          "Success",
           "Campaign Organizer role has been assigned. Please re-login to see your new permissions.",
           [
             {
@@ -61,17 +53,15 @@ const BecomeCampaignOrganizerButton: React.FC<
       } else {
         // Show error if backend returned unsuccessful response
         Alert.alert(
-          "❌ Request Failed",
-          result.message ||
-            "Unable to assign Campaign Organizer role. Please try again later."
+          "Request Failed",
+          result.message || "Unable to assign Campaign Organizer role. Please try again later."
         );
       }
     } catch (error: any) {
-      logger.error("❌ Error requesting role:", error);
+      logger.error("Error requesting role:", error);
       Alert.alert(
-        "❌ Error",
-        error.message ||
-          "Failed to request Campaign Organizer role. Please check your connection and try again."
+        "Error",
+        error.message || "Failed to request Campaign Organizer role. Please check your connection and try again."
       );
     } finally {
       setIsLoading(false);
@@ -79,49 +69,22 @@ const BecomeCampaignOrganizerButton: React.FC<
   };
 
   return (
-    <TouchableOpacity
-      style={styles.button}
-      onPress={handlePress}
-      disabled={isLoading}
-      activeOpacity={0.7}
-    >
-      {isLoading ? (
-        <ActivityIndicator size="small" color={COLORS.PRIMARY} />
-      ) : (
-        <>
-          <Ionicons name="megaphone" size={20} color={COLORS.PRIMARY} />
-          <Text style={styles.buttonText}>Become Campaign Organizer</Text>
-        </>
-      )}
-    </TouchableOpacity>
+    <View style={styles.wrap}>
+      <Button
+        title="Become Campaign Organizer"
+        variant="outline"
+        loading={isLoading}
+        onPress={handlePress}
+        icon={<Icon icon={Megaphone} size={16} color={theme.color.crimson} />}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.BACKGROUND,
-    paddingVertical: SPACING.MD,
-    paddingHorizontal: SPACING.LG,
-    marginHorizontal: SPACING.MD,
-    marginTop: SPACING.MD,
-    marginBottom: SPACING.SM,
-    borderRadius: BORDER_RADIUS.MD,
-    borderWidth: 2,
-    borderColor: COLORS.PRIMARY,
-    gap: SPACING.SM,
-    shadowColor: COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.PRIMARY,
+  wrap: {
+    paddingHorizontal: 20,
+    marginTop: 12,
   },
 });
 
