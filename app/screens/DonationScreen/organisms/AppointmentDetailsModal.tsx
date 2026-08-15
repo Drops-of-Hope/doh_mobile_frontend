@@ -1,7 +1,7 @@
 import React from "react";
-import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
+import { View, StyleSheet } from "react-native";
+import { Building2, MapPin, Calendar, Clock, Hourglass, CheckCircle2, XCircle, CalendarClock, Trash2 } from "lucide-react-native";
+import { Sheet, Text, Button, Icon, useTheme } from "../../../design";
 import { Appointment } from "../types";
 
 interface AppointmentDetailsModalProps {
@@ -19,225 +19,89 @@ export default function AppointmentDetailsModal({
   onCancel,
   onRebook,
 }: AppointmentDetailsModalProps) {
+  const theme = useTheme();
   if (!appointment) return null;
 
   const isUpcoming = appointment.status === "upcoming";
+  const statusIcon =
+    appointment.status === "upcoming" ? Hourglass : appointment.status === "completed" ? CheckCircle2 : XCircle;
+  const statusColor =
+    appointment.status === "completed"
+      ? theme.color.success
+      : appointment.status === "cancelled"
+      ? theme.color.danger
+      : theme.color.crimson;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Appointment Details</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={COLORS.TEXT_SECONDARY} />
-            </TouchableOpacity>
-          </View>
+    <Sheet visible={visible} onClose={onClose} title="Appointment Details">
+      <DetailRow icon={Building2} label="Hospital" value={appointment.hospital} />
+      <DetailRow icon={MapPin} label="Location" value={appointment.location} />
+      <DetailRow icon={Calendar} label="Date" value={appointment.date} />
+      <DetailRow icon={Clock} label="Time" value={appointment.time} last={!isUpcoming || (!onCancel && !onRebook)} />
+      <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
+        <Icon icon={statusIcon} size={20} color={statusColor} />
+        <View style={styles.detailTextContainer}>
+          <Text variant="overline" tone="inkMuted">
+            Status
+          </Text>
+          <Text variant="bodyBold" style={{ color: statusColor }}>
+            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+          </Text>
+        </View>
+      </View>
 
-          {/* Content */}
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {/* Hospital */}
-            <View style={styles.detailRow}>
-              <Ionicons name="business-outline" size={20} color={COLORS.PRIMARY} />
-              <View style={styles.detailTextContainer}>
-                <Text style={styles.detailLabel}>Hospital</Text>
-                <Text style={styles.detailValue}>{appointment.hospital}</Text>
-              </View>
-            </View>
-
-            {/* Location */}
-            <View style={styles.detailRow}>
-              <Ionicons name="location-outline" size={20} color={COLORS.PRIMARY} />
-              <View style={styles.detailTextContainer}>
-                <Text style={styles.detailLabel}>Location</Text>
-                <Text style={styles.detailValue}>{appointment.location}</Text>
-              </View>
-            </View>
-
-            {/* Date */}
-            <View style={styles.detailRow}>
-              <Ionicons name="calendar-outline" size={20} color={COLORS.PRIMARY} />
-              <View style={styles.detailTextContainer}>
-                <Text style={styles.detailLabel}>Date</Text>
-                <Text style={styles.detailValue}>{appointment.date}</Text>
-              </View>
-            </View>
-
-            {/* Time */}
-            <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={20} color={COLORS.PRIMARY} />
-              <View style={styles.detailTextContainer}>
-                <Text style={styles.detailLabel}>Time</Text>
-                <Text style={styles.detailValue}>{appointment.time}</Text>
-              </View>
-            </View>
-
-            {/* Status */}
-            <View style={styles.detailRow}>
-              <Ionicons 
-                name={
-                  appointment.status === "upcoming" ? "hourglass-outline" :
-                  appointment.status === "completed" ? "checkmark-circle-outline" :
-                  "close-circle-outline"
-                } 
-                size={20} 
-                color={COLORS.PRIMARY} 
+      {isUpcoming && (onCancel || onRebook) && (
+        <View style={styles.actionButtons}>
+          {onRebook && (
+            <View style={styles.actionFlex}>
+              <Button
+                title="Rebook"
+                variant="outline"
+                onPress={() => onRebook(appointment)}
+                icon={<Icon icon={CalendarClock} size={18} color={theme.color.info} />}
               />
-              <View style={styles.detailTextContainer}>
-                <Text style={styles.detailLabel}>Status</Text>
-                <Text style={[
-                  styles.detailValue,
-                  styles.statusText,
-                  appointment.status === "completed" && styles.statusCompleted,
-                  appointment.status === "cancelled" && styles.statusCancelled,
-                ]}>
-                  {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                </Text>
-              </View>
             </View>
-          </ScrollView>
-
-          {/* Action Buttons - Only show for upcoming appointments */}
-          {isUpcoming && (onCancel || onRebook) && (
-            <View style={styles.actionButtons}>
-              {onRebook && (
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.rebookButton]}
-                  onPress={() => onRebook(appointment)}
-                >
-                  <Ionicons name="calendar" size={20} color={COLORS.INFO} />
-                  <Text style={[styles.actionButtonText, styles.rebookText]}>Rebook</Text>
-                </TouchableOpacity>
-              )}
-              {onCancel && (
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.cancelButton]}
-                  onPress={() => onCancel(appointment)}
-                >
-                  <Ionicons name="trash-outline" size={20} color={COLORS.ERROR} />
-                  <Text style={[styles.actionButtonText, styles.cancelText]}>Cancel</Text>
-                </TouchableOpacity>
-              )}
+          )}
+          {onCancel && (
+            <View style={styles.actionFlex}>
+              <Button
+                title="Cancel"
+                variant="danger"
+                onPress={() => onCancel(appointment)}
+                icon={<Icon icon={Trash2} size={18} color={theme.color.danger} />}
+              />
             </View>
           )}
         </View>
+      )}
+    </Sheet>
+  );
+}
+
+function DetailRow({ icon, label, value, last }: { icon: any; label: string; value: string; last?: boolean }) {
+  const theme = useTheme();
+  return (
+    <View style={[styles.detailRow, { borderBottomColor: theme.color.hairline }, last && { borderBottomWidth: 0 }]}>
+      <Icon icon={icon} size={20} color={theme.color.crimson} />
+      <View style={styles.detailTextContainer}>
+        <Text variant="overline" tone="inkMuted">
+          {label}
+        </Text>
+        <Text variant="bodyBold">{value}</Text>
       </View>
-    </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: SPACING.MD,
-  },
-  modalContainer: {
-    backgroundColor: COLORS.BACKGROUND,
-    borderRadius: BORDER_RADIUS.LG,
-    width: "100%",
-    maxWidth: 400,
-    maxHeight: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: SPACING.MD,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: COLORS.TEXT_PRIMARY,
-  },
-  closeButton: {
-    padding: SPACING.XS,
-  },
-  content: {
-    padding: SPACING.MD,
-  },
   detailRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: SPACING.MD,
-    paddingBottom: SPACING.MD,
+    marginBottom: 16,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER_LIGHT,
   },
-  detailTextContainer: {
-    marginLeft: SPACING.SM,
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: COLORS.TEXT_SECONDARY,
-    marginBottom: 4,
-    textTransform: "uppercase",
-    fontWeight: "600",
-  },
-  detailValue: {
-    fontSize: 16,
-    color: COLORS.TEXT_PRIMARY,
-    fontWeight: "500",
-  },
-  statusText: {
-    fontWeight: "700",
-  },
-  statusCompleted: {
-    color: COLORS.SUCCESS,
-  },
-  statusCancelled: {
-    color: COLORS.ERROR,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    padding: SPACING.MD,
-    gap: SPACING.SM,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.BORDER,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: SPACING.SM,
-    paddingHorizontal: SPACING.MD,
-    borderRadius: BORDER_RADIUS.MD,
-    borderWidth: 1,
-    gap: SPACING.XS,
-  },
-  rebookButton: {
-    backgroundColor: COLORS.BACKGROUND,
-    borderColor: COLORS.INFO,
-  },
-  cancelButton: {
-    backgroundColor: COLORS.BACKGROUND,
-    borderColor: COLORS.ERROR,
-  },
-  actionButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  rebookText: {
-    color: COLORS.INFO,
-  },
-  cancelText: {
-    color: COLORS.ERROR,
-  },
+  detailTextContainer: { marginLeft: 12, flex: 1, gap: 2 },
+  actionButtons: { flexDirection: "row", gap: 10, marginTop: 8, marginBottom: 8 },
+  actionFlex: { flex: 1 },
 });

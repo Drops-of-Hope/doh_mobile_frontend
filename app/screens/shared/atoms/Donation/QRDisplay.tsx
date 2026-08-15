@@ -1,12 +1,8 @@
 import React from "react";
-import { View, Text, Dimensions, TouchableOpacity } from "react-native";
-import { styled } from "nativewind";
+import { View, Dimensions, StyleSheet } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import { LinearGradient } from "expo-linear-gradient";
-import Ionicons from "@expo/vector-icons/Ionicons";
-
-const StyledView = styled(View);
-const StyledText = styled(Text);
+import { X } from "lucide-react-native";
+import { Text, Button, Surface, Icon, useTheme } from "../../../../design";
 
 interface QRDisplayProps {
   userName: string;
@@ -15,12 +11,9 @@ interface QRDisplayProps {
   onClose?: () => void;
 }
 
-const QRDisplay: React.FC<QRDisplayProps> = ({
-  userName,
-  userEmail,
-  userUID,
-  onClose,
-}) => {
+// Donor check-in QR card, shown full-screen from the Donate flow.
+const QRDisplay: React.FC<QRDisplayProps> = ({ userName, userEmail, userUID, onClose }) => {
+  const theme = useTheme();
   const screenWidth = Dimensions.get("window").width;
   const qrSize = Math.min(screenWidth * 0.6, 280);
 
@@ -33,132 +26,71 @@ const QRDisplay: React.FC<QRDisplayProps> = ({
   });
 
   return (
-    <StyledView className="flex-1 justify-center items-center p-6">
-      {/* Background gradient */}
-      <LinearGradient
-        colors={["#f8fafc", "#e2e8f0"]}
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-        }}
-      />
-
-      {/* Main QR Card */}
-      <StyledView className="bg-white p-8 rounded-3xl shadow-2xl items-center mx-4 border border-gray-100">
-        {/* Header Section */}
-        <StyledView className="items-center mb-6">
-          <StyledText className="text-2xl font-bold text-gray-900 mb-1 text-center">
+    <View style={[styles.container, { backgroundColor: theme.color.paper }]}>
+      <Surface style={styles.card} padding="xxl" radius="xl">
+        {/* Header */}
+        <View style={styles.header}>
+          <Text variant="h2" align="center">
             {userName}
-          </StyledText>
-          <StyledText className="text-base text-gray-600 text-center">
-            {userEmail}
-          </StyledText>
-          <StyledView className="w-16 h-1 bg-red-500 rounded-full mt-3" />
-        </StyledView>
-
-        {/* QR Code Container with Enhanced Styling */}
-        <StyledView className="relative items-center justify-center mb-6">
-          {/* QR Background with border gradient */}
-          <LinearGradient
-            colors={["#dc2626", "#ef4444"]}
-            style={{
-              padding: 3,
-              borderRadius: 20,
-              marginBottom: 16,
-            }}
-          >
-            <StyledView
-              style={{
-                backgroundColor: "white",
-                padding: 20,
-                borderRadius: 17,
-                alignItems: "center",
-                justifyContent: "center",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
-            >
-              <QRCode
-                value={qrData}
-                size={qrSize}
-                color="#1f2937"
-                backgroundColor="white"
-                logoSize={qrSize * 0.15}
-                logoBackgroundColor="white"
-                logoMargin={4}
-                logoBorderRadius={8}
-              />
-            </StyledView>
-          </LinearGradient>
-
-          {/* Corner decorations */}
-          <StyledView className="absolute -top-2 -left-2 w-6 h-6">
-            <StyledView className="w-4 h-1 bg-red-500 rounded-full" />
-            <StyledView className="w-1 h-4 bg-red-500 rounded-full" />
-          </StyledView>
-          <StyledView className="absolute -top-2 -right-2 w-6 h-6">
-            <StyledView className="w-4 h-1 bg-red-500 rounded-full ml-2" />
-            <StyledView className="w-1 h-4 bg-red-500 rounded-full ml-5 -mt-4" />
-          </StyledView>
-          <StyledView className="absolute -bottom-2 -left-2 w-6 h-6">
-            <StyledView className="w-1 h-4 bg-red-500 rounded-full" />
-            <StyledView className="w-4 h-1 bg-red-500 rounded-full" />
-          </StyledView>
-          <StyledView className="absolute -bottom-2 -right-2 w-6 h-6">
-            <StyledView className="w-1 h-4 bg-red-500 rounded-full ml-5" />
-            <StyledView className="w-4 h-1 bg-red-500 rounded-full ml-2" />
-          </StyledView>
-        </StyledView>
-
-        {/* Footer Section */}
-        <StyledView className="items-center">
-          <StyledView className="bg-gray-50 px-4 py-2 rounded-full mb-3">
-            <StyledText className="text-sm font-medium text-gray-700">
-              ID: {userUID}
-            </StyledText>
-          </StyledView>
-          <StyledText className="text-xs text-gray-500 text-center max-w-xs leading-4">
-            📱 Show this QR code to staff at the donation center for quick
-            check-in
-          </StyledText>
-        </StyledView>
-      </StyledView>
-
-      {/* Close Button */}
-      {onClose && (
-        <TouchableOpacity
-          onPress={onClose}
-          style={{
-            marginTop: 24,
-            backgroundColor: "#dc2626",
-            paddingVertical: 12,
-            paddingHorizontal: 32,
-            borderRadius: 12,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 4,
-          }}
-        >
-          <Ionicons name="close-circle" size={20} color="white" />
-          <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
-            Close
           </Text>
-        </TouchableOpacity>
+          <Text variant="body" tone="inkMuted" align="center">
+            {userEmail}
+          </Text>
+          <View style={[styles.accent, { backgroundColor: theme.color.crimson }]} />
+        </View>
+
+        {/* QR code inside a crimson-outline frame */}
+        <View
+          style={[
+            styles.qrFrame,
+            { borderColor: theme.color.crimson, borderRadius: theme.radius.lg },
+          ]}
+        >
+          <QRCode value={qrData} size={qrSize} color={theme.color.ink} backgroundColor="#FFFFFF" />
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View
+            style={[
+              styles.idPill,
+              { backgroundColor: theme.color.surfaceSunken, borderRadius: theme.radius.pill },
+            ]}
+          >
+            <Text variant="label" tone="inkMuted">
+              ID: {userUID}
+            </Text>
+          </View>
+          <Text variant="caption" tone="inkFaint" align="center" style={styles.hint}>
+            Show this QR code to staff at the donation center for quick check-in
+          </Text>
+        </View>
+      </Surface>
+
+      {onClose && (
+        <View style={styles.closeWrap}>
+          <Button
+            title="Close"
+            onPress={onClose}
+            fullWidth={false}
+            icon={<Icon icon={X} size={18} color={theme.color.inverse} />}
+          />
+        </View>
       )}
-    </StyledView>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
+  card: { alignItems: "center", alignSelf: "stretch" },
+  header: { alignItems: "center", marginBottom: 20, gap: 2 },
+  accent: { width: 56, height: 3, borderRadius: 2, marginTop: 12 },
+  qrFrame: { padding: 16, borderWidth: 2, backgroundColor: "#FFFFFF", marginBottom: 20 },
+  footer: { alignItems: "center" },
+  idPill: { paddingHorizontal: 16, paddingVertical: 6, marginBottom: 10 },
+  hint: { maxWidth: 260 },
+  closeWrap: { marginTop: 24 },
+});
 
 export default QRDisplay;

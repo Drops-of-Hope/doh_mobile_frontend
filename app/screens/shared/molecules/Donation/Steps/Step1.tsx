@@ -1,7 +1,9 @@
 import React from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View } from "react-native";
 import { DonationFormData } from "../../../../../services/donationService";
 import { useLanguage } from "../../../../../context/LanguageContext";
+import { Text, Field } from "../../../../../design";
+import YesNoToggle from "../YesNoToggle";
 
 interface Step1Props {
   formData: DonationFormData;
@@ -11,201 +13,64 @@ interface Step1Props {
 const Step1: React.FC<Step1Props> = ({ formData, onUpdateField }) => {
   const { t } = useLanguage();
 
-  const YesNoButton = ({
-    value,
-    onPress,
-    label,
-  }: {
-    value: boolean | undefined;
-    onPress: (val: boolean) => void;
-    label: string;
-  }) => (
-    <View style={{ marginBottom: 16 }}>
-      <Text
-        style={{
-          fontSize: 16,
-          fontWeight: "500",
-          marginBottom: 8,
-          color: "#1F2937",
-        }}
-      >
-        {label}
-      </Text>
-      <View style={{ flexDirection: "row", gap: 8 }}>
-        <TouchableOpacity
-          style={{
-            paddingVertical: 8,
-            paddingHorizontal: 16,
-            borderRadius: 20,
-            backgroundColor: value === true ? "#DC2626" : "#F3F4F6",
-            borderWidth: 1,
-            borderColor: value === true ? "#DC2626" : "#D1D5DB",
-          }}
-          onPress={() => onPress(true)}
-        >
-          <Text
-            style={{
-              color: value === true ? "white" : "#6B7280",
-              fontWeight: "600",
-            }}
-          >
-            {t("common.yes")}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            paddingVertical: 8,
-            paddingHorizontal: 16,
-            borderRadius: 20,
-            backgroundColor: value === false ? "#DC2626" : "#F3F4F6",
-            borderWidth: 1,
-            borderColor: value === false ? "#DC2626" : "#D1D5DB",
-          }}
-          onPress={() => onPress(false)}
-        >
-          <Text
-            style={{
-              color: value === false ? "white" : "#6B7280",
-              fontWeight: "600",
-            }}
-          >
-            {t("common.no")}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
   return (
-    <View style={{ padding: 16 }}>
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: "bold",
-          marginBottom: 16,
-          color: "#1F2937",
-        }}
-      >
+    <View>
+      <Text variant="h2" style={{ marginBottom: 16 }}>
         {t("donation.steps.step1_title")}
       </Text>
 
-      <YesNoButton
+      <YesNoToggle
         label={t("donation.questions.hasDonatedBefore")}
         value={formData.hasDonatedBefore}
-        onPress={(val) => onUpdateField("hasDonatedBefore", val)}
+        onChange={(val) => onUpdateField("hasDonatedBefore", val)}
       />
 
       {formData.hasDonatedBefore && (
         <>
-          <View style={{ marginBottom: 16 }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "500",
-                marginBottom: 8,
-                color: "#1F2937",
-              }}
-            >
-              {t("donation.questions.donationCount")}
-            </Text>
-            <TextInput
-              value={formData.donationCount?.toString() || ""}
-              onChangeText={(text) =>
-                onUpdateField("donationCount", parseInt(text) || 0)
-              }
-              placeholder="Enter number of times"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              style={{
-                borderWidth: 1,
-                borderColor: "#E5E7EB",
-                borderRadius: 8,
-                padding: 12,
-                backgroundColor: "#fff",
-                color: "#111827",
-              }}
-            />
-          </View>
+          <Field
+            label={t("donation.questions.donationCount")}
+            value={formData.donationCount?.toString() || ""}
+            onChangeText={(text) => onUpdateField("donationCount", parseInt(text, 10) || 0)}
+            placeholder="Enter number of times"
+            keyboardType="numeric"
+          />
 
-          <View style={{ marginBottom: 16 }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "500",
-                marginBottom: 8,
-                color: "#1F2937",
-              }}
-            >
-              {t("donation.questions.lastDonationDate")}
-            </Text>
-            <TextInput
-              value={formData.lastDonationDate || ""}
-              onChangeText={(text) => onUpdateField("lastDonationDate", text)}
-              placeholder="DD/MM/YYYY"
-              placeholderTextColor="#9CA3AF"
-              style={{
-                borderWidth: 1,
-                borderColor: "#E5E7EB",
-                borderRadius: 8,
-                padding: 12,
-                backgroundColor: "#fff",
-                color: "#111827",
-              }}
-            />
-          </View>
+          <Field
+            label={t("donation.questions.lastDonationDate")}
+            value={formData.lastDonationDate || ""}
+            onChangeText={(text) => onUpdateField("lastDonationDate", text)}
+            placeholder="DD/MM/YYYY"
+          />
 
-          <YesNoButton
+          <YesNoToggle
             label={t("donation.questions.anyDifficulty")}
             value={formData.anyDifficulty}
-            onPress={(val) => onUpdateField("anyDifficulty", val)}
+            onChange={(val) => onUpdateField("anyDifficulty", val)}
           />
 
           {formData.anyDifficulty && (
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "500",
-                  marginBottom: 8,
-                  color: "#1F2937",
-                }}
-              >
-                {t("donation.descriptions.anyDifficulty")}
-              </Text>
-              <TextInput
-                value={formData.difficultyDetails || ""}
-                onChangeText={(text) =>
-                  onUpdateField("difficultyDetails", text)
-                }
-                placeholder="Please describe the difficulty"
-                placeholderTextColor="#9CA3AF"
-                multiline
-                numberOfLines={3}
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#E5E7EB",
-                  borderRadius: 8,
-                  padding: 12,
-                  backgroundColor: "#fff",
-                  textAlignVertical: "top",
-                  color: "#111827",
-                }}
-              />
-            </View>
+            <Field
+              label={t("donation.descriptions.anyDifficulty")}
+              value={formData.difficultyDetails || ""}
+              onChangeText={(text) => onUpdateField("difficultyDetails", text)}
+              placeholder="Please describe the difficulty"
+              multiline
+              numberOfLines={3}
+            />
           )}
         </>
       )}
 
-      <YesNoButton
+      <YesNoToggle
         label={t("donation.questions.medicalAdvice")}
         value={formData.medicalAdvice}
-        onPress={(val) => onUpdateField("medicalAdvice", val)}
+        onChange={(val) => onUpdateField("medicalAdvice", val)}
       />
 
-      <YesNoButton
+      <YesNoToggle
         label={t("donation.questions.readInformationLeaflet")}
         value={formData.readInformationLeaflet}
-        onPress={(val) => onUpdateField("readInformationLeaflet", val)}
+        onChange={(val) => onUpdateField("readInformationLeaflet", val)}
       />
     </View>
   );

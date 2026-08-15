@@ -1,11 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import Button from "../../shared/atoms/Button";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { QrCode, CheckCircle2, Clock } from "lucide-react-native";
+import { Text, Button, Surface, Icon, useTheme } from "../../../design";
 import DonationAdviceCarousel from "./DonationAdviceCarousel";
 import NICCard from "./NICCard";
 import DonationTimerCard from "./DonationTimerCard";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
 import { UserProfile } from "../types";
 
 interface QRSectionProps {
@@ -24,7 +23,7 @@ interface QRSectionProps {
   onRetryPolling?: () => void;
 }
 
-export default function QRSection({ 
+export default function QRSection({
   userProfile,
   attendanceMarked,
   onShowQR,
@@ -39,104 +38,104 @@ export default function QRSection({
   retryCountdown = 0,
   onRetryPolling,
 }: QRSectionProps) {
+  const theme = useTheme();
+
   return (
     <View style={styles.container}>
       {!attendanceMarked ? (
         <>
           {/* Main QR Card - Always visible until attendance marked */}
-          <View style={styles.card}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="qr-code-outline" size={120} color={COLORS.PRIMARY} />
+          <Surface style={styles.card}>
+            <View
+              style={[
+                styles.iconContainer,
+                { borderColor: theme.color.hairlineStrong, borderRadius: theme.radius.pill },
+              ]}
+            >
+              <Icon icon={QrCode} size={72} color={theme.color.crimson} strokeWidth={1.25} />
             </View>
-            <Text style={styles.title}>Ready to Donate?</Text>
-            <Text style={styles.subtitle}>
+            <Text variant="h2" align="center" style={styles.title}>
+              Ready to Donate?
+            </Text>
+            <Text variant="body" tone="inkMuted" align="center" style={styles.subtitle}>
               Show your QR code to the camp staff to mark your attendance
             </Text>
             <Button title="Show QR Code" onPress={onShowQR} />
-          </View>
+          </Surface>
 
           {/* Verification Status - Shows between QR card and tips */}
           {isPolling && (
-            <View style={styles.statusCard}>
-              <ActivityIndicator size="small" color={COLORS.PRIMARY} style={styles.statusSpinner} />
+            <Surface style={styles.statusCard}>
+              <ActivityIndicator size="small" color={theme.color.crimson} style={styles.statusLead} />
               <View style={styles.statusTextContainer}>
-                <Text style={styles.statusTitle}>Verifying Attendance...</Text>
-                <Text style={styles.statusSubtitle}>
+                <Text variant="bodyBold">Verifying Attendance...</Text>
+                <Text variant="caption" tone="inkMuted">
                   Checking for attendance confirmation (Attempt {pollingAttempts}/3)
                 </Text>
               </View>
-            </View>
+            </Surface>
           )}
 
           {pollingComplete && (
-            <View style={styles.statusCard}>
-              <Ionicons name="time-outline" size={40} color={COLORS.WARNING} style={styles.statusIcon} />
+            <Surface style={styles.statusCard}>
+              <View style={styles.statusLead}>
+                <Icon icon={Clock} size={32} color={theme.color.warning} />
+              </View>
               <View style={styles.statusTextContainer}>
-                <Text style={styles.statusTitle}>Attendance Not Confirmed Yet</Text>
-                <Text style={styles.statusSubtitle}>
+                <Text variant="bodyBold">Attendance Not Confirmed Yet</Text>
+                <Text variant="caption" tone="inkMuted">
                   Please ensure the staff has scanned your QR code
                 </Text>
                 <View style={styles.statusButtonGroup}>
                   {canRetry ? (
-                    <Button 
-                      title="Retry Verification" 
-                      onPress={onRetryPolling || (() => {})}
-                    />
+                    <Button title="Retry Verification" size="sm" onPress={onRetryPolling || (() => {})} />
                   ) : (
-                    <View style={styles.disabledButtonContainer}>
-                      <Button 
-                        title={`Retry in ${retryCountdown}s`}
-                        onPress={() => {}}
-                        disabled={true}
-                      />
-                    </View>
+                    <Button title={`Retry in ${retryCountdown}s`} size="sm" onPress={() => {}} disabled />
                   )}
-                  
+
                   {/* Testing: Allow skipping for development */}
-                  <View style={styles.skipButtonContainer}>
-                    <Button 
-                      title="Skip (Testing)" 
-                      onPress={onShowForm}
-                    />
-                  </View>
+                  <Button title="Skip (Testing)" size="sm" variant="ghost" onPress={onShowForm} />
                 </View>
               </View>
-            </View>
+            </Surface>
           )}
 
           {/* Donation Advice Carousel - Always visible */}
           <View style={styles.adviceSection}>
-            <Text style={styles.adviceTitle}>Tips for a Successful Donation</Text>
+            <Text variant="h3" align="center" style={styles.adviceTitle}>
+              Tips for a Successful Donation
+            </Text>
             <DonationAdviceCarousel />
           </View>
         </>
       ) : (
         <>
           {/* QR Marked Successfully */}
-          <View style={styles.card}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="checkmark-circle" size={120} color={COLORS.SUCCESS} />
+          <Surface style={styles.card}>
+            <View
+              style={[
+                styles.iconContainer,
+                { borderColor: theme.color.success, borderRadius: theme.radius.pill },
+              ]}
+            >
+              <Icon icon={CheckCircle2} size={72} color={theme.color.success} strokeWidth={1.25} />
             </View>
-            <Text style={styles.title}>Attendance Marked!</Text>
-            <Text style={styles.subtitle}>
+            <Text variant="h2" align="center" style={styles.title}>
+              Attendance Marked!
+            </Text>
+            <Text variant="body" tone="inkMuted" align="center" style={styles.subtitle}>
               Your attendance has been successfully verified. You can now complete the donation form.
             </Text>
-          </View>
+          </Surface>
 
           {/* Post-QR Cards */}
           {qrScanned && (
             <View style={styles.postQRContainer}>
               <NICCard nicNumber={userProfile?.id || ""} />
-              
-              {/* Complete Donation Form Button - Between NIC and Timer */}
-              <View style={styles.formButtonContainer}>
-                <Button 
-                  title="Complete Donation Form" 
-                  onPress={onShowForm}
-                />
-              </View>
-              
-              <DonationTimerCard 
+
+              <Button title="Complete Donation Form" onPress={onShowForm} />
+
+              <DonationTimerCard
                 onStartTimer={onStartTimer || (() => {})}
                 isTimerStarted={isTimerStarted}
               />
@@ -150,131 +149,50 @@ export default function QRSection({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: SPACING.MD,
+    width: "100%",
   },
   card: {
-    backgroundColor: COLORS.BACKGROUND,
-    padding: SPACING.LG,
-    borderRadius: BORDER_RADIUS.XL,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_LIGHT,
     alignItems: "center",
-    marginBottom: SPACING.LG,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-    width: "100%",
-    maxWidth: 320,
+    marginBottom: 16,
   },
   iconContainer: {
-    marginBottom: SPACING.MD,
-    padding: SPACING.MD,
-    borderRadius: BORDER_RADIUS.FULL,
-    backgroundColor: `${COLORS.PRIMARY}10`, // 10% opacity
+    marginBottom: 16,
+    padding: 20,
+    borderWidth: 1.5,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: COLORS.TEXT_PRIMARY,
-    textAlign: "center",
-    marginBottom: SPACING.XS,
+    marginBottom: 6,
   },
   subtitle: {
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: "center",
-    marginBottom: SPACING.LG,
+    marginBottom: 20,
     maxWidth: 280,
-    lineHeight: 20,
-    fontSize: 14,
   },
   adviceSection: {
     width: "100%",
-    marginTop: SPACING.MD,
+    marginTop: 12,
   },
   adviceTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: COLORS.TEXT_PRIMARY,
-    textAlign: "center",
-    marginBottom: SPACING.MD,
+    marginBottom: 12,
   },
   postQRContainer: {
     width: "100%",
-    marginBottom: SPACING.LG,
-    gap: SPACING.MD,
+    marginBottom: 16,
+    gap: 12,
   },
-  formButtonContainer: {
-    width: "100%",
-    paddingVertical: SPACING.SM, // Makes button vertically fatter
-  },
-  formButton: {
-    marginTop: SPACING.MD,
-  },
-  spinner: {
-    marginBottom: SPACING.MD,
-  },
-  pollingStatus: {
-    fontSize: 14,
-    color: COLORS.TEXT_SECONDARY,
-    marginTop: SPACING.SM,
-    fontWeight: "600",
-  },
-  // Status card - appears between QR card and tips
   statusCard: {
-    backgroundColor: COLORS.BACKGROUND,
-    padding: SPACING.MD,
-    borderRadius: BORDER_RADIUS.LG,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_LIGHT,
-    marginBottom: SPACING.LG,
-    width: "100%",
-    maxWidth: 320,
+    marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  statusSpinner: {
-    marginRight: SPACING.SM,
-  },
-  statusIcon: {
-    marginRight: SPACING.SM,
+  statusLead: {
+    marginRight: 12,
   },
   statusTextContainer: {
     flex: 1,
-  },
-  statusTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.XS,
-  },
-  statusSubtitle: {
-    fontSize: 13,
-    color: COLORS.TEXT_SECONDARY,
-    lineHeight: 18,
+    gap: 2,
   },
   statusButtonGroup: {
-    marginTop: SPACING.SM,
-    gap: SPACING.XS,
-  },
-  disabledButtonContainer: {
-    opacity: 0.6,
-  },
-  buttonGroup: {
-    width: "100%",
-    gap: SPACING.SM,
-  },
-  skipButtonContainer: {
-    marginTop: SPACING.XS,
-    opacity: 0.7,
+    marginTop: 10,
+    gap: 6,
   },
 });

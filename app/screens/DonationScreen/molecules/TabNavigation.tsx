@@ -1,5 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
+import { QrCode, CalendarDays } from "lucide-react-native";
+import { useTheme } from "../../../design";
 import TabButton from "../atoms/TabButton";
 import { TabType } from "../types";
 
@@ -8,21 +10,29 @@ interface TabNavigationProps {
   onTabChange: (tab: TabType) => void;
 }
 
-export default function TabNavigation({
-  activeTab,
-  onTabChange,
-}: TabNavigationProps) {
+// Segmented control for the Donate screen's two modes.
+export default function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.tabContainer}>
+    <View
+      style={[
+        styles.tabContainer,
+        {
+          backgroundColor: theme.color.surfaceSunken,
+          borderColor: theme.color.hairline,
+          borderRadius: theme.radius.md,
+        },
+      ]}
+    >
       <TabButton
         title="QR Code"
-        icon="qr-code"
+        icon={QrCode}
         isActive={activeTab === "qr"}
         onPress={() => onTabChange("qr")}
       />
       <TabButton
         title="Appointments"
-        icon="calendar"
+        icon={CalendarDays}
         isActive={activeTab === "appointment"}
         onPress={() => onTabChange("appointment")}
       />
@@ -33,9 +43,8 @@ export default function TabNavigation({
 const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: "#F9FAFB",
-    margin: 16,
-    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 1.5,
     padding: 4,
   },
 });

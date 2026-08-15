@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  ScrollView,
-  Alert,
-} from "react-native";
+import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { Screen, AppBar, useTheme } from "../../design";
 
 // Import refactored components
 import TabNavigation from "./molecules/TabNavigation";
@@ -17,9 +11,6 @@ import AppointmentSection from "./molecules/AppointmentSection";
 import QRModal from "./organisms/QRModal";
 import DonationFormModal from "./organisms/DonationFormModal";
 import AppointmentBookingModal from "./organisms/AppointmentBookingModal";
-
-// Import existing bottom tab bar
-import BottomTabBar from "../shared/organisms/BottomTabBar";
 
 // Import types and utilities
 import { TabType, UserProfile, Appointment } from "./types";
@@ -40,6 +31,7 @@ interface DonationScreenProps {
 }
 
 export default function DonationScreen({ navigation, route }: DonationScreenProps) {
+  const theme = useTheme();
   // State management
   const [activeTab, setActiveTab] = useState<TabType>("qr");
   const [showQRModal, setShowQRModal] = useState(false);
@@ -84,11 +76,11 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
       // Set empty appointments instead of showing error for new users
       setAppointments({ upcoming: [], history: [] });
       
-      // Only show error if it's a real network/server issue
-      if (error instanceof Error && 
-          !error.message.includes("404") && 
-          !error.message.includes("not found") &&
-          !error.message.includes("Network request failed")) {
+      // Only show error if it's a real network/server issue (404/not found
+      // means the user genuinely has no appointments yet, so stay quiet).
+      if (error instanceof Error &&
+          !error.message.includes("404") &&
+          !error.message.includes("not found")) {
         Alert.alert(
           "Error",
           "Failed to load appointments. Please try again later.",
@@ -261,7 +253,7 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
     }
   }, [userProfile?.id]);
 
-  // Handle route parameters (e.g., opening form from TodaysAppointmentCard)
+  // Handle route parameters (e.g., opening form from UpcomingAppointmentCard)
   useEffect(() => {
     if (route?.params?.openBloodDonationForm) {
       // Store the appointmentId in state
@@ -314,9 +306,8 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
   };
 
   const handleStartTimer = () => {
+    // The rest timer renders inline in QRSection (DonationTimerCard).
     setIsTimerStarted(true);
-    // Navigate to the timer screen
-    navigation?.navigate('DonationTimer');
   };
 
   const handleQRClose = () => {
@@ -329,22 +320,17 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <Screen>
         <View style={styles.loadingContainer}>
-          {/* Add loading spinner if needed */}
+          <ActivityIndicator size="large" color={theme.color.crimson} />
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
+    <Screen scroll>
+        <AppBar title="Donate" onBack={() => navigation?.goBack()} transparent />
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         {activeTab === "qr" ? (
@@ -374,9 +360,6 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
           />
         )}
 
-        <View style={styles.bottomPadding} />
-      </ScrollView>
-
       {/* Reuse existing modals through wrappers */}
       <QRModal
         visible={showQRModal}
@@ -397,26 +380,14 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
         onBookAppointment={handleBookAppointment}
       />
 
-      <BottomTabBar activeTab="donate" />
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-    paddingTop: 20,
-  },
-  scrollView: {
-    flex: 1,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  bottomPadding: {
-    height: 100,
   },
 });
