@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Alert,
-  View,
-} from "react-native";
+import { View, Alert, StyleSheet } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { campaignService } from "../../services/campaignService";
@@ -14,15 +7,11 @@ import { appointmentService, MedicalEstablishment } from "../../services/appoint
 import { District } from "../../../constants/districts";
 import { getDatabaseUserId } from "../../utils/userIdUtils";
 
+import { Screen, AppBar, Field, Select, Stepper, TimeField, Button, Text } from "../../design";
+
 // Import refactored components
-import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import FormSection from "./molecules/FormSection";
-import InputField from "./atoms/InputField";
-import DropdownField from "./atoms/DropdownField";
 import DateSelector from "./atoms/DateSelector";
-import TimePicker from "./atoms/TimePicker";
-import NumberSpinner from "./atoms/NumberSpinner";
-import SubmitButton from "./atoms/SubmitButton";
 
 // Import types
 import { CreateCampaignScreenProps, LocalCampaignForm, FormErrors } from "./types";
@@ -149,7 +138,7 @@ export default function CreateCampaignScreen({
 
     // Time validation (24-hour format HH:mm)
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    
+
     if (!formData.startTime) {
       newErrors.startTime = "Start time is required";
     } else if (!timeRegex.test(formData.startTime)) {
@@ -168,7 +157,7 @@ export default function CreateCampaignScreen({
       const [endHour, endMin] = formData.endTime.split(':').map(Number);
       const startMinutes = startHour * 60 + startMin;
       const endMinutes = endHour * 60 + endMin;
-      
+
       if (endMinutes <= startMinutes) {
         newErrors.endTime = "End time must be after start time";
       } else if (endMinutes - startMinutes < 60) {
@@ -197,7 +186,6 @@ export default function CreateCampaignScreen({
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      Alert.alert("Validation Error", "Please fill all required fields correctly");
       return;
     }
 
@@ -205,7 +193,7 @@ export default function CreateCampaignScreen({
     try {
       // Get the actual database user ID
       const databaseUserId = await getDatabaseUserId();
-      
+
       if (!databaseUserId) {
         Alert.alert("Error", "Unable to identify user. Please log in again.");
         return;
@@ -213,7 +201,7 @@ export default function CreateCampaignScreen({
 
       // Create date string in YYYY-MM-DD format
       const dateStr = `${formData.year}-${formData.month.padStart(2, '0')}-${formData.day.padStart(2, '0')}`;
-      
+
       // Combine date and time without timezone conversion
       // Store as ISO string but in local time (no UTC conversion)
       const startDateTime = `${dateStr}T${formData.startTime}:00`;
@@ -237,13 +225,13 @@ export default function CreateCampaignScreen({
       };
 
       await campaignService.createCampaign(campaignData);
-      
+
       Alert.alert(
         "✅ Campaign Submitted Successfully",
         "The blood bank will review your form and get back to you shortly.",
         [
-          { 
-            text: "OK", 
+          {
+            text: "OK",
             onPress: () => navigation?.goBack(),
             style: "default"
           },
@@ -252,7 +240,7 @@ export default function CreateCampaignScreen({
     } catch (error) {
       logger.error("Failed to create campaign:", error);
       Alert.alert(
-        "❌ Error", 
+        "❌ Error",
         "Failed to create campaign. Please try again.",
         [{ text: "OK", style: "default" }]
       );
@@ -271,18 +259,12 @@ export default function CreateCampaignScreen({
   const handleBack = () => navigation?.goBack();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <Screen keyboardAvoiding scroll edges={["top", "bottom"]}>
+      <AppBar title={t("campaign.create_title")} onBack={handleBack} />
 
-      <DashboardHeader
-        title={t("campaign.create_title")}
-        onBack={handleBack}
-        onAdd={() => {}}
-      />
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
         <FormSection title="Campaign Information">
-          <InputField
+          <Field
             label="Campaign Title"
             value={formData.title}
             onChangeText={(text) => updateFormData("title", text)}
@@ -290,11 +272,11 @@ export default function CreateCampaignScreen({
             error={errors.title}
             required
           />
-          
-          <DropdownField
+
+          <Select
             label="Campaign Type"
             value={formData.type}
-            onValueChange={(value) => updateFormData("type", value)}
+            onChange={(value) => updateFormData("type", value)}
             options={[
               { label: "Fixed Location", value: "FIXED" },
               { label: "Mobile Campaign", value: "MOBILE" },
@@ -303,8 +285,8 @@ export default function CreateCampaignScreen({
             error={errors.type}
             required
           />
-          
-          <InputField
+
+          <Field
             label="Motivation"
             value={formData.motivation}
             onChangeText={(text) => updateFormData("motivation", text)}
@@ -314,8 +296,8 @@ export default function CreateCampaignScreen({
             error={errors.motivation}
             required
           />
-          
-          <InputField
+
+          <Field
             label="Description"
             value={formData.description}
             onChangeText={(text) => updateFormData("description", text)}
@@ -328,7 +310,7 @@ export default function CreateCampaignScreen({
         </FormSection>
 
         <FormSection title="Location & Schedule">
-          <InputField
+          <Field
             label="Location Name"
             value={formData.location}
             onChangeText={(text) => updateFormData("location", text)}
@@ -336,10 +318,10 @@ export default function CreateCampaignScreen({
             error={errors.location}
             required
           />
-          <DropdownField
+          <Select
             label="Medical Establishment"
             value={formData.medicalEstablishmentId}
-            onValueChange={(value) => updateFormData("medicalEstablishmentId", value)}
+            onChange={(value) => updateFormData("medicalEstablishmentId", value)}
             options={medicalEstablishments.map(est => ({
               label: `${est.name} - ${est.address}`,
               value: est.id
@@ -348,7 +330,7 @@ export default function CreateCampaignScreen({
             error={errors.medicalEstablishmentId}
             required
           />
-          
+
           <DateSelector
             day={formData.day}
             month={formData.month}
@@ -358,10 +340,10 @@ export default function CreateCampaignScreen({
             onYearChange={(value) => updateFormData("year", value)}
             error={errors.day}
           />
-          
+
           <View style={styles.timeRow}>
             <View style={styles.timeInput}>
-              <TimePicker
+              <TimeField
                 label="Start Time"
                 value={formData.startTime}
                 onChange={(time) => updateFormData("startTime", time)}
@@ -370,7 +352,7 @@ export default function CreateCampaignScreen({
               />
             </View>
             <View style={styles.timeInput}>
-              <TimePicker
+              <TimeField
                 label="End Time"
                 value={formData.endTime}
                 onChange={(time) => updateFormData("endTime", time)}
@@ -382,17 +364,21 @@ export default function CreateCampaignScreen({
         </FormSection>
 
         <FormSection title="Goals & Contact">
-          <NumberSpinner
+          <Stepper
             label="Expected Donors"
-            value={formData.expectedDonors}
-            onChange={(value) => updateFormData("expectedDonors", value)}
+            value={Number(formData.expectedDonors) || 1}
+            onChange={(value) => updateFormData("expectedDonors", value.toString())}
             min={1}
             max={9999}
             step={1}
-            error={errors.expectedDonors}
             required
           />
-          <InputField
+          {errors.expectedDonors ? (
+            <Text variant="caption" tone="danger" style={styles.stepperError}>
+              {errors.expectedDonors}
+            </Text>
+          ) : null}
+          <Field
             label="Contact Person Name"
             value={formData.contactPersonName}
             onChangeText={(text) => updateFormData("contactPersonName", text)}
@@ -400,7 +386,7 @@ export default function CreateCampaignScreen({
             error={errors.contactPersonName}
             required
           />
-          <InputField
+          <Field
             label="Contact Phone"
             value={formData.contactPersonPhone}
             onChangeText={(text) => updateFormData("contactPersonPhone", text)}
@@ -410,8 +396,8 @@ export default function CreateCampaignScreen({
             error={errors.contactPersonPhone}
             required
           />
-          
-          <InputField
+
+          <Field
             label="Requirements"
             value={formData.requirements}
             onChangeText={(text) => updateFormData("requirements", text)}
@@ -421,25 +407,20 @@ export default function CreateCampaignScreen({
           />
         </FormSection>
 
-        <SubmitButton
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
+        <Button
           title="Create Campaign"
+          onPress={handleSubmit}
+          loading={isSubmitting}
+          disabled={isSubmitting}
         />
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    paddingTop: StatusBar.currentHeight || 0,
-  },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
   },
   timeRow: {
     flexDirection: "row",
@@ -447,5 +428,10 @@ const styles = StyleSheet.create({
   },
   timeInput: {
     flex: 1,
+  },
+  stepperError: {
+    marginTop: -10,
+    marginBottom: 16,
+    marginLeft: 2,
   },
 });

@@ -9,18 +9,14 @@ interface CampaignListProps {
   onJoin: (campaign: Campaign) => void;
 }
 
-export default function CampaignList({
-  campaigns,
-  onDetails,
-  onJoin,
-}: CampaignListProps) {
+export default function CampaignList({ campaigns, onDetails, onJoin }: CampaignListProps) {
   return (
     <View style={styles.campaignListContainer}>
       {campaigns.map((campaign) => (
         <CampaignCard
           key={campaign.id}
           campaign={campaign}
-          showActions={true}
+          showActions
           onDetails={() => onDetails(campaign)}
           onJoin={() => onJoin(campaign)}
         />
@@ -30,7 +26,5 @@ export default function CampaignList({
 }
 
 const styles = StyleSheet.create({
-  campaignListContainer: {
-    paddingHorizontal: 16,
-  },
+  campaignListContainer: { gap: 12 },
 });

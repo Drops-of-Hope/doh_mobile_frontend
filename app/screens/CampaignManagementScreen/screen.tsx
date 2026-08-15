@@ -1,30 +1,40 @@
 import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  StyleSheet,
-  StatusBar,
-  RefreshControl,
-} from "react-native";
+import { View, Alert, ActivityIndicator } from "react-native";
+import { Plus, Settings2, BarChart3, Pencil, Trash2 } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
-import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { campaignService, Campaign } from "../../services/campaignService";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
+
+import {
+  Screen,
+  AppBar,
+  Surface,
+  Text,
+  Button,
+  ProgressTrack,
+  EmptyState,
+  Icon,
+  useTheme,
+} from "../../design";
+import { Calendar } from "lucide-react-native";
 
 import { logger } from "../../utils/logger";
 interface CampaignManagementScreenProps {
   navigation?: any;
 }
 
+const STATUS_META: Record<string, { label: string; tone: "crimson" | "info" | "success" | "danger"; surfaceTone: "crimsonSoft" | "infoSoft" | "successSoft" | "dangerSoft" }> = {
+  upcoming: { label: "Upcoming", tone: "info", surfaceTone: "infoSoft" },
+  active: { label: "Active", tone: "crimson", surfaceTone: "crimsonSoft" },
+  completed: { label: "Completed", tone: "success", surfaceTone: "successSoft" },
+  cancelled: { label: "Cancelled", tone: "danger", surfaceTone: "dangerSoft" },
+};
+
 export default function CampaignManagementScreen({
   navigation,
 }: CampaignManagementScreenProps) {
+  const theme = useTheme();
   const { user } = useAuth();
   const { t } = useLanguage();
 
@@ -72,7 +82,7 @@ export default function CampaignManagementScreen({
       );
 
       if (!permissions.canEdit) {
-        Alert.alert("Cannot Edit Campaign", permissions.reasons.join("\\n"), [
+        Alert.alert("Cannot Edit Campaign", permissions.reasons.join("\n"), [
           { text: "OK" },
         ]);
         return;
@@ -93,7 +103,7 @@ export default function CampaignManagementScreen({
       );
 
       if (!permissions.canDelete) {
-        Alert.alert("Cannot Delete Campaign", permissions.reasons.join("\\n"), [
+        Alert.alert("Cannot Delete Campaign", permissions.reasons.join("\n"), [
           { text: "OK" },
         ]);
         return;
@@ -101,7 +111,7 @@ export default function CampaignManagementScreen({
 
       Alert.alert(
         "Delete Campaign",
-        `Are you sure you want to delete "${campaign.title}"?\\n\\nThis will notify all registered donors and hospitals about the cancellation.`,
+        `Are you sure you want to delete "${campaign.title}"?\n\nThis will notify all registered donors and hospitals about the cancellation.`,
         [
           { text: "Cancel", style: "cancel" },
           {
@@ -115,7 +125,7 @@ export default function CampaignManagementScreen({
 
                 Alert.alert(
                   "Campaign Deleted",
-                  `${result.message}\\n\\nNotifications sent to:\\n• ${result.notificationsSent.donors} donors\\n• ${result.notificationsSent.hospitals} hospitals`,
+                  `${result.message}\n\nNotifications sent to:\n• ${result.notificationsSent.donors} donors\n• ${result.notificationsSent.hospitals} hospitals`,
                   [{ text: "OK", onPress: () => loadCampaigns() }]
                 );
               } catch (error) {
@@ -145,106 +155,59 @@ export default function CampaignManagementScreen({
     navigation?.navigate("CampaignDashboard", { campaignId: campaign.id });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "upcoming":
-        return "#3B82F6";
-      case "active":
-        return "#10B981";
-      case "completed":
-        return "#6B7280";
-      case "cancelled":
-        return "#EF4444";
-      default:
-        return "#6B7280";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "upcoming":
-        return "Upcoming";
-      case "active":
-        return "Active";
-      case "completed":
-        return "Completed";
-      case "cancelled":
-        return "Cancelled";
-      default:
-        return status;
-    }
-  };
-
   const handleBack = () => navigation?.goBack();
+
+  const rightAction = (
+    <Button
+      title="Create"
+      size="sm"
+      fullWidth={false}
+      icon={<Icon icon={Plus} size={16} color={theme.color.inverse} />}
+      onPress={handleCreateCampaign}
+    />
+  );
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <DashboardHeader
-          title="Manage Campaigns"
-          onBack={handleBack}
-          onAdd={handleCreateCampaign}
-        />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#DC2626" />
-          <Text style={styles.loadingText}>Loading campaigns...</Text>
+      <Screen>
+        <AppBar title="Manage Campaigns" onBack={handleBack} right={rightAction} />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
+          <ActivityIndicator size="large" color={theme.color.crimson} />
+          <Text variant="body" tone="inkMuted">
+            Loading campaigns...
+          </Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <Screen scroll refreshing={isRefreshing} onRefresh={handleRefresh}>
+      <AppBar title="Manage Campaigns" onBack={handleBack} right={rightAction} />
 
-      <DashboardHeader
-        title="Manage Campaigns"
-        onBack={handleBack}
-        onAdd={handleCreateCampaign}
-      />
-
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={["#DC2626"]}
-          />
-        }
-      >
+      <View style={{ marginTop: theme.space.lg }}>
         {campaigns.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No Campaigns Yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Create your first blood donation campaign to get started
-            </Text>
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={handleCreateCampaign}
-            >
-              <Text style={styles.createButtonText}>Create Campaign</Text>
-            </TouchableOpacity>
-          </View>
+          <EmptyState
+            icon={Calendar}
+            title="No Campaigns Yet"
+            body="Create your first blood donation campaign to get started"
+            actionLabel="Create Campaign"
+            onAction={handleCreateCampaign}
+          />
         ) : (
-          <View style={styles.campaignsContainer}>
-            {campaigns.map((campaign) => (
-              <CampaignCard
-                key={campaign.id}
-                campaign={campaign}
-                onEdit={() => handleEditCampaign(campaign)}
-                onDelete={() => handleDeleteCampaign(campaign)}
-                onViewAnalytics={() => handleViewAnalytics(campaign)}
-                onManage={() => handleManageCampaign(campaign)}
-                getStatusColor={getStatusColor}
-                getStatusText={getStatusText}
-              />
-            ))}
-          </View>
+          campaigns.map((campaign) => (
+            <CampaignCard
+              key={campaign.id}
+              campaign={campaign}
+              onEdit={() => handleEditCampaign(campaign)}
+              onDelete={() => handleDeleteCampaign(campaign)}
+              onViewAnalytics={() => handleViewAnalytics(campaign)}
+              onManage={() => handleManageCampaign(campaign)}
+            />
+          ))
         )}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </Screen>
   );
 }
 
@@ -255,8 +218,6 @@ interface CampaignCardProps {
   onDelete: () => void;
   onViewAnalytics: () => void;
   onManage: () => void;
-  getStatusColor: (status: string) => string;
-  getStatusText: (status: string) => string;
 }
 
 function CampaignCard({
@@ -265,257 +226,101 @@ function CampaignCard({
   onDelete,
   onViewAnalytics,
   onManage,
-  getStatusColor,
-  getStatusText,
 }: CampaignCardProps) {
+  const theme = useTheme();
+  const meta = STATUS_META[campaign.status || "upcoming"] ?? STATUS_META.upcoming;
+  const expected = campaign.expectedDonors || 0;
+  const actual = campaign.actualDonors || 0;
+  const progress = expected > 0 ? Math.min(actual / expected, 1) : 0;
+
   return (
-    <View style={styles.campaignCard}>
-      {/* Header */}
-      <View style={styles.cardHeader}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.campaignTitle}>{campaign.title}</Text>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(campaign.status || 'upcoming') },
-            ]}
-          >
-            <Text style={styles.statusText}>
-              {getStatusText(campaign.status || 'upcoming')}
-            </Text>
-          </View>
-        </View>
+    <Surface style={{ marginBottom: theme.space.lg }}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: theme.space.sm,
+        }}
+      >
+        <Text variant="h3" style={{ flex: 1, marginRight: theme.space.sm }}>
+          {campaign.title}
+        </Text>
+        <Surface
+          tone={meta.surfaceTone}
+          bordered={false}
+          padding={0}
+          radius="pill"
+          style={{ paddingHorizontal: 10, paddingVertical: 4 }}
+        >
+          <Text variant="overline" tone={meta.tone}>
+            {meta.label.toUpperCase()}
+          </Text>
+        </Surface>
       </View>
 
-      {/* Details */}
-      <View style={styles.cardContent}>
-        <Text style={styles.campaignLocation}>{campaign.location}</Text>
-        <Text style={styles.campaignDate}>
-          {new Date(campaign.startTime.replace(/\.000Z$/, '')).toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          })}
-        </Text>
-        <Text style={styles.campaignTime}>
-          {extractTimeFromISO(campaign.startTime)} - {extractTimeFromISO(campaign.endTime)}
-        </Text>
+      <Text variant="caption" tone="inkMuted" style={{ marginBottom: 2 }}>
+        {campaign.location}
+      </Text>
+      <Text variant="caption" tone="inkMuted" style={{ marginBottom: 2 }}>
+        {new Date(campaign.startTime.replace(/\.000Z$/, "")).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })}
+      </Text>
+      <Text variant="caption" tone="inkMuted" style={{ marginBottom: theme.space.lg }}>
+        {extractTimeFromISO(campaign.startTime)} - {extractTimeFromISO(campaign.endTime)}
+      </Text>
 
-        {/* Progress */}
-        <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>
-            {campaign.actualDonors || 0} / {campaign.expectedDonors || 0} donations
-          </Text>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${Math.min(
-                    ((campaign.actualDonors || 0) / (campaign.expectedDonors || 1)) * 100,
-                    100
-                  )}%`,
-                },
-              ]}
+      <View style={{ marginBottom: theme.space.lg }}>
+        <Text variant="label" tone="inkMuted" style={{ marginBottom: theme.space.sm }}>
+          {actual} / {expected} donations
+        </Text>
+        <ProgressTrack progress={progress} />
+      </View>
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space.sm }}>
+        <View style={{ flex: 1, minWidth: 110 }}>
+          <Button
+            title="Manage"
+            size="sm"
+            icon={<Icon icon={Settings2} size={16} color={theme.color.inverse} />}
+            onPress={onManage}
+          />
+        </View>
+        <View style={{ flex: 1, minWidth: 110 }}>
+          <Button
+            title="Analytics"
+            size="sm"
+            variant="outline"
+            icon={<Icon icon={BarChart3} size={16} color={theme.color.crimson} />}
+            onPress={onViewAnalytics}
+          />
+        </View>
+        {campaign.canEdit && (
+          <View style={{ flex: 1, minWidth: 110 }}>
+            <Button
+              title="Edit"
+              size="sm"
+              variant="outline"
+              icon={<Icon icon={Pencil} size={16} color={theme.color.crimson} />}
+              onPress={onEdit}
             />
           </View>
-        </View>
-      </View>
-
-      {/* Actions */}
-      <View style={styles.cardActions}>
-        <TouchableOpacity style={styles.actionButton} onPress={onManage}>
-          <Text style={styles.actionButtonText}>Manage</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionButton} onPress={onViewAnalytics}>
-          <Text style={styles.actionButtonText}>Analytics</Text>
-        </TouchableOpacity>
-
-        {campaign.canEdit && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.editButton]}
-            onPress={onEdit}
-          >
-            <Text style={[styles.actionButtonText, styles.editButtonText]}>
-              Edit
-            </Text>
-          </TouchableOpacity>
         )}
-
         {campaign.canDelete && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.deleteButton]}
-            onPress={onDelete}
-          >
-            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>
-              Delete
-            </Text>
-          </TouchableOpacity>
+          <View style={{ flex: 1, minWidth: 110 }}>
+            <Button
+              title="Delete"
+              size="sm"
+              variant="danger"
+              icon={<Icon icon={Trash2} size={16} color={theme.color.danger} />}
+              onPress={onDelete}
+            />
+          </View>
         )}
       </View>
-    </View>
+    </Surface>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    paddingTop: StatusBar.currentHeight || 0,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#6B7280",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 32,
-    paddingHorizontal: 20,
-  },
-  createButton: {
-    backgroundColor: "#DC2626",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  createButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  campaignsContainer: {
-    paddingVertical: 16,
-  },
-  campaignCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  cardHeader: {
-    marginBottom: 12,
-  },
-  titleContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  campaignTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1F2937",
-    flex: 1,
-    marginRight: 12,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  statusText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  cardContent: {
-    marginBottom: 16,
-  },
-  campaignLocation: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  campaignDate: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  campaignTime: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 12,
-  },
-  progressContainer: {
-    marginTop: 8,
-  },
-  progressText: {
-    fontSize: 14,
-    color: "#374151",
-    marginBottom: 8,
-    fontWeight: "500",
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#DC2626",
-  },
-  cardActions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  actionButton: {
-    backgroundColor: "#E53E3E",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#E53E3E",
-  },
-  actionButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#FFFFFF",
-  },
-  editButton: {
-    backgroundColor: "#E53E3E",
-    borderColor: "#E53E3E",
-  },
-  editButtonText: {
-    color: "#FFFFFF",
-  },
-  deleteButton: {
-    backgroundColor: "#DC2626",
-    borderColor: "#DC2626",
-  },
-  deleteButtonText: {
-    color: "#FFFFFF",
-  },
-});

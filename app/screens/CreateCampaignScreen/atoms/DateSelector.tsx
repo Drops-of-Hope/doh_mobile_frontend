@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import DropdownField from "./DropdownField";
+import { View, StyleSheet } from "react-native";
+import { Select, Text } from "../../../design";
 import { DateSelectorProps } from "../types";
 
 export default function DateSelector({
@@ -50,10 +50,10 @@ export default function DateSelector({
   const generateDays = () => {
     const daysInMonth = getDaysInMonth(month, year);
     const days = [];
-    
+
     for (let i = 1; i <= daysInMonth; i++) {
-      const dayStr = i.toString().padStart(2, '0');
-      
+      const dayStr = i.toString().padStart(2, "0");
+
       // Check if this date is at least 4 weeks in the future
       if (year && month) {
         const checkDate = new Date(parseInt(year), parseInt(month) - 1, i);
@@ -65,7 +65,7 @@ export default function DateSelector({
         days.push({ label: dayStr, value: dayStr });
       }
     }
-    
+
     return days;
   };
 
@@ -74,30 +74,31 @@ export default function DateSelector({
     if (day && month && year) {
       const selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       const daysInSelectedMonth = getDaysInMonth(month, year);
-      
+
       // Clear day if it's invalid for the selected month or if date is too early
       if (parseInt(day) > daysInSelectedMonth || selectedDate < minDate) {
-        onDayChange('');
+        onDayChange("");
       }
     }
-  }, [month, year, day, onDayChange, minDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month, year, day]);
 
   const days = generateDays();
 
   // Filter months based on selected year
   const getAvailableMonths = () => {
     if (!year) return months;
-    
+
     const selectedYear = parseInt(year);
     if (selectedYear === currentYear) {
       // For current year, only show months where the minimum date can be achieved
-      return months.filter(monthOption => {
+      return months.filter((monthOption) => {
         const monthIndex = parseInt(monthOption.value) - 1;
         const lastDayOfMonth = new Date(selectedYear, monthIndex + 1, 0);
         return lastDayOfMonth >= minDate;
       });
     }
-    
+
     return months;
   };
 
@@ -105,69 +106,44 @@ export default function DateSelector({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        Campaign Date <Text style={styles.required}>*</Text>
+      <Text variant="label" tone="inkMuted" style={styles.label}>
+        Campaign Date <Text variant="label" tone="crimson">*</Text>
       </Text>
-      <Text style={styles.note}>
+      <Text variant="caption" tone="inkFaint" style={styles.note}>
         Select a date at least 4 weeks from today
       </Text>
-      
+
       <View style={styles.dateRow}>
         <View style={styles.dateField}>
-          <DropdownField
-            label=""
-            value={year}
-            onValueChange={onYearChange}
-            options={years}
-            placeholder="Year"
-            required
-          />
+          <Select value={year} onChange={onYearChange} options={years} placeholder="Year" required />
         </View>
-        
+
         <View style={styles.dateField}>
-          <DropdownField
-            label=""
-            value={month}
-            onValueChange={onMonthChange}
-            options={availableMonths}
-            placeholder="Month"
-            required
-          />
+          <Select value={month} onChange={onMonthChange} options={availableMonths} placeholder="Month" required />
         </View>
-        
+
         <View style={styles.dateField}>
-          <DropdownField
-            label=""
-            value={day}
-            onValueChange={onDayChange}
-            options={days}
-            placeholder="Day"
-            required
-          />
+          <Select value={day} onChange={onDayChange} options={days} placeholder="Day" required />
         </View>
       </View>
-      
-      {error && <Text style={styles.errorText}>{error}</Text>}
+
+      {error ? (
+        <Text variant="caption" tone="danger" style={styles.errorText}>
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
     marginBottom: 4,
   },
-  required: {
-    color: "#DC2626",
+  label: {
+    marginBottom: 2,
   },
   note: {
-    fontSize: 12,
-    color: "#6B7280",
     marginBottom: 8,
   },
   dateRow: {
@@ -178,8 +154,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   errorText: {
-    color: "#DC2626",
-    fontSize: 14,
     marginTop: 4,
   },
 });
