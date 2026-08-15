@@ -1,22 +1,10 @@
 // Profile Completion Screen - For users who need to complete their profile after auth
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet, Alert } from 'react-native';
 import { useAuthUser } from '../../hooks/useAuthUser';
-import { District } from '../../../constants/districts';
 import ValidationUtils from '../../utils/ValidationUtils';
-import { COLORS, SPACING } from '../../../constants/theme';
+
+import { Screen, Field, Select, Button, Text } from '../../design';
 
 import { logger } from "../../utils/logger";
 interface ProfileCompletionScreenProps {
@@ -37,21 +25,9 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
   const [district, setDistrict] = useState('COLOMBO');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
-  const [showBloodGroupPicker, setShowBloodGroupPicker] = useState(false);
-  const [showDistrictPicker, setShowDistrictPicker] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const { completeUserProfile, isProcessing, error } = useAuthUser();
-
-  const getBloodGroupLabel = (value: string) => {
-    const group = bloodGroups.find(g => g.value === value);
-    return group ? group.label : value;
-  };
-
-  const getDistrictLabel = (value: string) => {
-    const dist = districtOptions.find(d => d.value === value);
-    return dist ? dist.label : value;
-  };
 
   const bloodGroups = [
     { label: 'A+', value: 'A_POSITIVE' },
@@ -103,16 +79,15 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
       phoneNumber: phoneNumber || undefined,
       emergencyContact: emergencyContact || undefined,
     };
-    
+
     const requiredFields = ['nic', 'bloodGroup', 'address', 'city', 'district'];
     const validation = ValidationUtils.validateForm(formData, requiredFields);
-    
+
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
-      Alert.alert('Validation Error', 'Please fix the errors in the form and try again');
       return;
     }
-    
+
     // Clear any previous validation errors
     setValidationErrors({});
 
@@ -141,382 +116,150 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-      >
-        <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <Text style={styles.title}>Complete Your Profile</Text>
-          <Text style={styles.subtitle}>
-            Please provide additional information to complete your blood donation profile
-          </Text>
-        </View>
+    <Screen keyboardAvoiding scroll edges={["top", "bottom"]}>
+      <View style={styles.header}>
+        <Text variant="h1" style={styles.title}>Complete Your Profile</Text>
+        <Text variant="body" tone="inkMuted">
+          Please provide additional information to complete your blood donation profile
+        </Text>
+      </View>
 
       <View style={styles.form}>
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>NIC Number *</Text>
-          <TextInput
-            style={[styles.input, validationErrors.nic && styles.inputError]}
-            value={nic}
-            onChangeText={(text) => {
-              setNic(text);
-              if (validationErrors.nic) {
-                const newErrors = {...validationErrors};
-                delete newErrors.nic;
+        <Field
+          label="NIC Number"
+          value={nic}
+          onChangeText={(text) => {
+            setNic(text);
+            if (validationErrors.nic) {
+              const newErrors = { ...validationErrors };
+              delete newErrors.nic;
+              setValidationErrors(newErrors);
+            }
+          }}
+          placeholder="Enter your NIC number"
+          maxLength={12}
+          error={validationErrors.nic}
+          required
+        />
+
+        <Select
+          label="Blood Group"
+          value={bloodGroup}
+          onChange={setBloodGroup}
+          options={bloodGroups}
+          required
+        />
+
+        <Field
+          label="Address"
+          value={address}
+          onChangeText={setAddress}
+          placeholder="Enter your address"
+          multiline
+          required
+        />
+
+        <Field
+          label="City"
+          value={city}
+          onChangeText={setCity}
+          placeholder="Enter your city"
+          required
+        />
+
+        <Select
+          label="District"
+          value={district}
+          onChange={setDistrict}
+          options={districtOptions}
+          required
+        />
+
+        <Field
+          label="Phone Number"
+          value={phoneNumber}
+          maxLength={10}
+          onChangeText={(text) => {
+            // Only allow digits and ensure it starts with 0
+            const cleaned = text.replace(/\D/g, '');
+            if (cleaned.length === 0 || cleaned.startsWith('0')) {
+              setPhoneNumber(cleaned);
+              if (validationErrors.phoneNumber) {
+                const newErrors = { ...validationErrors };
+                delete newErrors.phoneNumber;
                 setValidationErrors(newErrors);
               }
-            }}
-            placeholder="Enter your NIC number"
-            placeholderTextColor="#9CA3AF"
-            maxLength={12}
-          />
-          {validationErrors.nic && (
-            <Text style={styles.errorText}>{validationErrors.nic}</Text>
-          )}
-        </View>
+            }
+          }}
+          placeholder="0771234567"
+          keyboardType="phone-pad"
+          error={validationErrors.phoneNumber}
+        />
 
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Blood Group *</Text>
-          <TouchableOpacity
-            style={styles.pickerButton}
-            onPress={() => setShowBloodGroupPicker(!showBloodGroupPicker)}
-          >
-            <Text style={styles.pickerButtonText}>
-              {getBloodGroupLabel(bloodGroup)}
-            </Text>
-            <Text style={styles.pickerArrow}>▼</Text>
-          </TouchableOpacity>
-          
-          {showBloodGroupPicker && (
-            <ScrollView style={styles.dropdownContainer} nestedScrollEnabled={true}>
-              {bloodGroups.map(group => (
-                <TouchableOpacity
-                  key={group.value}
-                  style={[
-                    styles.dropdownItem,
-                    bloodGroup === group.value && styles.selectedDropdownItem
-                  ]}
-                  onPress={() => {
-                    setBloodGroup(group.value);
-                    setShowBloodGroupPicker(false);
-                  }}
-                >
-                  <Text style={[
-                    styles.dropdownItemText,
-                    bloodGroup === group.value && styles.selectedDropdownItemText
-                  ]}>
-                    {group.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-        </View>
-
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Address *</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={address}
-            onChangeText={setAddress}
-            placeholder="Enter your address"
-            placeholderTextColor="#9CA3AF"
-            multiline
-            numberOfLines={3}
-          />
-        </View>
-
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>City *</Text>
-          <TextInput
-            style={styles.input}
-            value={city}
-            onChangeText={setCity}
-            placeholder="Enter your city"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>District *</Text>
-          <TouchableOpacity
-            style={styles.pickerButton}
-            onPress={() => setShowDistrictPicker(!showDistrictPicker)}
-          >
-            <Text style={styles.pickerButtonText}>
-              {getDistrictLabel(district)}
-            </Text>
-            <Text style={styles.pickerArrow}>▼</Text>
-          </TouchableOpacity>
-          
-          {showDistrictPicker && (
-            <ScrollView style={styles.dropdownContainer} nestedScrollEnabled={true}>
-              {districtOptions.map(dist => (
-                <TouchableOpacity
-                  key={dist.value}
-                  style={[
-                    styles.dropdownItem,
-                    district === dist.value && styles.selectedDropdownItem
-                  ]}
-                  onPress={() => {
-                    setDistrict(dist.value);
-                    setShowDistrictPicker(false);
-                  }}
-                >
-                  <Text style={[
-                    styles.dropdownItemText,
-                    district === dist.value && styles.selectedDropdownItemText
-                  ]}>
-                    {dist.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-        </View>
-
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={[styles.input, validationErrors.phoneNumber && styles.inputError]}
-            value={phoneNumber}
-            maxLength={10}
-            onChangeText={(text) => {
-              // Only allow digits and ensure it starts with 0
-              const cleaned = text.replace(/\D/g, '');
-              if (cleaned.length === 0 || cleaned.startsWith('0')) {
-                setPhoneNumber(cleaned);
-                if (validationErrors.phoneNumber) {
-                  const newErrors = {...validationErrors};
-                  delete newErrors.phoneNumber;
-                  setValidationErrors(newErrors);
-                }
+        <Field
+          label="Emergency Contact"
+          value={emergencyContact}
+          maxLength={10}
+          onChangeText={(text) => {
+            // Only allow digits and ensure it starts with 0
+            const cleaned = text.replace(/\D/g, '');
+            if (cleaned.length === 0 || cleaned.startsWith('0')) {
+              setEmergencyContact(cleaned);
+              if (validationErrors.emergencyContact) {
+                const newErrors = { ...validationErrors };
+                delete newErrors.emergencyContact;
+                setValidationErrors(newErrors);
               }
-            }}
-            placeholder="0771234567"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="phone-pad"
-          />
-          {validationErrors.phoneNumber && (
-            <Text style={styles.errorText}>{validationErrors.phoneNumber}</Text>
-          )}
-        </View>
-
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Emergency Contact</Text>
-          <TextInput
-            style={[styles.input, validationErrors.emergencyContact && styles.inputError]}
-            value={emergencyContact}
-            maxLength={10}
-            onChangeText={(text) => {
-              // Only allow digits and ensure it starts with 0
-              const cleaned = text.replace(/\D/g, '');
-              if (cleaned.length === 0 || cleaned.startsWith('0')) {
-                setEmergencyContact(cleaned);
-                if (validationErrors.emergencyContact) {
-                  const newErrors = {...validationErrors};
-                  delete newErrors.emergencyContact;
-                  setValidationErrors(newErrors);
-                }
-              }
-            }}
-            placeholder="0771234567"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="phone-pad"
-          />
-          {validationErrors.emergencyContact && (
-            <Text style={styles.errorText}>{validationErrors.emergencyContact}</Text>
-          )}
-        </View>
+            }
+          }}
+          placeholder="0771234567"
+          keyboardType="phone-pad"
+          error={validationErrors.emergencyContact}
+        />
       </View>
 
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.globalErrorText}>{error}</Text>
-        </View>
-      )}
+      {error ? (
+        <Text variant="body" tone="danger" align="center" style={styles.globalError}>
+          {error}
+        </Text>
+      ) : null}
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.completeButton]}
+        <Button
+          title="Complete Profile"
           onPress={handleComplete}
+          loading={isProcessing}
           disabled={isProcessing}
-        >
-          {isProcessing ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Complete Profile</Text>
-          )}
-        </TouchableOpacity>
+        />
 
-        {onSkip && (
-          <TouchableOpacity
-            style={[styles.button, styles.skipButton]}
+        {onSkip ? (
+          <Button
+            title="Skip for Now"
+            variant="outline"
             onPress={onSkip}
             disabled={isProcessing}
-          >
-            <Text style={[styles.buttonText, styles.skipButtonText]}>Skip for Now</Text>
-          </TouchableOpacity>
-        )}
+          />
+        ) : null}
       </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_SECONDARY,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_SECONDARY,
-  },
-  content: {
-    padding: SPACING.LG,
-    paddingTop: SPACING.MD, // Additional top padding for better spacing
-  },
   header: {
-    marginBottom: SPACING.XL,
-    paddingTop: SPACING.MD, // Extra spacing from status bar
+    marginBottom: 24,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.SM,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.TEXT_SECONDARY,
-    lineHeight: 22,
+    marginBottom: 8,
   },
   form: {
-    marginBottom: SPACING.LG,
+    marginBottom: 8,
   },
-  fieldContainer: {
-    marginBottom: SPACING.LG,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.SM,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-    borderRadius: 8,
-    padding: 15,
-    fontSize: 16,
-    color: COLORS.TEXT_PRIMARY,
-    backgroundColor: COLORS.BACKGROUND,
-  },
-  inputError: {
-    borderColor: COLORS.ERROR,
-    borderWidth: 2,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-  },
-  picker: {
-    height: 50,
-  },
-  errorContainer: {
+  globalError: {
     marginBottom: 20,
-    padding: 15,
-    backgroundColor: '#ffe6e6',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ffcccc',
-  },
-  errorText: {
-    color: COLORS.ERROR,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  globalErrorText: {
-    color: COLORS.ERROR,
-    fontSize: 14,
-    textAlign: 'center',
   },
   buttonContainer: {
-    gap: 15,
-  },
-  button: {
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  completeButton: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  skipButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: COLORS.PRIMARY,
-  },
-  buttonText: {
-    color: COLORS.BACKGROUND,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  skipButtonText: {
-    color: COLORS.PRIMARY,
-  },
-  pickerButton: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 15,
-    backgroundColor: '#fff',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pickerButtonText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  pickerArrow: {
-    fontSize: 12,
-    color: '#666',
-  },
-  dropdownContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    marginTop: 5,
-    maxHeight: 150,
-  },
-  dropdownItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  selectedDropdownItem: {
-    backgroundColor: '#FF6B6B',
-  },
-  dropdownItemText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  selectedDropdownItemText: {
-    color: '#fff',
+    gap: 12,
   },
 });
 

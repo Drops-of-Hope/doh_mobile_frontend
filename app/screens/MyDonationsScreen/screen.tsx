@@ -1,14 +1,7 @@
 import React, { useState } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-  StyleSheet,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
+import { View, StyleSheet } from "react-native";
+import { Droplets, Syringe, Heart, MapPin, Flag, LucideIcon } from "lucide-react-native";
+import { Screen, AppBar, Surface, Text, Icon, StatRow, StatTile, SectionHeader, useTheme } from "../../design";
 
 interface Donation {
   id: string;
@@ -24,9 +17,14 @@ interface MyDonationsScreenProps {
   navigation?: any;
 }
 
-export default function MyDonationsScreen({
-  navigation,
-}: MyDonationsScreenProps) {
+const TYPE_ICON: Record<Donation["type"], LucideIcon> = {
+  blood: Droplets,
+  plasma: Syringe,
+  platelets: Heart,
+};
+
+export default function MyDonationsScreen({ navigation }: MyDonationsScreenProps) {
+  const theme = useTheme();
   const [donations] = useState<Donation[]>([
     {
       id: "1",
@@ -65,289 +63,112 @@ export default function MyDonationsScreen({
     },
   ]);
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "blood":
-        return "water";
-      case "plasma":
-        return "medical";
-      case "platelets":
-        return "heart";
-      default:
-        return "medical";
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "blood":
-        return "#DC2626";
-      case "plasma":
-        return "#F59E0B";
-      case "platelets":
-        return "#8B5CF6";
-      default:
-        return "#6B7280";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
+  const getStatusTone = (status: Donation["status"]): "success" | "warning" | "danger" => {
     switch (status) {
       case "completed":
-        return "#10B981";
+        return "success";
       case "pending":
-        return "#F59E0B";
+        return "warning";
       case "cancelled":
-        return "#EF4444";
-      default:
-        return "#6B7280";
+        return "danger";
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const handleBack = () => navigation?.goBack();
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   const completedDonations = donations.filter((d) => d.status === "completed");
-  const totalVolume = completedDonations.reduce((sum, donation) => {
-    const volume = parseInt(donation.volume.replace("ml", ""));
-    return sum + volume;
-  }, 0);
+  const totalVolume = completedDonations.reduce(
+    (sum, donation) => sum + parseInt(donation.volume.replace("ml", ""), 10),
+    0
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <Screen scroll>
+      <AppBar title="My Donations" onBack={() => navigation?.goBack()} />
 
-      <DashboardHeader
-        title="My Donations"
-        onBack={handleBack}
-        onAdd={() => {}}
-      />
+      <View style={styles.statsWrap}>
+        <StatRow>
+          <StatTile value={completedDonations.length} label="Total Donations" />
+          <StatTile value={`${totalVolume}ml`} label="Total Volume" />
+          <StatTile value="Gold" label="Donor Level" />
+        </StatRow>
+      </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Summary Stats */}
-        <View style={styles.summaryCard}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{completedDonations.length}</Text>
-            <Text style={styles.statLabel}>Total Donations</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{totalVolume}ml</Text>
-            <Text style={styles.statLabel}>Total Volume</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>Gold</Text>
-            <Text style={styles.statLabel}>Donor Level</Text>
-          </View>
-        </View>
+      <SectionHeader title="Donation History" />
 
-        {/* Donations List */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Donation History</Text>
-
-          {donations.map((donation) => (
-            <View key={donation.id} style={styles.donationCard}>
-              <View style={styles.donationHeader}>
-                <View style={styles.donationLeft}>
+      <View style={styles.list}>
+        {donations.map((donation) => {
+          const statusTone = getStatusTone(donation.status);
+          return (
+            <Surface key={donation.id} style={styles.card}>
+              <View style={styles.row}>
+                <View style={styles.left}>
                   <View
                     style={[
                       styles.typeIcon,
-                      { backgroundColor: getTypeColor(donation.type) },
+                      { backgroundColor: theme.color.crimsonSoft, borderRadius: theme.radius.pill },
                     ]}
                   >
-                    <Ionicons
-                      name={getTypeIcon(donation.type) as any}
-                      size={20}
-                      color="white"
-                    />
+                    <Icon icon={TYPE_ICON[donation.type]} size={20} color={theme.color.crimson} />
                   </View>
 
-                  <View style={styles.donationInfo}>
-                    <Text style={styles.donationType}>
-                      {donation.type.charAt(0).toUpperCase() +
-                        donation.type.slice(1)}{" "}
-                      Donation
+                  <View style={styles.info}>
+                    <Text variant="bodyBold">
+                      {donation.type.charAt(0).toUpperCase() + donation.type.slice(1)} Donation
                     </Text>
-                    <Text style={styles.donationDate}>
+                    <Text variant="caption" tone="inkMuted">
                       {formatDate(donation.date)}
                     </Text>
-                    <Text style={styles.donationLocation}>
-                      <Ionicons
-                        name="location-outline"
-                        size={14}
-                        color="#6B7280"
-                      />{" "}
-                      {donation.location}
-                    </Text>
-                    {donation.campaign && (
-                      <Text style={styles.donationCampaign}>
-                        <Ionicons
-                          name="flag-outline"
-                          size={14}
-                          color="#6B7280"
-                        />{" "}
-                        {donation.campaign}
+                    <View style={styles.metaRow}>
+                      <Icon icon={MapPin} size={12} color={theme.color.inkFaint} />
+                      <Text variant="caption" tone="inkMuted">
+                        {donation.location}
                       </Text>
+                    </View>
+                    {donation.campaign && (
+                      <View style={styles.metaRow}>
+                        <Icon icon={Flag} size={12} color={theme.color.inkFaint} />
+                        <Text variant="caption" tone="inkMuted">
+                          {donation.campaign}
+                        </Text>
+                      </View>
                     )}
                   </View>
                 </View>
 
-                <View style={styles.donationRight}>
+                <View style={styles.right}>
                   <View
                     style={[
                       styles.statusBadge,
-                      { backgroundColor: getStatusColor(donation.status) },
+                      { backgroundColor: theme.color[`${statusTone}Soft`], borderRadius: theme.radius.pill },
                     ]}
                   >
-                    <Text style={styles.statusText}>
+                    <Text variant="caption" tone={statusTone} style={styles.statusText}>
                       {donation.status.toUpperCase()}
                     </Text>
                   </View>
-                  <Text style={styles.donationVolume}>{donation.volume}</Text>
+                  <Text variant="bodyBold">{donation.volume}</Text>
                 </View>
               </View>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.bottomPadding} />
-      </ScrollView>
-    </SafeAreaView>
+            </Surface>
+          );
+        })}
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  summaryCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statItem: {
-    alignItems: "center",
-    flex: 1,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#DC2626",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#6B7280",
-    textAlign: "center",
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: "#E5E7EB",
-    marginHorizontal: 12,
-  },
-  section: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 16,
-  },
-  donationCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  donationHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  donationLeft: {
-    flexDirection: "row",
-    flex: 1,
-  },
-  typeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  donationInfo: {
-    flex: 1,
-  },
-  donationType: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  donationDate: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 2,
-  },
-  donationLocation: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 2,
-  },
-  donationCampaign: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  donationRight: {
-    alignItems: "flex-end",
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  donationVolume: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1F2937",
-  },
-  bottomPadding: {
-    height: 24,
-  },
+  statsWrap: { marginBottom: 24 },
+  list: { gap: 12 },
+  card: {},
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  left: { flexDirection: "row", flex: 1 },
+  typeIcon: { width: 40, height: 40, alignItems: "center", justifyContent: "center", marginRight: 12 },
+  info: { flex: 1, gap: 2 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  right: { alignItems: "flex-end", gap: 6 },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4 },
+  statusText: { fontWeight: "700" },
 });

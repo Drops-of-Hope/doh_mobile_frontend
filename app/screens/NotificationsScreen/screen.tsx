@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { SafeAreaView, StatusBar, StyleSheet } from "react-native";
-import BottomTabBar from "../shared/organisms/BottomTabBar";
+import { Screen } from "../../design";
 import NotificationsHeader from "./molecules/NotificationsHeader";
 import NotificationsList from "./organisms/NotificationsList";
 import EmptyNotifications from "./molecules/EmptyNotifications";
@@ -112,9 +111,7 @@ export default function NotificationsScreen({
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
-
+    <Screen scroll={notifications.length > 0}>
       <NotificationsHeader
         unreadCount={unreadCount}
         onMarkAllRead={markAllAsRead}
@@ -129,15 +126,6 @@ export default function NotificationsScreen({
           onNotificationPress={handleNotificationPress}
         />
       )}
-
-      <BottomTabBar activeTab="home" />
-    </SafeAreaView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-  },
-});

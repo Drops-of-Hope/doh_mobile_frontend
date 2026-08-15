@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { TriangleAlert, Megaphone, Calendar, Clock, Trophy, Bell, LucideIcon } from "lucide-react-native";
+import { Icon, useTheme } from "../../../design";
 import { NotificationType } from "../../../../types/notifications";
 
 interface NotificationIconProps {
@@ -8,70 +9,53 @@ interface NotificationIconProps {
   priority?: "high" | "medium" | "low";
 }
 
-export default function NotificationIcon({
-  type,
-  priority = "medium",
-}: NotificationIconProps) {
-  const getNotificationIcon = (notificationType: NotificationType) => {
-    switch (notificationType) {
+const TYPE_ICON: Record<NotificationType, LucideIcon> = {
+  emergency: TriangleAlert,
+  campaign: Megaphone,
+  appointment: Calendar,
+  reminder: Clock,
+  achievement: Trophy,
+} as any;
+
+export default function NotificationIcon({ type, priority = "medium" }: NotificationIconProps) {
+  const theme = useTheme();
+
+  const getColor = (): string => {
+    if (priority === "high") return theme.color.danger;
+    switch (type) {
       case "emergency":
-        return "warning";
+        return theme.color.danger;
       case "campaign":
-        return "megaphone";
+        return theme.color.info;
       case "appointment":
-        return "calendar";
+        return theme.color.crimson;
       case "reminder":
-        return "time";
+        return theme.color.warning;
       case "achievement":
-        return "trophy";
+        return theme.color.badge.DIAMOND;
       default:
-        return "notifications";
+        return theme.color.inkMuted;
     }
   };
 
-  const getNotificationColor = (
-    notificationType: NotificationType,
-    priorityLevel: string,
-  ) => {
-    if (priorityLevel === "high") return "#FF4757";
-
-    switch (notificationType) {
-      case "emergency":
-        return "#FF4757";
-      case "campaign":
-        return "#3B82F6";
-      case "appointment":
-        return "#00D2D3";
-      case "reminder":
-        return "#F59E0B";
-      case "achievement":
-        return "#5F27CD";
-      default:
-        return "#6B7280";
-    }
-  };
-
-  const iconColor = getNotificationColor(type, priority);
+  const color = getColor();
+  const IconComp = TYPE_ICON[type] ?? Bell;
 
   return (
-    <View style={[styles.notificationIcon, { backgroundColor: iconColor }]}>
-      <Ionicons name={getNotificationIcon(type)} size={20} color="white" />
+    <View
+      style={[styles.notificationIcon, { backgroundColor: `${color}1A`, borderRadius: theme.radius.md }]}
+    >
+      <Icon icon={IconComp} size={20} color={color} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   notificationIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    marginRight: 14,
   },
 });
