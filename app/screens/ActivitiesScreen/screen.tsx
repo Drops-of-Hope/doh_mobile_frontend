@@ -1,29 +1,23 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-  Alert,
-  StyleSheet,
-  StatusBar,
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
-import BottomTabBar from "../shared/organisms/BottomTabBar";
+import { View, Alert, StyleSheet } from "react-native";
+import { Heart, Stethoscope, CalendarPlus, PlusCircle, Users, User, Info } from "lucide-react-native";
 import { activityService } from "../../services/activityService";
 import { localActivityService, LocalActivity } from "../../services/localActivityService";
-import ActivitiesHeader from "./organisms/ActivitiesHeader";
-import ActivitiesList from "./organisms/ActivitiesList";
-import ActivitiesScreenSkeleton from "../shared/molecules/skeletons/ActivitiesScreenSkeleton";
 import ActivityFilterBar, { FilterOption } from "./molecules/ActivityFilterBar";
-import LocalActivitiesList from "./molecules/LocalActivitiesList";
-import { DonationActivity } from "./molecules/ActivityCard";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../constants/theme";
+import ActivitiesTimeline, { TimelineEntry } from "./organisms/ActivitiesTimeline";
+import { DonationActivity } from "./types";
+import { AppBar, Screen, Text, Segmented, Skeleton, useTheme } from "../../design";
+import { useLanguage } from "../../context/LanguageContext";
 
 import { logger } from "../../utils/logger";
-const ActivitiesScreen: React.FC = () => {
+
+interface ActivitiesScreenProps {
+  navigation?: any;
+}
+
+const ActivitiesScreen: React.FC<ActivitiesScreenProps> = ({ navigation }) => {
+  const theme = useTheme();
+  const { t } = useLanguage();
   const [activities, setActivities] = useState<DonationActivity[]>([]);
   const [filteredActivities, setFilteredActivities] = useState<DonationActivity[]>([]);
   const [localActivities, setLocalActivities] = useState<LocalActivity[]>([]);
@@ -38,18 +32,23 @@ const ActivitiesScreen: React.FC = () => {
 
   const ITEMS_PER_PAGE = 10;
 
+  const tabOptions = [
+    { label: t("activities.tab_recent"), value: 'recent' },
+    { label: t("activities.tab_all"), value: 'all' },
+  ];
+
   const donationFilters: FilterOption[] = [
-    { label: 'Recent', value: 'recent', icon: 'time' },
-    { label: 'Donations', value: 'donation', icon: 'heart' },
-    { label: 'Appointments', value: 'checkup', icon: 'medical' },
+    { label: t("activities.filter_all"), value: 'all' },
+    { label: t("activities.filter_donations"), value: 'donation' },
+    { label: t("activities.filter_appointments"), value: 'checkup' },
   ];
 
   const localFilters: FilterOption[] = [
-    { label: 'All', value: 'all', icon: 'list' },
-    { label: 'Today', value: 'today', icon: 'today' },
-    { label: 'This Week', value: 'week', icon: 'calendar' },
-    { label: 'Appointments', value: 'appointment_created', icon: 'calendar' },
-    { label: 'Campaigns', value: 'campaign_created', icon: 'add-circle' },
+    { label: t("activities.filter_all"), value: 'all' },
+    { label: t("activities.filter_today"), value: 'today' },
+    { label: t("activities.filter_week"), value: 'week' },
+    { label: t("activities.filter_appointments"), value: 'appointment_created' },
+    { label: t("activities.filter_campaigns"), value: 'campaign_created' },
   ];
 
   useEffect(() => {
@@ -64,7 +63,6 @@ const ActivitiesScreen: React.FC = () => {
   }, [selectedFilter, activeTab]);
 
   useEffect(() => {
-    // Filter activities based on selected filter
     applyFilters();
   }, [activities, selectedFilter, activeTab]);
 
@@ -77,19 +75,12 @@ const ActivitiesScreen: React.FC = () => {
 
     let filtered = [...activities];
 
-    if (selectedFilter === 'recent') {
-      // Show only the 5 most recent activities
-      filtered = filtered.slice(0, 5);
-    } else if (selectedFilter === 'donation') {
-      // Show only donations (limited to recent for performance)
-      filtered = filtered.filter(a => a.type === 'donation').slice(0, 10);
+    if (selectedFilter === 'donation') {
+      filtered = filtered.filter(a => a.type === 'donation');
     } else if (selectedFilter === 'checkup') {
-      // Show only appointments/checkups (limited to recent for performance)
-      filtered = filtered.filter(a => a.type === 'checkup').slice(0, 10);
-    } else {
-      // Default: show recent 5
-      filtered = filtered.slice(0, 5);
+      filtered = filtered.filter(a => a.type === 'checkup');
     }
+    // 'all' -> everything currently loaded, no client-side cap.
 
     setFilteredActivities(filtered);
   };
@@ -97,7 +88,7 @@ const ActivitiesScreen: React.FC = () => {
   const loadLocalActivities = async () => {
     try {
       let filter: any = {};
-      
+
       if (selectedFilter === 'today') {
         filter.dateRange = 'today';
       } else if (selectedFilter === 'week') {
@@ -127,7 +118,7 @@ const ActivitiesScreen: React.FC = () => {
         sortBy: "createdAt",
         sortOrder: "desc" // Most recent first
       });
-      
+
       // Convert backend activities to frontend format
       const formattedActivities: DonationActivity[] = response.activities.map(activity => {
         // Map activity type to supported types
@@ -135,7 +126,7 @@ const ActivitiesScreen: React.FC = () => {
         if (activity.type === "APPOINTMENT_SCHEDULED" || activity.type === "APPOINTMENT_CANCELLED") {
           activityType = "checkup";
         }
-        
+
         // Safely extract date, handle invalid dates
         let formattedDate = "Unknown Date";
         try {
@@ -145,7 +136,7 @@ const ActivitiesScreen: React.FC = () => {
         } catch (error) {
           logger.warn('Error formatting date:', error);
         }
-        
+
         return {
           id: activity.id || String(Math.random()),
           campaignTitle: String(activity.title || "Untitled Activity"),
@@ -153,6 +144,7 @@ const ActivitiesScreen: React.FC = () => {
           donationDate: formattedDate,
           type: activityType,
           status: "completed" as const,
+          createdAt: activity.createdAt,
           details: {
             bloodType: activity.metadata?.bloodType || undefined,
             volume: activity.metadata?.volume !== undefined ? activity.metadata.volume : undefined,
@@ -163,7 +155,7 @@ const ActivitiesScreen: React.FC = () => {
           },
         };
       });
-      
+
       if (page === 1 || isRefresh) {
         setActivities(formattedActivities);
         setCurrentPage(1);
@@ -171,10 +163,10 @@ const ActivitiesScreen: React.FC = () => {
         setActivities(prev => [...prev, ...formattedActivities]);
         setCurrentPage(page);
       }
-      
+
       setTotalItems(response.pagination.totalItems);
       setHasMore(response.pagination.hasNext);
-      
+
     } catch (error) {
       logger.error("Failed to load activities:", error);
       // Set empty arrays on error - show "No activities" message
@@ -209,38 +201,30 @@ const ActivitiesScreen: React.FC = () => {
   }, [loadingMore, hasMore, loading, currentPage, activeTab]);
 
   const handleFilterChange = (filter: string) => {
+    // Filtering is client-side over already-loaded pages — no refetch here,
+    // a refetch would discard pages already paginated in.
     setSelectedFilter(filter);
-    if (activeTab === 'recent') {
-      // Filter recent activities based on selection
-      loadActivities(1, true);
-    }
   };
 
   const handleTabChange = (tab: 'recent' | 'all') => {
     setActiveTab(tab);
-    // Set appropriate default filter for each tab
-    if (tab === 'recent') {
-      setSelectedFilter('recent');
-      // Apply filters immediately to show recent 5
-      setCurrentPage(1);
-    } else {
-      setSelectedFilter('all');
-      // Load local activities when switching to 'all' tab
+    setSelectedFilter('all');
+    if (tab === 'all') {
       loadLocalActivities();
     }
+  };
+
+  const handleFindCampaign = () => {
+    navigation?.navigate("ExploreTab");
   };
 
   const handleLocalActivityPress = (activity: LocalActivity) => {
     Alert.alert(
       activity.title,
       `${activity.description}\n\nTime: ${new Date(activity.timestamp).toLocaleString()}`,
-      [{ text: 'OK' }]
+      [{ text: t("common.ok") }]
     );
   };
-
-  useEffect(() => {
-    loadActivities();
-  }, []);
 
   const handleViewDetails = (activity: DonationActivity) => {
     const typeText =
@@ -270,164 +254,116 @@ const ActivitiesScreen: React.FC = () => {
       }
     }
 
-    Alert.alert("Activity Details", message, [{ text: "OK" }]);
+    Alert.alert(t("activities.details_title"), message, [{ text: t("common.ok") }]);
   };
 
-  const renderLoadMoreButton = () => {
-    if (!hasMore || selectedFilter === 'recent') return null;
-    
-    return (
-      <View style={styles.loadMoreContainer}>
-        <TouchableOpacity
-          style={[styles.loadMoreButton, loadingMore && styles.loadMoreButtonDisabled]}
-          onPress={handleLoadMore}
-          disabled={loadingMore}
-        >
-          {loadingMore ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.loadMoreText}>Load More Activities</Text>
-          )}
-        </TouchableOpacity>
-        <Text style={styles.paginationText}>
-          Showing {filteredActivities.length} of {totalItems} activities
-        </Text>
-      </View>
-    );
+  const localActivityIcon = (type: LocalActivity['type']) => {
+    switch (type) {
+      case 'appointment_created':
+        return CalendarPlus;
+      case 'campaign_created':
+        return PlusCircle;
+      case 'campaign_joined':
+        return Users;
+      case 'donation_completed':
+        return Heart;
+      case 'profile_updated':
+        return User;
+      default:
+        return Info;
+    }
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
-        <ActivitiesScreenSkeleton />
-        <BottomTabBar activeTab="activities" />
-      </SafeAreaView>
-    );
-  }
+  const recentEntries: TimelineEntry[] = filteredActivities.map((activity) => ({
+    id: activity.id,
+    title: activity.campaignTitle,
+    tone: activity.type === "donation" ? "crimson" : "info",
+    icon: activity.type === "donation" ? Heart : Stethoscope,
+    date: activity.createdAt ? new Date(activity.createdAt) : new Date(activity.donationDate),
+    meta: [
+      activity.campaignLocation,
+      activity.donationDate,
+      ...(activity.details?.bloodType ? [`Blood type ${activity.details.bloodType}`] : []),
+      ...(activity.details?.volume ? [`${activity.details.volume}ml donated`] : []),
+    ],
+    onPress: () => handleViewDetails(activity),
+  }));
+
+  const localEntries: TimelineEntry[] = localActivities.map((activity) => ({
+    id: activity.id,
+    title: activity.title || "Untitled Activity",
+    icon: localActivityIcon(activity.type),
+    tone: "ink",
+    date: new Date(activity.timestamp),
+    meta: [activity.description || "No description available"],
+    onPress: () => handleLocalActivityPress(activity),
+  }));
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <Screen scroll refreshing={refreshing} onRefresh={handleRefresh}>
+      <AppBar title={t("activities.title")} />
 
-      <ActivitiesHeader />
-
-      {/* Tab Selector */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'recent' && styles.activeTab]}
-          onPress={() => handleTabChange('recent')}
-        >
-          <Text style={[styles.tabText, activeTab === 'recent' && styles.activeTabText]}>
-            Recent Activities
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'all' && styles.activeTab]}
-          onPress={() => handleTabChange('all')}
-        >
-          <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
-            All Activities
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.tabRow}>
+        <Segmented options={tabOptions} value={activeTab} onChange={(v) => handleTabChange(v as 'recent' | 'all')} />
       </View>
 
-      {/* Filter Bar */}
-      <ActivityFilterBar
-        selectedFilter={selectedFilter}
-        onFilterChange={handleFilterChange}
-        filters={activeTab === 'recent' ? donationFilters : localFilters}
-      />
+      <View style={[styles.filterWrap, { marginHorizontal: -theme.space.xl }]}>
+        <ActivityFilterBar
+          selectedFilter={selectedFilter}
+          onFilterChange={handleFilterChange}
+          filters={activeTab === 'recent' ? donationFilters : localFilters}
+        />
+      </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
-        {activeTab === 'recent' ? (
-          <>
-            <ActivitiesList
-              activities={filteredActivities}
-              onViewDetails={handleViewDetails}
-            />
-            {renderLoadMoreButton()}
-          </>
-        ) : (
-          <LocalActivitiesList
-            activities={localActivities}
-            onActivityPress={handleLocalActivityPress}
-            emptyMessage="No local activities recorded yet. Start by creating an appointment or joining a campaign!"
+      {loading ? (
+        <View style={{ gap: theme.space.lg }}>
+          <Skeleton height={16} width="30%" />
+          <Skeleton height={56} />
+          <Skeleton height={56} />
+          <Skeleton height={56} />
+        </View>
+      ) : activeTab === 'recent' ? (
+        <>
+          <ActivitiesTimeline
+            entries={recentEntries}
+            emptyTitle={t("activities.no_activities")}
+            emptyBody={t("activities.no_activities_subtitle")}
+            emptyActionLabel={t("activities.find_campaign")}
+            onEmptyAction={handleFindCampaign}
           />
-        )}
-      </ScrollView>
-
-      <BottomTabBar activeTab="activities" />
-    </SafeAreaView>
+          {hasMore ? (
+            <View style={styles.loadMoreWrap}>
+              <Text
+                variant="label"
+                tone="crimson"
+                onPress={handleLoadMore}
+                style={styles.loadMoreText}
+              >
+                {loadingMore ? t("activities.loading_more") : t("activities.load_more")}
+              </Text>
+              <Text variant="caption" tone="inkMuted" align="center">
+                {t("activities.showing_count", { shown: filteredActivities.length, total: totalItems })}
+              </Text>
+            </View>
+          ) : null}
+        </>
+      ) : (
+        <ActivitiesTimeline
+          entries={localEntries}
+          emptyIcon={Info}
+          emptyTitle={t("activities.no_local_activities")}
+          emptyBody={t("activities.no_local_activities_subtitle")}
+        />
+      )}
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.BACKGROUND,
-    marginHorizontal: SPACING.MD,
-    marginVertical: SPACING.SM,
-    borderRadius: BORDER_RADIUS.MD,
-    padding: SPACING.XS,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: SPACING.SM,
-    paddingHorizontal: SPACING.MD,
-    borderRadius: BORDER_RADIUS.SM,
-    alignItems: 'center',
-  },
-  activeTab: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.TEXT_SECONDARY,
-  },
-  activeTabText: {
-    color: COLORS.BACKGROUND,
-  },
-  loadMoreContainer: {
-    alignItems: "center",
-    paddingVertical: 20,
-    paddingBottom: 100, // Space for bottom tab bar
-  },
-  loadMoreButton: {
-    backgroundColor: "#3B82F6",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  loadMoreButtonDisabled: {
-    backgroundColor: "#9CA3AF",
-  },
-  loadMoreText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  paginationText: {
-    color: "#6B7280",
-    fontSize: 14,
-    textAlign: "center",
-  },
+  tabRow: { marginBottom: 16 },
+  filterWrap: { marginBottom: 8 },
+  loadMoreWrap: { alignItems: "center", paddingVertical: 20, gap: 6 },
+  loadMoreText: { paddingVertical: 8 },
 });
 
 export default ActivitiesScreen;
