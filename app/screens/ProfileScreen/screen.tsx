@@ -1,34 +1,22 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  ScrollView,
-  Alert,
-} from "react-native";
+import { View, StyleSheet, Alert, ScrollView, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { User, ListChecks, BarChart3, HelpCircle, Globe, IdCard, LucideIcon } from "lucide-react-native";
 
 // Import refactored components
 import ProfileHeader from "./molecules/ProfileHeader";
-import MenuSection from "./molecules/MenuSection";
+import AchievementsSection, { BadgeProgressInfo } from "./molecules/AchievementsSection";
 import LogoutButton from "./atoms/LogoutButton";
 import BecomeCampaignOrganizerButton from "./atoms/BecomeCampaignOrganizerButton";
 
-// Import modal organisms
-import LanguageModal from "./organisms/LanguageModal";
-import FAQModal from "./organisms/FAQModal";
-import EditProfileModal from "./organisms/EditProfileModal";
-
-// Import existing bottom tab bar
-import BottomTabBar from "../shared/organisms/BottomTabBar";
+// Import design system
+import { Text, ListRow, ListSection, SectionHeader, Icon, useTheme } from "../../design";
+import DonorIdCard from "../shared/organisms/DonorIdCard";
 
 // Import types and utilities
 import { UserData, MenuItem } from "./types";
-import {
-  createMenuItems,
-  getRoleMembershipType,
-} from "./utils";
+import { createMenuItems, getRoleMembershipType } from "./utils";
 
 // Import context
 import { useAuth, USER_ROLES } from "../../context/AuthContext";
@@ -41,9 +29,8 @@ import {
 } from "../../utils/userDataUtils";
 import { getDatabaseUserId } from "../../utils/userIdUtils";
 import { badgeService } from "../../services/badgeService";
-import { COLORS, SPACING } from "../../../constants/theme";
-import { EMERGENCY_RESPONDER_BADGE_DISPLAY } from "../../../constants/badgeDisplay";
-import BadgeChip from "../shared/atoms/BadgeChip";
+import { userService } from "../../services/userService";
+import { DONOR_BADGE_DISPLAY } from "../../../constants/badgeDisplay";
 
 // Import the profile completion screen
 import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
@@ -53,9 +40,20 @@ interface ProfileScreenProps {
   navigation?: any;
 }
 
+// Maps the menu item ids produced by utils.ts#createMenuItems to lucide icons.
+const MENU_ICONS: Record<string, LucideIcon> = {
+  "edit-profile": User,
+  "show-id": IdCard,
+  activities: ListChecks,
+  "campaign-dashboard": BarChart3,
+  faq: HelpCircle,
+  language: Globe,
+};
+
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
+  const theme = useTheme();
   // Auth and Language
-  const { user, userRole, logout, hasRole, getFullName } = useAuth();
+  const { user, userRole, logout, hasRole } = useAuth();
   const { t } = useLanguage();
   // Initialize auth user hook
   const { getStoredUserData, processAuthUser } = useAuthUser();
@@ -67,17 +65,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     bloodType: "Loading...",
     mobileNumber: "Loading...",
     donationBadge: "BRONZE",
-    imageUri: "https://example.com/profile-image.jpg",
     membershipType: "DONOR",
   });
 
-  // Modal states
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
-  const [showFAQModal, setShowFAQModal] = useState(false);
-  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [hasEmergencyResponderBadge, setHasEmergencyResponderBadge] = useState(false);
+  const [badgeProgress, setBadgeProgress] = useState<BadgeProgressInfo | null>(null);
+  const [showIdCard, setShowIdCard] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -91,6 +86,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         const badgeInfo = await badgeService.getBadgeInfo(databaseUserId);
         setHasEmergencyResponderBadge(badgeInfo.emergencyResponderBadge);
+
+        const currentTier = badgeInfo.currentBadge?.badge || userData.donationBadge;
+        const progressInfo = badgeService.calculateBadgeProgress(badgeInfo.totalDonations, currentTier);
+        setBadgeProgress({
+          progress: progressInfo.progress / 100,
+          nextTierLabel: progressInfo.nextBadge?.name ?? null,
+          donationsNeeded: progressInfo.donationsNeeded,
+        });
       } catch (error) {
         logger.error("ProfileScreen: Failed to load achievements:", error);
       }
@@ -99,7 +102,25 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (!isLoadingProfile) {
       loadAchievements();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingProfile]);
+
+  // Fetch the real profile image (never a hardcoded placeholder) once the
+  // profile has finished loading.
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      try {
+        const profile = await userService.getUserProfile();
+        setUserData((prev) => ({ ...prev, profileImageUrl: profile.profileImageUrl }));
+      } catch (error) {
+        logger.error("ProfileScreen: Failed to load profile image:", error);
+      }
+    };
+
+    if (!isLoadingProfile && user) {
+      loadProfileImage();
+    }
+  }, [isLoadingProfile, user]);
 
   // New effect to handle auth user processing
   useEffect(() => {
@@ -132,9 +153,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               // After processing, reload user data which will trigger profile completion if needed
               await loadUserData();
             } catch (error) {
-              logger.error("❌ Backend API call failed:", error);
+              logger.error("Backend API call failed:", error);
               logger.error(
-                "🔍 This likely means the backend endpoints don't exist yet"
+                "This likely means the backend endpoints don't exist yet"
               );
             }
           }
@@ -192,15 +213,15 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           }
 
           // Update userData with real data
-          setUserData({
+          setUserData((prev) => ({
+            ...prev,
             name: storedUserData.name,
             email: storedUserData.email,
             bloodType: storedUserData.bloodGroup || "Unknown",
             mobileNumber: "Not provided", // We don't have this in auth data
             donationBadge: storedUserData.donationBadge as any,
-            imageUri: "https://preview.redd.it/i-love-this-girl-please-give-me-all-your-lupa-screenshots-v0-pi1gbw98vv6f1.png?width=1080&format=png&auto=webp&s=c9027c37af9690e627905354c3183f94a17ff5e8",
             membershipType: getRoleMembershipType(userRole),
-          });
+          }));
         } else {
           // Show profile completion screen if no stored data
           setShowProfileCompletion(true);
@@ -219,11 +240,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   // Navigation handlers
   const handleEditProfile = () => {
-    setShowEditProfileModal(true);
+    navigation?.navigate("EditProfile");
   };
 
+  const handleAvatarPress = () => {
+    navigation?.navigate("AvatarPicker");
+  };
+
+  const handleShowId = () => setShowIdCard(true);
+
   const handleActivities = () => {
-    navigation?.navigate("Activities");
+    navigation?.navigate("ActivitiesTab");
   };
 
   const handleCampaignDashboard = () => {
@@ -256,11 +283,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   };
 
   const handleLanguageSettings = () => {
-    setShowLanguageModal(true);
+    navigation?.navigate("LanguageSelection");
   };
 
   const handleFAQs = () => {
-    setShowFAQModal(true);
+    navigation?.navigate("FAQs");
   };
 
   const handleLogout = async () => {
@@ -304,7 +331,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     // Only show for donors who don't already have the campaign organizer role
     const isDonor = hasRole(USER_ROLES.DONOR) || hasRole(USER_ROLES.SELFSIGNUP);
     const isAlreadyCampaignOrganizer = hasRole(USER_ROLES.CAMP_ORGANIZER);
-    
+
     return isDonor && !isAlreadyCampaignOrganizer;
   };
 
@@ -316,23 +343,26 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     onLanguageSettings: handleLanguageSettings,
     onFAQs: handleFAQs,
     onLogout: handleLogout,
+    onShowId: handleShowId,
   });
 
-  const handleMenuItemPress = (item: MenuItem) => {
-    item.onPress();
+  const renderMenuRow = (item: MenuItem) => {
+    const IconComponent = MENU_ICONS[item.id] ?? User;
+    return (
+      <ListRow
+        key={item.id}
+        title={item.title}
+        icon={<Icon icon={IconComponent} size={18} />}
+        onPress={item.onPress}
+      />
+    );
   };
 
-  // Modal close handlers
-  const closeLanguageModal = () => setShowLanguageModal(false);
-  const closeFAQModal = () => setShowFAQModal(false);
-  const closeEditProfileModal = () => {
-    setShowEditProfileModal(false);
-    loadUserData(); // Reload data after editing
-  };
+  const badgeDisplay = DONOR_BADGE_DISPLAY[userData.donationBadge];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.color.paper }]} edges={["top"]}>
+      <StatusBar style="dark" />
 
       {showProfileCompletion ? (
         <ProfileCompletionScreen
@@ -346,10 +376,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           }}
         />
       ) : isLoadingProfile ? (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text>Loading profile...</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={theme.color.crimson} size="large" />
+          <Text variant="body" tone="inkMuted" style={styles.loadingText}>
+            Loading profile...
+          </Text>
         </View>
       ) : (
         <>
@@ -360,37 +391,31 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           >
             <ProfileHeader
               userData={userData}
+              avatarSeed={user?.sub}
               onEditProfile={handleEditProfile}
+              onAvatarPress={handleAvatarPress}
             />
 
-            {hasEmergencyResponderBadge && (
-              <View style={styles.achievementsSection}>
-                <Text style={styles.achievementsTitle}>Achievements</Text>
-                <BadgeChip
-                  icon={EMERGENCY_RESPONDER_BADGE_DISPLAY.icon}
-                  label={EMERGENCY_RESPONDER_BADGE_DISPLAY.label}
-                  color={EMERGENCY_RESPONDER_BADGE_DISPLAY.color}
-                />
-              </View>
-            )}
-
-            <MenuSection
-              title="Account"
-              menuItems={accountItems}
-              onItemPress={handleMenuItemPress}
+            <AchievementsSection
+              tier={userData.donationBadge}
+              tierLabel={badgeDisplay?.label ?? userData.donationBadge}
+              progress={badgeProgress}
+              showEmergencyBadge={hasEmergencyResponderBadge}
             />
 
-            <MenuSection
-              title="Settings"
-              menuItems={settingsItems}
-              onItemPress={handleMenuItemPress}
-            />
+            <View style={styles.menuSection}>
+              <SectionHeader title="Account" />
+              <ListSection>{accountItems.map(renderMenuRow)}</ListSection>
+            </View>
+
+            <View style={styles.menuSection}>
+              <SectionHeader title="Settings" />
+              <ListSection>{settingsItems.map(renderMenuRow)}</ListSection>
+            </View>
 
             {/* Become Campaign Organizer Button - Only for Donors */}
             {shouldShowCampaignOrganizerButton() && (
-              <BecomeCampaignOrganizerButton
-                onSuccess={handleCampaignOrganizerSuccess}
-              />
+              <BecomeCampaignOrganizerButton onSuccess={handleCampaignOrganizerSuccess} />
             )}
 
             {/* Separate Logout Button */}
@@ -398,23 +423,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
             <View style={styles.bottomPadding} />
           </ScrollView>
-
-          {/* Modals */}
-          <LanguageModal
-            visible={showLanguageModal}
-            onClose={closeLanguageModal}
-          />
-
-          <FAQModal visible={showFAQModal} onClose={closeFAQModal} />
-
-          <EditProfileModal
-            visible={showEditProfileModal}
-            onClose={closeEditProfileModal}
-          />
         </>
       )}
 
-      <BottomTabBar activeTab="account" />
+      <DonorIdCard visible={showIdCard} onClose={() => setShowIdCard(false)} />
+
     </SafeAreaView>
   );
 }
@@ -422,26 +435,26 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND_SECONDARY,
-    paddingTop: StatusBar.currentHeight || 0,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: SPACING.XL,
+    paddingBottom: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+  },
+  menuSection: {
+    paddingHorizontal: 20,
+    marginTop: 20,
   },
   bottomPadding: {
     height: 100,
-  },
-  achievementsSection: {
-    paddingHorizontal: SPACING.MD,
-    marginBottom: SPACING.SM,
-  },
-  achievementsTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.TEXT_SECONDARY,
-    marginBottom: SPACING.XS,
   },
 });

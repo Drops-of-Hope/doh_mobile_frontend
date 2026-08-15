@@ -1,7 +1,7 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
+import { View, StyleSheet } from "react-native";
+import { LogOut } from "lucide-react-native";
+import { Button, Icon, useTheme } from "../../../design";
 
 interface LogoutButtonProps {
   onPress: () => void;
@@ -9,35 +9,22 @@ interface LogoutButtonProps {
 }
 
 export default function LogoutButton({ onPress, title = "Log Out" }: LogoutButtonProps) {
+  const theme = useTheme();
   return (
-    <TouchableOpacity style={styles.logoutButton} onPress={onPress}>
-      <Ionicons name="log-out-outline" size={20} color={COLORS.BACKGROUND} />
-      <Text style={styles.logoutText}>{title}</Text>
-    </TouchableOpacity>
+    <View style={styles.wrap}>
+      <Button
+        title={title}
+        variant="danger"
+        onPress={onPress}
+        icon={<Icon icon={LogOut} size={16} color={theme.color.danger} />}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  logoutButton: {
-    backgroundColor: COLORS.ERROR,
-    marginHorizontal: SPACING.MD,
-    marginVertical: SPACING.MD,
-    paddingVertical: SPACING.MD,
-    paddingHorizontal: SPACING.LG,
-    borderRadius: BORDER_RADIUS.LG,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoutText: {
-    color: COLORS.BACKGROUND,
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: SPACING.SM,
+  wrap: {
+    paddingHorizontal: 20,
+    marginTop: 20,
   },
 });

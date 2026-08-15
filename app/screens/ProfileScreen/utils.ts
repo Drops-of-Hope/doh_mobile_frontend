@@ -75,6 +75,7 @@ export const createMenuItems = (
     onLanguageSettings: () => void;
     onFAQs: () => void;
     onLogout: () => void;
+    onShowId: () => void;
   },
 ): { accountItems: MenuItem[]; settingsItems: MenuItem[] } => {
   // Account section items (always include Edit Profile and Activities)
@@ -84,6 +85,12 @@ export const createMenuItems = (
       title: t("profile.edit_profile"),
       icon: "person-outline",
       onPress: handlers.onEditProfile,
+    },
+    {
+      id: "show-id",
+      title: t("id_card.title"),
+      icon: "card-outline",
+      onPress: handlers.onShowId,
     },
     {
       id: "activities",
