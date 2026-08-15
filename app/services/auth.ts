@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
 
 import { logger } from "../utils/logger";
+import { API_BASE_URL, API_ENDPOINTS } from "./api";
 // Ensure auth sessions are properly completed on iOS (and generally safe to call once in module scope)
 WebBrowser.maybeCompleteAuthSession();
 
@@ -213,72 +214,67 @@ export const refreshToken = async (refreshToken: string) => {
   }
 };
 
-// Logout function - Enhanced to properly revoke Asgardeo session
+// Logout function - revokes tokens + terminates the Asgardeo session via
+// the backend, then clears the local Asgardeo session via the browser and
+// wipes local auth state. Every remote step is independently try/caught so
+// a network failure never blocks the local clear.
 export const logout = async () => {
   try {
     const authState = await getAuthState();
 
     if (authState) {
-      // Step 1: Revoke access token if available
+      // Step 1: Revoke both tokens + terminate the Asgardeo session
+      // server-side. This must go through the backend — Asgardeo's
+      // /oauth2/revoke endpoint requires confidential-client credentials
+      // this app (a public client) doesn't have; posting client_id alone
+      // (the old behavior) was rejected by Asgardeo and revoked nothing.
       if (authState.accessToken) {
         try {
-          const revokeUrl = `${authConfig.issuer}/oauth2/revoke`;
-          await fetch(revokeUrl, {
+          await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGOUT}`, {
             method: "POST",
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              Authorization: `Bearer ${authState.accessToken}`,
+              "Content-Type": "application/json",
             },
-            body: `token=${authState.accessToken}&client_id=${authConfig.clientId}&token_type_hint=access_token`,
+            body: JSON.stringify({ refreshToken: authState.refreshToken }),
           });
         } catch (error) {
-          logger.error("Failed to revoke access token:", error);
-          // Continue with logout even if token revocation fails
+          logger.error("Backend logout call failed:", error);
+          // Continue with logout even if the backend call fails
         }
       }
 
-      // Step 2: Revoke refresh token if available
-      if (authState.refreshToken) {
-        try {
-          const revokeUrl = `${authConfig.issuer}/oauth2/revoke`;
-          await fetch(revokeUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: `token=${authState.refreshToken}&client_id=${authConfig.clientId}&token_type_hint=refresh_token`,
-          });
-        } catch (error) {
-          logger.error("Failed to revoke refresh token:", error);
-          // Continue with logout even if token revocation fails
+      // Step 2: Clear the Asgardeo browser session via end_session. Not
+      // gated on idToken being present — Asgardeo accepts client_id as a
+      // fallback identifier for the end_session request, and skipping
+      // this step (the old behavior when idToken was missing, e.g. after
+      // a token refresh) left the IdP session alive so the next login
+      // silently re-authenticated with no credential prompt.
+      try {
+        const logoutUrl = `${authConfig.issuer}/oidc/logout`;
+        const logoutParams = new URLSearchParams({
+          post_logout_redirect_uri: redirectUri,
+          ...(authState.idToken
+            ? { id_token_hint: authState.idToken }
+            : { client_id: authConfig.clientId }),
+        });
+
+        const fullLogoutUrl = `${logoutUrl}?${logoutParams.toString()}`;
+
+        const result = await WebBrowser.openAuthSessionAsync(
+          fullLogoutUrl,
+          redirectUri,
+        );
+        if (result.type !== "success") {
+          logger.warn("Asgardeo logout browser session did not complete:", result.type);
         }
-      }
-
-      // Step 3: Clear Asgardeo session by opening logout URL
-      if (authState.idToken) {
-        try {
-          // Construct the logout URL with proper parameters
-          const logoutUrl = `${authConfig.issuer}/oidc/logout`;
-          const logoutParams = new URLSearchParams({
-            id_token_hint: authState.idToken,
-            post_logout_redirect_uri: redirectUri,
-          });
-
-          const fullLogoutUrl = `${logoutUrl}?${logoutParams.toString()}`;
-
-          // Use WebBrowser to open logout URL which will clear Asgardeo session
-          // Open logout URL in a browser session to clear server-side session
-          const result = await WebBrowser.openAuthSessionAsync(
-            fullLogoutUrl,
-            redirectUri,
-          );
-        } catch (error) {
-          logger.error("Failed to clear Asgardeo session:", error);
-          // Continue with logout even if session clear fails
-        }
+      } catch (error) {
+        logger.error("Failed to clear Asgardeo session:", error);
+        // Continue with logout even if session clear fails
       }
     }
 
-    // Step 4: Always clear local auth state
+    // Step 3: Always clear local auth state
     await clearAuthState();
   } catch (error) {
     logger.error("Logout failed:", error);

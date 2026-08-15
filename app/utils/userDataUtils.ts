@@ -2,34 +2,53 @@
 import secureStorage from './secureStorage';
 
 import { logger } from "./logger";
+const deleteKeys = async (keys: string[]): Promise<void> => {
+  const deletePromises = keys.map(key =>
+    secureStorage.deleteItemAsync(key).catch(error => {
+      // Don't throw if key doesn't exist
+      if (!error.message?.includes('not found') && !error.message?.includes('does not exist')) {
+        logger.warn(`Failed to delete ${key}:`, error);
+      }
+    })
+  );
+
+  await Promise.all(deletePromises);
+};
+
 /**
- * Clear all user-related stored data
+ * Clear only the cached backend profile (not the session/tokens).
+ * Use this when the *profile* cache is stale or mismatched but the auth session is still
+ * valid — e.g. a consistency-check failure, or a different user's leftover cache. The
+ * caller is expected to re-bootstrap the profile from the server afterwards.
+ */
+export const clearCachedProfile = async (): Promise<void> => {
+  try {
+    await deleteKeys(['userData', 'userAuthData']);
+  } catch (error) {
+    logger.error('Error clearing cached profile:', error);
+    throw error;
+  }
+};
+
+/**
+ * Clear the entire session: cached profile plus auth tokens.
  * This should be called when:
  * 1. User logs out
- * 2. User ID changes (different user logs in)
- * 3. Auth becomes invalid
+ * 2. Auth becomes invalid (token refresh failed, etc.)
+ *
+ * Do NOT call this for a stale/mismatched profile cache alone — that would force a
+ * re-login for what's really just a local caching bug. Use clearCachedProfile for that.
  */
-export const clearAllUserData = async (): Promise<void> => {
+export const clearSession = async (): Promise<void> => {
   try {
-    const keysToDelete = [
+    await deleteKeys([
       'userData',         // Stored user profile data
       'userAuthData',     // Stored auth provider data
       'authState',        // Auth tokens and state
       'accessToken',      // Legacy auth token
-    ];
-
-    const deletePromises = keysToDelete.map(key => 
-      secureStorage.deleteItemAsync(key).catch(error => {
-        // Don't throw if key doesn't exist
-        if (!error.message?.includes('not found') && !error.message?.includes('does not exist')) {
-          logger.warn(`Failed to delete ${key}:`, error);
-        }
-      })
-    );
-
-    await Promise.all(deletePromises);
+    ]);
   } catch (error) {
-    logger.error('Error clearing user data:', error);
+    logger.error('Error clearing session:', error);
     throw error;
   }
 };

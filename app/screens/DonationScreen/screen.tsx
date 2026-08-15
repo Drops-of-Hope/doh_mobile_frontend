@@ -39,7 +39,7 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user, isAuthenticated, refreshAuthState, getFullName } = useAuth();
+  const { user, isAuthenticated, getFullName } = useAuth();
   const [attendanceMarked, setAttendanceMarked] = useState(false);
   const [appointments, setAppointments] = useState<{
     upcoming: Appointment[];
@@ -91,12 +91,6 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
       setAppointmentsLoading(false);
     }
   };
-
-  // Load user profile
-  // Refresh auth state once on mount
-  useEffect(() => {
-    refreshAuthState();
-  }, []);
 
   // Polling function to check for attendance notification
   const pollForAttendanceNotification = async () => {

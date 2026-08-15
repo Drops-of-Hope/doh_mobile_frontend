@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: "/auth/login",
   REGISTER: "/auth/register",
+  LOGOUT: "/auth/logout", // Revokes tokens + terminates the Asgardeo session server-side
   AUTH_CALLBACK: "/auth/callback", // Handle auth provider callback
   CREATE_OR_LOGIN_USER: "/users/create-or-login", // Create user if not exists, login if exists
   COMPLETE_PROFILE: "/users/complete-profile", // Complete user profile after initial auth

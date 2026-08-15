@@ -1,7 +1,5 @@
 // Campaign service for handling campaign-related API calls
 import { apiRequestWithAuth, API_ENDPOINTS } from "./api";
-import { useAuthUser } from "../hooks/useAuthUser";
-import { useAuth } from "../context/AuthContext";
 
 import { logger } from "../utils/logger";
 // Backend API response format (what we actually receive from the server)

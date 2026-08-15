@@ -13,6 +13,8 @@ export interface UserProfile {
   totalPoints: number;
   donationBadge: string;
   isActive: boolean;
+  isProfileComplete: boolean;
+  needsProfileCompletion: boolean;
   createdAt: string;
   updatedAt: string;
   userDetails?: UserDetails;

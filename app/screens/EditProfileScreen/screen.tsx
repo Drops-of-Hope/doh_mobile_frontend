@@ -40,7 +40,7 @@ export default function EditProfileScreen({
   onClose,
 }: EditProfileScreenProps) {
   const theme = useTheme();
-  const { user } = useAuth();
+  const { user, refreshBackendUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<ProfileFormData>(EMPTY_FORM);
@@ -177,6 +177,9 @@ export default function EditProfileScreen({
 
       // Call the real API
       await userService.updateProfile(updateData);
+
+      // Keep AuthContext's cached profile (name, etc.) in sync with the write.
+      await refreshBackendUser();
 
       Alert.alert("Success", "Profile updated successfully", [
         {

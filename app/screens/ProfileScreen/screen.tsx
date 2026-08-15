@@ -21,19 +21,10 @@ import { createMenuItems, getRoleMembershipType } from "./utils";
 // Import context
 import { useAuth, USER_ROLES } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { useAuthUser } from "../../hooks/useAuthUser";
-import {
-  debugUserIds,
-  validateUserDataConsistency,
-  clearAllUserData,
-} from "../../utils/userDataUtils";
 import { getDatabaseUserId } from "../../utils/userIdUtils";
 import { badgeService } from "../../services/badgeService";
 import { userService } from "../../services/userService";
 import { DONOR_BADGE_DISPLAY } from "../../../constants/badgeDisplay";
-
-// Import the profile completion screen
-import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
 
 import { logger } from "../../utils/logger";
 interface ProfileScreenProps {
@@ -52,31 +43,30 @@ const MENU_ICONS: Record<string, LucideIcon> = {
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const theme = useTheme();
-  // Auth and Language
-  const { user, userRole, logout, hasRole } = useAuth();
+  // Auth and Language — AuthContext already resolved the backend profile before this
+  // screen could mount (see AppNavigator), so this screen just reads it.
+  const { user, userRole, logout, hasRole, profile } = useAuth();
   const { t } = useLanguage();
-  // Initialize auth user hook
-  const { getStoredUserData, processAuthUser } = useAuthUser();
 
   // State management
-  const [userData, setUserData] = useState<UserData>({
-    name: "Loading...",
-    email: "Loading...",
-    bloodType: "Loading...",
-    mobileNumber: "Loading...",
-    donationBadge: "BRONZE",
-    membershipType: "DONOR",
-  });
-
-  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
   const [hasEmergencyResponderBadge, setHasEmergencyResponderBadge] = useState(false);
   const [badgeProgress, setBadgeProgress] = useState<BadgeProgressInfo | null>(null);
   const [showIdCard, setShowIdCard] = useState(false);
 
-  useEffect(() => {
-    loadUserData();
-  }, [user]);
+  // AppNavigator only mounts this screen once profileStatus is "complete", so `profile`
+  // is expected to already be populated — this is a defensive fallback, not a real wait.
+  const isLoadingProfile = !profile;
+
+  const userData: UserData = {
+    name: profile?.name ?? "Loading...",
+    email: profile?.email ?? "Loading...",
+    bloodType: profile?.bloodGroup || "Unknown",
+    mobileNumber: "Not provided", // Not carried in the backend profile response
+    donationBadge: (profile?.donationBadge as any) ?? "BRONZE",
+    membershipType: getRoleMembershipType(userRole),
+    profileImageUrl,
+  };
 
   useEffect(() => {
     const loadAchievements = async () => {
@@ -102,7 +92,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (!isLoadingProfile) {
       loadAchievements();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingProfile]);
 
   // Fetch the real profile image (never a hardcoded placeholder) once the
@@ -110,8 +99,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   useEffect(() => {
     const loadProfileImage = async () => {
       try {
-        const profile = await userService.getUserProfile();
-        setUserData((prev) => ({ ...prev, profileImageUrl: profile.profileImageUrl }));
+        const fullProfile = await userService.getUserProfile();
+        setProfileImageUrl(fullProfile.profileImageUrl);
       } catch (error) {
         logger.error("ProfileScreen: Failed to load profile image:", error);
       }
@@ -121,122 +110,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       loadProfileImage();
     }
   }, [isLoadingProfile, user]);
-
-  // New effect to handle auth user processing
-  useEffect(() => {
-    const handleAuthUserProcessing = async () => {
-      if (user && !isLoadingProfile) {
-        try {
-          // Check if we have stored user data
-          const storedUserData = await getStoredUserData();
-
-          if (!storedUserData) {
-            // User is authenticated but not in our database
-            // Process the auth user (create or login)
-
-            // Transform user data to the format expected by processAuthUser
-            const authData = {
-              sub: user.sub,
-              email: user.email,
-              birthdate: user.birthdate || "",
-              family_name:
-                user.family_name || user.name.split(" ").slice(-1)[0] || "",
-              given_name: user.given_name || user.name.split(" ")[0] || "",
-              roles: user.roles || [],
-              updated_at: user.updated_at || Date.now(),
-              username: user.username || user.email,
-            };
-
-            try {
-              await processAuthUser(authData);
-
-              // After processing, reload user data which will trigger profile completion if needed
-              await loadUserData();
-            } catch (error) {
-              logger.error("Backend API call failed:", error);
-              logger.error(
-                "This likely means the backend endpoints don't exist yet"
-              );
-            }
-          }
-        } catch (error) {
-          logger.error("Error processing auth user:", error);
-        }
-      }
-    };
-
-    handleAuthUserProcessing();
-  }, [user, isLoadingProfile]);
-
-  const loadUserData = async () => {
-    try {
-      setIsLoadingProfile(true);
-
-      if (user) {
-        // Debug user data consistency
-        await debugUserIds();
-        const isConsistent = await validateUserDataConsistency();
-
-        if (!isConsistent) {
-          await clearAllUserData();
-
-          // Set basic loading state - user needs to complete profile or re-authenticate
-          setShowProfileCompletion(true);
-          return;
-        }
-
-        // First, get stored user data from auth service
-        const storedUserData = await getStoredUserData();
-
-        if (storedUserData) {
-          // Verify the stored data matches the current authenticated user
-          if (storedUserData.id !== user.sub) {
-            logger.warn("ProfileScreen: Stored user data ID mismatch!");
-            logger.warn("ProfileScreen: Expected user ID:", user.sub);
-            logger.warn("ProfileScreen: Stored user ID:", storedUserData.id);
-            logger.warn("ProfileScreen: Clearing mismatched stored data...");
-
-            // Clear the mismatched data
-            await clearAllUserData();
-
-            // Show profile completion for user to re-authenticate or complete profile
-            setShowProfileCompletion(true);
-            return;
-          }
-
-          // Check if profile needs completion
-          const needsCompletion = !storedUserData.isProfileComplete;
-
-          if (needsCompletion) {
-            setShowProfileCompletion(true);
-            return;
-          }
-
-          // Update userData with real data
-          setUserData((prev) => ({
-            ...prev,
-            name: storedUserData.name,
-            email: storedUserData.email,
-            bloodType: storedUserData.bloodGroup || "Unknown",
-            mobileNumber: "Not provided", // We don't have this in auth data
-            donationBadge: storedUserData.donationBadge as any,
-            membershipType: getRoleMembershipType(userRole),
-          }));
-        } else {
-          // Show profile completion screen if no stored data
-          setShowProfileCompletion(true);
-        }
-      }
-    } catch (error) {
-      logger.error("ProfileScreen: Error loading user data:", error);
-      // Show profile completion on error
-      if (user) {
-        setShowProfileCompletion(true);
-      }
-    } finally {
-      setIsLoadingProfile(false);
-    }
-  };
 
   // Navigation handlers
   const handleEditProfile = () => {
@@ -364,18 +237,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.color.paper }]} edges={["top"]}>
       <StatusBar style="dark" />
 
-      {showProfileCompletion ? (
-        <ProfileCompletionScreen
-          userId={user?.sub || ""}
-          onComplete={() => {
-            setShowProfileCompletion(false);
-            loadUserData(); // Reload data after profile completion
-          }}
-          onSkip={() => {
-            setShowProfileCompletion(false);
-          }}
-        />
-      ) : isLoadingProfile ? (
+      {isLoadingProfile ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator color={theme.color.crimson} size="large" />
           <Text variant="body" tone="inkMuted" style={styles.loadingText}>
