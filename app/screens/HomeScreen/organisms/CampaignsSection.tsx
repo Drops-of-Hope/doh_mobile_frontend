@@ -1,9 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import SectionHeader from "../molecules/SectionHeader";
-import CampaignCard, {
-  Campaign,
-} from "../molecules/CampaignCard";
+import { SectionHeader } from "../../../design";
+import CampaignCard, { Campaign } from "../molecules/CampaignCard";
 
 interface CampaignsSectionProps {
   campaigns: Campaign[];
@@ -12,25 +10,20 @@ interface CampaignsSectionProps {
   limit?: number;
 }
 
-export default function CampaignsSection({
-  campaigns,
-  onCampaignPress,
-  onViewAll,
-  limit = 2,
-}: CampaignsSectionProps) {
+export default function CampaignsSection({ campaigns, onCampaignPress, onViewAll, limit = 2 }: CampaignsSectionProps) {
   const displayedCampaigns = limit ? campaigns.slice(0, limit) : campaigns;
 
   return (
     <View style={styles.section}>
-      <SectionHeader title="Upcoming Campaigns" onViewAll={onViewAll} />
+      <SectionHeader
+        title="Upcoming Campaigns"
+        actionLabel={onViewAll ? "View All" : undefined}
+        onAction={onViewAll}
+      />
 
-      <View style={styles.campaignsContainer}>
+      <View style={styles.list}>
         {displayedCampaigns.map((campaign) => (
-          <CampaignCard
-            key={campaign.id}
-            campaign={campaign}
-            onPress={onCampaignPress}
-          />
+          <CampaignCard key={campaign.id} campaign={campaign} onPress={onCampaignPress} />
         ))}
       </View>
     </View>
@@ -38,10 +31,6 @@ export default function CampaignsSection({
 }
 
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 24,
-  },
-  campaignsContainer: {
-    gap: 12,
-  },
+  section: { marginBottom: 24 },
+  list: { gap: 12 },
 });

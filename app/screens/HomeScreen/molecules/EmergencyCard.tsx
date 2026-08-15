@@ -1,10 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import UrgencyBadge, {
-  UrgencyLevel,
-} from "../atoms/UrgencyBadge";
-import ProgressBar from "../atoms/ProgressBar";
-import ActionButton from "../atoms/ActionButton";
+import { View, StyleSheet } from "react-native";
+import { Clock } from "lucide-react-native";
+import { Surface, Text, Icon, Button, ProgressTrack, useTheme } from "../../../design";
+import UrgencyBadge, { UrgencyLevel } from "../atoms/UrgencyBadge";
 
 export interface Emergency {
   id: number;
@@ -26,101 +24,67 @@ interface EmergencyCardProps {
   onViewDetails?: (emergency: Emergency) => void;
 }
 
-export default function EmergencyCard({
-  emergency,
-  onDonate,
-  onViewDetails,
-}: EmergencyCardProps) {
+export default function EmergencyCard({ emergency, onDonate, onViewDetails }: EmergencyCardProps) {
+  const theme = useTheme();
+  const isCritical = emergency.urgency === "Critical";
+  const progressColor =
+    emergency.urgency === "Critical"
+      ? theme.color.crimson
+      : emergency.urgency === "Moderate"
+      ? theme.color.warning
+      : theme.color.info;
+
   return (
-    <View style={styles.emergencyCard}>
-      <View style={styles.emergencyHeader}>
+    <Surface
+      tone={isCritical ? "crimsonSoft" : "surface"}
+      style={isCritical ? { borderColor: theme.color.crimson, borderWidth: 2 } : undefined}
+    >
+      <View style={styles.header}>
         <UrgencyBadge urgency={emergency.urgency} />
-        <Text style={styles.timeLeft}>{emergency.timeLeft}</Text>
+        <View style={styles.timeLeft}>
+          <Icon icon={Clock} size={14} color={isCritical ? theme.color.crimson : theme.color.inkMuted} />
+          <Text variant="label" tone={isCritical ? "crimson" : "inkMuted"}>
+            {emergency.timeLeft}
+          </Text>
+        </View>
       </View>
 
-      <Text style={styles.emergencyHospital}>{emergency.hospital}</Text>
+      <Text variant="h3" style={styles.hospital}>
+        {emergency.hospital}
+      </Text>
 
-      <View style={styles.bloodTypeContainer}>
-        <Text style={styles.bloodTypeText}>{emergency.bloodType}</Text>
-        <Text style={styles.slotsText}>
+      <View style={styles.metaRow}>
+        <Text variant="bodyBold" tone="crimson">
+          {emergency.bloodType}
+        </Text>
+        <Text variant="caption" tone="inkMuted">
           {emergency.slotsUsed}/{emergency.totalSlots} slots filled
         </Text>
       </View>
 
-      <ProgressBar
-        current={emergency.slotsUsed}
-        total={emergency.totalSlots}
-        urgency={emergency.urgency}
+      <ProgressTrack
+        progress={emergency.totalSlots > 0 ? emergency.slotsUsed / emergency.totalSlots : 0}
+        color={progressColor}
       />
 
-      <View style={styles.emergencyActions}>
-        <ActionButton
-          title="Donate Now"
-          onPress={() => onDonate(emergency)}
-          variant="primary"
-          icon="heart"
-          style={{ flex: 2 }}
-        />
-
-        <ActionButton
-          title="View Details"
-          onPress={() => onViewDetails?.(emergency)}
-          variant="secondary"
-          style={{ flex: 1 }}
-        />
+      <View style={styles.actions}>
+        <View style={styles.actionFlex2}>
+          <Button title="Donate Now" variant="solid" onPress={() => onDonate(emergency)} />
+        </View>
+        <View style={styles.actionFlex1}>
+          <Button title="Details" variant="outline" onPress={() => onViewDetails?.(emergency)} />
+        </View>
       </View>
-    </View>
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
-  emergencyCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  emergencyHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  timeLeft: {
-    fontSize: 12,
-    color: "#FF4757",
-    fontWeight: "700",
-  },
-  emergencyHospital: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 12,
-  },
-  bloodTypeContainer: {
-    backgroundColor: "#F8F9FA",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  bloodTypeText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  slotsText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-  emergencyActions: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 8,
-  },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  timeLeft: { flexDirection: "row", alignItems: "center", gap: 4 },
+  hospital: { marginBottom: 10 },
+  metaRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  actions: { flexDirection: "row", gap: 10, marginTop: 14 },
+  actionFlex2: { flex: 2 },
+  actionFlex1: { flex: 1 },
 });

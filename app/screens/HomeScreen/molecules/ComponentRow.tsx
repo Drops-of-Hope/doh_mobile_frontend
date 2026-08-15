@@ -1,41 +1,25 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import ComponentInfoCard from "../atoms/ComponentInfoCard";
+import { CalendarClock } from "lucide-react-native";
+import { StatRow, StatTile, Icon, useTheme } from "../../../design";
 import { useLanguage } from "../../../context/LanguageContext";
 
 interface ComponentRowProps {
-  bloodType: string;
   lastDonationDays: number;
 }
 
-export default function ComponentRow({
-  bloodType,
-  lastDonationDays,
-}: ComponentRowProps) {
+// Only rendered by the caller when a real lastDonationDate exists — a donor
+// with zero donations should never see "0 days ago".
+export default function ComponentRow({ lastDonationDays }: ComponentRowProps) {
   const { t } = useLanguage();
+  const theme = useTheme();
 
   return (
-    <View style={styles.componentRow}>
-      {/* <ComponentInfoCard
-        title={t("home.blood_type")}
-        subtitle="Category of blood"
-        value={bloodType}
-        icon="water"
-        iconColor="#FF4757"
-      /> */}
-      <ComponentInfoCard
-        title={t("home.last_donation")}
-        subtitle="Time since last visit"
+    <StatRow>
+      <StatTile
+        icon={<Icon icon={CalendarClock} size={20} color={theme.color.crimson} />}
         value={t("home.days_ago", { days: lastDonationDays })}
-        icon="calendar"
-        iconColor="#dc2626"
+        label={t("home.last_donation")}
       />
-    </View>
+    </StatRow>
   );
 }
-
-const styles = StyleSheet.create({
-  componentRow: {
-    gap: 12,
-  },
-});

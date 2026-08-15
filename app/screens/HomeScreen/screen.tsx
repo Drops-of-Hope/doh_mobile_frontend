@@ -1,44 +1,35 @@
-// Enhanced Home Screen with dynamic data integration
+// Home screen — "Ink & Paper" rebuild.
+// Content order is deliberate: eligibility hero -> emergencies (time-critical,
+// outranks stats) -> stats -> campaigns. The nearest upcoming appointment
+// floats: when it's 3 days out or closer it sits directly under the hero as a
+// crimson alarm card, otherwise it drops below the stats strip.
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  Alert,
-  RefreshControl,
-} from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 
-// Import existing components
-import BottomTabBar from "../shared/organisms/BottomTabBar";
-import StatsCard from "./molecules/StatsCard";
+import { Screen, StatRow, StatTile } from "../../design";
+
+import HomeHero from "./organisms/HomeHero";
+import UpcomingAppointmentCard from "./molecules/UpcomingAppointmentCard";
 import ComponentRow from "./molecules/ComponentRow";
 import EmergenciesSection from "./organisms/EmergenciesSection";
-import AppointmentSection from "./organisms/AppointmentSection";
-import HomeHeader from "./organisms/HomeHeader";
-import NextDonationCard from "./molecules/NextDonationCard";
+import EmergencyDetailsModal from "./organisms/EmergencyDetailsModal";
+import CampaignsSection from "./organisms/CampaignsSection";
 import ThankYouCard from "./molecules/ThankYouCard";
-import TodaysAppointmentCard from "./molecules/TodaysAppointmentCard";
-
-// Import new components
-import UserQRModal from "../shared/organisms/UserQRModal";
 import HomeScreenSkeleton from "../shared/molecules/skeletons/HomeScreenSkeleton";
 import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
+import DonorIdCard from "../shared/organisms/DonorIdCard";
 
-// Import services
+import { Emergency } from "./molecules/EmergencyCard";
 import { homeService, HomeScreenData } from "../../services/homeService";
 import { userService } from "../../services/userService";
 
-// Import theme constants
-import { COLORS } from "../../../constants/theme";
-
-// Import context
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuthUser } from "../../hooks/useAuthUser";
 
+import { getUrgency, isUrgent } from "../../utils/appointmentUrgency";
 import { logger } from "../../utils/logger";
+
 interface HomeScreenProps {
   navigation?: any;
 }
@@ -48,9 +39,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [homeData, setHomeData] = useState<HomeScreenData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [searchText, setSearchText] = useState("");
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
+  const [selectedEmergency, setSelectedEmergency] = useState<Emergency | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [showIdCard, setShowIdCard] = useState(false);
 
   // Context
   const { user, getFirstName } = useAuth();
@@ -70,8 +62,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   // Format badge name for display (e.g., "BRONZE" -> "Bronze Donor")
   const formatBadgeName = (badge: string | undefined): string => {
     if (!badge) return "Bronze Donor"; // Default
-    
-    // Convert badge to title case and add "Donor"
+
     const formatted = badge.charAt(0).toUpperCase() + badge.slice(1).toLowerCase();
     return `${formatted} Donor`;
   };
@@ -87,24 +78,26 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }
   };
 
-  // State for donor badge
   const [donorBadge, setDonorBadge] = useState<string>("Bronze Donor");
 
   useEffect(() => {
     initializeUser();
-    // Load donor badge
     getDonorBadge().then(setDonorBadge);
+    // Best-effort avatar fetch for the header; the initials fallback covers failure.
+    userService
+      .getUserProfile()
+      .then((profile) => setAvatarUrl(profile.profileImageUrl ?? null))
+      .catch(() => {});
   }, []);
 
   const initializeUser = async () => {
     try {
       // First check if we have stored user data
       let userData = await getStoredUserData();
-      
-      // If no stored user data but we have an authenticated user, 
+
+      // If no stored user data but we have an authenticated user,
       // we need to process/create the user in the backend
       if (!userData && user?.sub) {
-        // Create AuthUserData from the current user
         const authData = {
           sub: user.sub,
           email: user.email,
@@ -116,15 +109,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           username: user.username || user.email,
           updated_at: Math.floor(Date.now() / 1000),
         };
-        
+
         // Process the user (creates in backend if needed)
         userData = await processAuthUser(authData);
       }
-      
-      // Now check if profile completion is needed
+
       await checkProfileCompletion(userData);
-      
-      // Load home data
       await loadHomeData();
     } catch (error) {
       logger.error("❌ Error initializing user:", error);
@@ -138,8 +128,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   const checkProfileCompletion = async (userData?: any) => {
     try {
-      const userDataToCheck = userData || await getStoredUserData();
-      
+      const userDataToCheck = userData || (await getStoredUserData());
+
       if (!userDataToCheck) {
         return;
       }
@@ -156,69 +146,21 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const loadHomeData = async () => {
     // Don't load if profile completion is needed
     if (showProfileCompletion) return;
-    
+
     try {
       setLoading(true);
       const data = await homeService.getHomeData();
-      
-      // If backend didn't send todaysAppointment, check if first upcoming appointment is today
-      if (!data.todaysAppointment && data.upcomingAppointments?.length > 0) {
-        const firstAppointment = data.upcomingAppointments[0];
-        const appointmentDate = new Date(firstAppointment.appointmentDateTime || firstAppointment.createdAt);
-        const today = new Date();
-        
-        // Compare dates in UTC to avoid timezone issues
-        const appointmentUTCYear = appointmentDate.getUTCFullYear();
-        const appointmentUTCMonth = appointmentDate.getUTCMonth();
-        const appointmentUTCDay = appointmentDate.getUTCDate();
-        
-        const todayUTCYear = today.getUTCFullYear();
-        const todayUTCMonth = today.getUTCMonth();
-        const todayUTCDay = today.getUTCDate();
-        
-        const isToday = appointmentUTCYear === todayUTCYear &&
-                       appointmentUTCMonth === todayUTCMonth &&
-                       appointmentUTCDay === todayUTCDay;
-
-        if (isToday) {
-          // Convert upcoming appointment to todaysAppointment format
-          data.todaysAppointment = {
-            id: firstAppointment.id,
-            appointmentDateTime: firstAppointment.appointmentDateTime,
-            appointmentDate: firstAppointment.appointmentDateTime,
-            scheduled: firstAppointment.scheduled,
-            medicalEstablishment: firstAppointment.medicalEstablishment || {
-              id: '',
-              name: firstAppointment.location || 'Medical Center',
-              address: firstAppointment.location || '',
-              district: ''
-            },
-            slot: (firstAppointment as any).slot || {
-              id: 'default-slot',
-              startTime: '09:00',
-              endTime: '17:00'
-            },
-            location: firstAppointment.location || ''
-          };
-        }
-      }
-
       setHomeData(data);
     } catch (error) {
       logger.error("Failed to load home data:", error);
-      
+
       // Check if error is due to user not existing
       if (error instanceof Error && error.message.includes("User not found")) {
-        // User needs to complete profile setup
         setShowProfileCompletion(true);
         return;
       }
-      
-      Alert.alert(
-        t("home.error_title"),
-        t("home.load_error"),
-        [{ text: t("common.ok") }]
-      );
+
+      Alert.alert(t("home.error_title"), t("home.load_error"), [{ text: t("common.ok") }]);
     } finally {
       setLoading(false);
     }
@@ -226,7 +168,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   const handleProfileComplete = async (userInfo: any) => {
     setShowProfileCompletion(false);
-    // Reload home data after profile completion
     await loadHomeData();
   };
 
@@ -242,54 +183,35 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }
   }, []);
 
-  const handleEmergencyPress = (emergencyId: string) => {
-    navigation?.navigate("EmergencyDetails", { emergencyId });
-  };
-
-  const handleQRPress = () => {
-    setShowQRModal(true);
-  };
-
-  const handleNotificationPress = () => {
-    navigation?.navigate("Notifications");
-  };
-
   const handleViewAllEmergencies = () => {
     navigation?.navigate("AllEmergencies");
   };
 
-  const handleBookAppointment = () => {
-    navigation?.navigate("DonationScreen");
+  const handleDonatePress = () => {
+    navigation?.navigate("Donate");
   };
+
+  const handleAvatarPress = () => {
+    // AvatarPicker lives in the Profile tab's stack.
+    navigation?.navigate("ProfileTab", { screen: "AvatarPicker" });
+  };
+
+  const handleShowIdPress = () => setShowIdCard(true);
 
   // Transform data for existing components
-  const getStatsData = () => {
-    if (!homeData?.userStats) return null;
-    
-    return {
-      totalDonations: homeData.userStats.totalDonations,
-      totalPoints: homeData.userStats.totalPoints,
-      donationStreak: homeData.userStats.donationStreak,
-      eligibleToDonate: homeData.userStats.eligibleToDonate,
-      nextEligibleDate: homeData.userStats.nextEligibleDate,
-    };
-  };
-
-  const getEmergenciesData = () => {
+  const getEmergenciesData = (): Emergency[] => {
     if (!homeData?.emergencies) return [];
-    
+
     return homeData.emergencies.map((emergency, index) => {
       const parsedId = emergency.id ? parseInt(emergency.id, 10) : null;
-      const uniqueId = (parsedId && !isNaN(parsedId)) ? parsedId : index + 1000;
-      
+      const uniqueId = parsedId && !isNaN(parsedId) ? parsedId : index + 1000;
+
       return {
         id: uniqueId,
         hospital: emergency.hospital?.name || "",
-        bloodType: Array.isArray(emergency.bloodTypesNeeded) 
-          ? emergency.bloodTypesNeeded.join(", ") 
-          : "",
+        bloodType: Array.isArray(emergency.bloodTypesNeeded) ? emergency.bloodTypesNeeded.join(", ") : "",
         slotsUsed: 0, // Calculate based on responses
-        totalSlots: emergency.quantityNeeded 
+        totalSlots: emergency.quantityNeeded
           ? Object.values(emergency.quantityNeeded).reduce((a, b) => a + b, 0)
           : 0,
         urgency: emergency.urgencyLevel as any,
@@ -302,38 +224,37 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     });
   };
 
-  const getUpcomingAppointment = () => {
-    if (!homeData?.upcomingAppointments?.length) return null;
-    
-    const appointment = homeData.upcomingAppointments[0];
-    if (!appointment) return null;
-    
-    return {
-      id: appointment.id || "",
-      date: appointment.appointmentDateTime ? formatDate(appointment.appointmentDateTime) : "",
-      time: appointment.appointmentDateTime ? formatTime(appointment.appointmentDateTime) : "",
-      location: appointment.location || appointment.medicalEstablishment?.name || "",
-      hospital: appointment.medicalEstablishment?.name || "",
-      status: appointment.scheduled as any,
-    };
+  const getCampaignsData = () => {
+    if (!homeData?.featuredCampaigns) return [];
+
+    return homeData.featuredCampaigns.map((campaign, index) => {
+      const parsedId = campaign.id ? parseInt(campaign.id, 10) : null;
+      return {
+        id: parsedId && !isNaN(parsedId) ? parsedId : index + 2000,
+        title: campaign.title,
+        date: formatDate(campaign.startTime),
+        location: campaign.location,
+        slotsUsed: campaign.actualDonors || 0,
+        totalSlots: campaign.expectedDonors || 0,
+        urgency: "Low" as const,
+      };
+    });
   };
 
   const calculateTimeLeft = (expiresAt: string): string => {
     if (!expiresAt) return t("home.expired");
-    
+
     const now = new Date();
     const expiry = new Date(expiresAt);
-    
-    // Check if the date is valid
+
     if (isNaN(expiry.getTime())) return t("home.expired");
-    
+
     const diff = expiry.getTime() - now.getTime();
-    
     if (diff <= 0) return t("home.expired");
-    
+
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (hours > 0) {
       return t("home.time_left_hours", { hours, minutes });
     }
@@ -346,157 +267,126 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     return isNaN(date.getTime()) ? "" : date.toLocaleDateString();
   };
 
-  const formatTime = (dateString: string): string => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  if (showProfileCompletion) {
+    return (
+      <ProfileCompletionScreen
+        userId={user?.sub || ""}
+        onComplete={handleProfileComplete}
+        onSkip={() => setShowProfileCompletion(false)}
+      />
+    );
+  }
+
+  const emergencies = getEmergenciesData();
+  const campaigns = getCampaignsData();
+
+  // The backend returns upcomingAppointments nearest-first and now includes
+  // today, so [0] is always the one to surface.
+  const nextAppointment = homeData?.upcomingAppointments?.[0] ?? null;
+  const nextAppointmentIsUrgent = nextAppointment
+    ? isUrgent(getUrgency(nextAppointment.appointmentDateTime))
+    : false;
+
+  const appointmentCard = nextAppointment ? (
+    <View style={styles.section}>
+      <UpcomingAppointmentCard
+        appointment={nextAppointment}
+        userName={user?.name || getFirstName() || "User"}
+        userEmail={user?.email || ""}
+        userUID={user?.sub || ""}
+      />
+    </View>
+  ) : null;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
-      {/* Show Profile Completion Screen if needed */}
-      {showProfileCompletion ? (
-        <ProfileCompletionScreen
-          userId={user?.sub || ""}
-          onComplete={handleProfileComplete}
-          onSkip={() => setShowProfileCompletion(false)}
-        />
+    <Screen scroll={!loading} refreshing={refreshing} onRefresh={handleRefresh}>
+      {loading ? (
+        <HomeScreenSkeleton />
       ) : (
         <>
-          {/* Subtle Red Theme Accent Bar */}
-          <View style={styles.themeAccentBar} />
-          
-          {/* Header Section with Welcome Message */}
-          <View style={styles.headerContainer}>
-            <HomeHeader
+          <View style={styles.section}>
+            <HomeHero
               firstName={getFirstName() || "User"}
               donorLevel={donorBadge}
-              searchText={searchText}
-              onSearchTextChange={setSearchText}
+              avatarUrl={avatarUrl}
+              avatarSeed={user?.sub}
+              onAvatarPress={handleAvatarPress}
+              lastDonationDate={homeData?.userStats?.lastDonationDate}
+              nextEligibleDate={homeData?.userStats?.nextEligibleDate}
+              eligibleToDonate={homeData?.userStats?.eligibleToDonate}
+              onDonatePress={handleDonatePress}
+              onShowIdPress={handleShowIdPress}
             />
           </View>
-          
-          {loading ? (
-            <HomeScreenSkeleton />
-          ) : (
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-              }
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Today's Appointment Card - Shows above stats if user has appointment today */}
-              {homeData?.todaysAppointment && (
-                <TodaysAppointmentCard
-                  appointment={homeData.todaysAppointment}
-                  userName={user?.name || getFirstName() || "User"}
-                  userEmail={user?.email || ""}
-                  userUID={user?.sub || ""}
-                />
-              )}
 
-              {/* Stats Section */}
-              {homeData?.userStats && (
-                <StatsCard
-                  totalDonations={homeData?.userStats?.totalDonations || 0}
-                  statusTitle={homeData?.userStats?.eligibleToDonate ? "Ready to Donate" : "Not Eligible"}
-                  statusSubtitle={homeData?.userStats?.eligibleToDonate 
-                    ? "You are eligible to donate" 
-                    : homeData?.userStats?.nextEligibleDate 
-                      ? `Next eligible: ${new Date(homeData.userStats.nextEligibleDate).toLocaleDateString()}`
-                      : "Check your donation history"
-                  }
-                  statusIcon={homeData?.userStats?.eligibleToDonate ? "checkmark-circle" : "time-outline"}
-                />
-              )}
+          {/* 2. Imminent appointment (<= 3 days) — never buried below stats */}
+          {nextAppointmentIsUrgent ? appointmentCard : null}
 
-              {/* Component Row - Quick Actions */}
-              <ComponentRow 
-                bloodType={user?.bloodType || user?.bloodGroup || 'A+'} 
-                lastDonationDays={getLastDonationDays() || 0} 
+          {/* 3. Emergencies — time-critical, outranks stats */}
+          {emergencies.length > 0 && (
+            <View style={styles.section}>
+              <EmergenciesSection
+                emergencies={emergencies}
+                onDonate={handleDonatePress}
+                onViewDetails={setSelectedEmergency}
+                onViewAll={handleViewAllEmergencies}
               />
-
-              {/* Next Donation Date Card */}
-              <NextDonationCard 
-                lastDonationDate={homeData?.userStats?.lastDonationDate}
-                nextEligibleDate={homeData?.userStats?.nextEligibleDate}
-                eligibleToDonate={homeData?.userStats?.eligibleToDonate}
-              />
-
-              {/* Upcoming Appointment */}
-              {homeData?.upcomingAppointments && homeData.upcomingAppointments.length > 0 && (
-                <AppointmentSection
-                  appointment={getUpcomingAppointment()}
-                />
-              )}
-
-              {/* Emergencies Section */}
-              {homeData?.emergencies && homeData.emergencies.length > 0 && (
-                <EmergenciesSection
-                  emergencies={getEmergenciesData()}
-                  onDonate={(emergency) => handleEmergencyPress(emergency.id.toString())}
-                  onViewAll={handleViewAllEmergencies}
-                />
-              )}
-
-              {/* Thank You Card */}
-              <ThankYouCard />
-
-              {/* Bottom Padding */}
-              <View style={styles.bottomPadding} />
-            </ScrollView>
+            </View>
           )}
 
-          {/* Bottom Tab Bar */}
-          <BottomTabBar activeTab="home" />
+          {/* 4. Stats strip */}
+          {homeData?.userStats && (
+            <View style={styles.section}>
+              <StatRow>
+                <StatTile value={homeData.userStats.totalDonations} label={t("home.donations")} />
+                <StatTile value={homeData.userStats.totalPoints} label={t("home.points")} />
+                <StatTile value={homeData.userStats.donationStreak} label={t("home.streak")} />
+              </StatRow>
+            </View>
+          )}
+
+          {homeData?.userStats?.lastDonationDate && (
+            <View style={styles.section}>
+              <ComponentRow lastDonationDays={getLastDonationDays() || 0} />
+            </View>
+          )}
+
+          {/* 5. Distant appointment (4+ days) — informational, not urgent */}
+          {nextAppointmentIsUrgent ? null : appointmentCard}
+
+          {/* 6. Campaigns */}
+          {campaigns.length > 0 && (
+            <View style={styles.section}>
+              <CampaignsSection
+                campaigns={campaigns}
+                onViewAll={() => navigation?.navigate("AllCampaigns")}
+              />
+            </View>
+          )}
+
+          {/* 7. Thank you */}
+          <ThankYouCard
+            totalDonations={homeData?.userStats?.totalDonations ?? 0}
+            firstName={getFirstName() || "User"}
+          />
         </>
       )}
 
-      {/* QR Code Modal */}
-      <UserQRModal
-        visible={showQRModal}
-        onClose={() => setShowQRModal(false)}
+      <EmergencyDetailsModal
+        visible={selectedEmergency !== null}
+        emergency={selectedEmergency}
+        onClose={() => setSelectedEmergency(null)}
+        onDonate={() => {
+          setSelectedEmergency(null);
+          handleDonatePress();
+        }}
       />
-    </SafeAreaView>
+
+      <DonorIdCard visible={showIdCard} onClose={() => setShowIdCard(false)} />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fef6f6", // Very subtle red tint background
-  },
-  themeAccentBar: {
-    height: 3,
-    backgroundColor: COLORS.PRIMARY, // Red accent bar at the very top
-    shadowColor: COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  headerContainer: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  bottomPadding: {
-    height: 100, // Space for bottom tab bar
-  },
+  section: { marginBottom: 24 },
 });
