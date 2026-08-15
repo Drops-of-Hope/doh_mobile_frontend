@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
+import { Text, useTheme } from "../../../design";
 
 interface LanguageTabsProps {
   currentLanguage: "en" | "si" | "ta";
@@ -12,61 +13,34 @@ const languages = [
   { code: "ta", label: "தமிழ்", short: "TA" },
 ] as const;
 
-const LanguageTabs: React.FC<LanguageTabsProps> = ({
-  currentLanguage,
-  onLanguageChange,
-}) => {
+const LanguageTabs: React.FC<LanguageTabsProps> = ({ currentLanguage, onLanguageChange }) => {
+  const theme = useTheme();
   return (
-    <View style={styles.container}>
-      {languages.map((language) => (
-        <TouchableOpacity
-          key={language.code}
-          style={[
-            styles.tab,
-            currentLanguage === language.code && styles.activeTab,
-          ]}
-          onPress={() => onLanguageChange(language.code)}
-        >
-          <Text
+    <View style={[styles.container, { backgroundColor: theme.color.surfaceSunken, borderRadius: theme.radius.md }]}>
+      {languages.map((language) => {
+        const active = currentLanguage === language.code;
+        return (
+          <Pressable
+            key={language.code}
             style={[
-              styles.tabText,
-              currentLanguage === language.code && styles.activeTabText,
+              styles.tab,
+              { backgroundColor: active ? theme.color.crimson : "transparent", borderRadius: theme.radius.sm },
             ]}
+            onPress={() => onLanguageChange(language.code)}
           >
-            {language.short}
-          </Text>
-        </TouchableOpacity>
-      ))}
+            <Text variant="label" tone={active ? "inverse" : "inkMuted"}>
+              {language.short}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    backgroundColor: "#F3F4F6",
-    borderRadius: 8,
-    padding: 4,
-    marginBottom: 16,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: "center",
-  },
-  activeTab: {
-    backgroundColor: "#EF4444",
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#6B7280",
-  },
-  activeTabText: {
-    color: "white",
-  },
+  container: { flexDirection: "row", padding: 4, marginBottom: 16 },
+  tab: { flex: 1, paddingVertical: 8, paddingHorizontal: 12, alignItems: "center" },
 });
 
 export default LanguageTabs;

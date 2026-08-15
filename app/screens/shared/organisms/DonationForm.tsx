@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { View, ScrollView, Alert, Text } from "react-native";
-import { styled } from "nativewind";
+import { View, ScrollView, Alert, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import LanguageTabs from "../molecules/LanguageTabs";
-import Button from "../atoms/Button";
 import {
   DonationFormData,
   donationService,
 } from "../../../services/donationService";
 import { useLanguage } from "../../../context/LanguageContext";
+import { Text, Button, ProgressTrack, AppBar, useTheme } from "../../../design";
 
 // Import step components
 import Step1 from "../molecules/Donation/Steps/Step1";
@@ -18,8 +18,6 @@ import Step5 from "../molecules/Donation/Steps/Step5";
 import Step6 from "../molecules/Donation/Steps/Step6";
 
 import { logger } from "../../../utils/logger";
-const StyledView = styled(View);
-const StyledScrollView = styled(ScrollView);
 
 interface DonationFormProps {
   onSubmitSuccess?: () => void;
@@ -32,6 +30,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
   onCancel,
   appointmentId,
 }) => {
+  const theme = useTheme();
   const { t, currentLanguage, setLanguage } = useLanguage();
   const [formLanguage, setFormLanguage] = useState<"en" | "si" | "ta">(
     currentLanguage
@@ -214,7 +213,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
     } catch (error) {
       logger.error("Donation form submission error:", error);
       Alert.alert(
-        t("common.error"), 
+        t("common.error"),
         "Failed to submit donation form. Please try again.",
         [{ text: t("common.ok") }]
       );
@@ -248,92 +247,71 @@ const DonationForm: React.FC<DonationFormProps> = ({
   };
 
   return (
-    <StyledView className="flex-1 bg-white">
-      <StyledScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <StyledView className="p-4">
-          <Text className="text-2xl font-bold text-gray-900 mb-2">
-            {t("donation.form_title")}
-          </Text>
-          <Text className="text-gray-600 mb-4">
-            {t("donation.form_subtitle")}
-          </Text>
+    <SafeAreaView style={[styles.flex, { backgroundColor: theme.color.paper }]} edges={["top", "bottom"]}>
+      <AppBar title={t("donation.form_title")} onBack={onCancel} />
 
-          {/* Language Tabs */}
-          <LanguageTabs
-            currentLanguage={formLanguage}
-            onLanguageChange={handleLanguageChange}
-          />
+      <View style={styles.progressWrap}>
+        <View style={styles.progressHeader}>
+          <Text variant="label" tone="inkMuted">
+            Step {currentStep} of {totalSteps}
+          </Text>
+          <LanguageTabs currentLanguage={formLanguage} onLanguageChange={handleLanguageChange} />
+        </View>
+        <ProgressTrack progress={currentStep / totalSteps} />
+      </View>
 
-          {/* Progress Indicator */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginVertical: 16,
-            }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: "600", color: "#1F2937" }}>
-              Step {currentStep} of {totalSteps}
-            </Text>
-            <View
-              style={{
-                flex: 1,
-                height: 4,
-                backgroundColor: "#E5E7EB",
-                borderRadius: 2,
-                marginLeft: 16,
-              }}
-            >
-              <View
-                style={{
-                  width: `${(currentStep / totalSteps) * 100}%`,
-                  height: "100%",
-                  backgroundColor: "#DC2626",
-                  borderRadius: 2,
-                }}
+      <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {renderCurrentStep()}
+      </ScrollView>
+
+      <View style={[styles.footer, { borderTopColor: theme.color.hairline, backgroundColor: theme.color.paper }]}>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          {currentStep > 1 && (
+            <View style={{ flex: 1 }}>
+              <Button
+                title={t("donation.buttons.previous")}
+                onPress={handlePrevious}
+                variant="outline"
               />
             </View>
-          </View>
-        </StyledView>
+          )}
 
-        {renderCurrentStep()}
-
-        <StyledView className="p-4 pb-8">
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            {currentStep > 1 && (
-              <View style={{ flex: 1 }}>
-                <Button
-                  title={t("donation.buttons.previous")}
-                  onPress={handlePrevious}
-                  variant="outline"
-                />
-              </View>
-            )}
-
-            {currentStep < totalSteps ? (
-              <View style={{ flex: 1 }}>
-                <Button
-                  title={t("donation.buttons.next")}
-                  onPress={handleNext}
-                />
-              </View>
-            ) : (
-              <View style={{ flex: 1 }}>
-                <Button
-                  title={
-                    isSubmitting ? t("campaign.submitting") : t("common.submit")
-                  }
-                  onPress={handleSubmit}
-                  disabled={isSubmitting || !formData.Acknowledgement}
-                />
-              </View>
-            )}
-          </View>
-        </StyledView>
-      </StyledScrollView>
-    </StyledView>
+          {currentStep < totalSteps ? (
+            <View style={{ flex: 1 }}>
+              <Button title={t("donation.buttons.next")} onPress={handleNext} />
+            </View>
+          ) : (
+            <View style={{ flex: 1 }}>
+              <Button
+                title={isSubmitting ? t("campaign.submitting") : t("common.submit")}
+                onPress={handleSubmit}
+                loading={isSubmitting}
+                disabled={isSubmitting || !formData.Acknowledgement}
+              />
+            </View>
+          )}
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  progressWrap: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 },
+  progressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  content: { padding: 20, paddingBottom: 32 },
+  footer: {
+    borderTopWidth: 1.5,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+});
 
 export default DonationForm;
