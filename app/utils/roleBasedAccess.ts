@@ -145,57 +145,15 @@ export const RoleBasedAccess = {
   },
 
   // Get role-specific colors
-  getRoleColors: (userRole: string | null) => {
-    const colorMap = {
-      [USER_ROLES.ADMIN]: {
-        primary: "#DC2626", // Red
-        secondary: "#FEE2E2",
-        accent: "#B91C1C",
-      },
-      [USER_ROLES.DONOR]: {
-        primary: "#059669", // Green
-        secondary: "#D1FAE5",
-        accent: "#047857",
-      },
-      [USER_ROLES.SELFSIGNUP]: {
-        primary: "#059669", // Green (same as donor)
-        secondary: "#D1FAE5",
-        accent: "#047857",
-      },
-      [USER_ROLES.CAMP_ORGANIZER]: {
-        primary: "#0891B2", // Cyan
-        secondary: "#CFFAFE",
-        accent: "#0E7490",
-      },
-      [USER_ROLES.VOLUNTEER]: {
-        primary: "#7C3AED", // Purple
-        secondary: "#EDE9FE",
-        accent: "#6D28D9",
-      },
-      [USER_ROLES.BENEFICIARY]: {
-        primary: "#0EA5E9", // Blue
-        secondary: "#E0F2FE",
-        accent: "#0284C7",
-      },
-      [USER_ROLES.ORGANIZATION]: {
-        primary: "#EA580C", // Orange
-        secondary: "#FED7AA",
-        accent: "#C2410C",
-      },
+  // Role is communicated by labels and badges, not hue — every role shares the
+  // single "Ink & Paper" brand palette. (Previously each role had its own color,
+  // which made a donor's tab bar green in an otherwise-red app.)
+  getRoleColors: (_userRole: string | null) => {
+    return {
+      primary: "#C0362C", // crimson
+      secondary: "#F5E4E1", // crimsonSoft
+      accent: "#1A1917", // ink
     };
-
-    return (
-      colorMap[userRole as UserRole] || {
-        primary: "#6B7280", // Gray
-        secondary: "#F3F4F6",
-        accent: "#4B5563",
-      }
-    );
-  },
-
-  // Check if user should see donor-related screens
-  shouldShowDonorScreens: (userRole: string | null): boolean => {
-    return isDonorType(userRole) || userRole === USER_ROLES.CAMP_ORGANIZER;
   },
 
   // Check if user has camp organizer privileges
