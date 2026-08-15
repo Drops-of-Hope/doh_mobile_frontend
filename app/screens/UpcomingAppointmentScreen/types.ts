@@ -1,3 +1,5 @@
+import { LucideIcon } from "lucide-react-native";
+
 export interface Appointment {
   id: string;
   hospital: string;
@@ -26,20 +28,18 @@ export interface StatusBadgeProps {
 }
 
 export interface DetailRowProps {
-  icon: string;
+  icon: LucideIcon;
   text: string;
-  color?: string;
+  tone?: "ink" | "crimson" | "warning" | "danger" | "success";
   isPast?: boolean;
   onCopy?: (message: string) => void;
   copyValue?: string;
 }
 
 export interface ActionButtonProps {
-  icon: string;
+  icon: LucideIcon;
   text: string;
-  color: string;
-  backgroundColor: string;
-  borderColor: string;
+  tone: "crimson" | "danger";
   onPress: () => void;
 }
 
@@ -48,7 +48,7 @@ export interface EmptyStateProps {
 }
 
 export interface SectionHeaderProps {
-  icon: string;
-  iconColor: string;
+  icon: LucideIcon;
+  tone: "crimson" | "success";
   title: string;
 }

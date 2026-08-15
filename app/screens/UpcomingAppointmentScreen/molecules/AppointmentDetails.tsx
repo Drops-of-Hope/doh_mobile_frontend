@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
+import { Calendar, Clock, MapPin, FileText } from "lucide-react-native";
 import DetailRow from "../atoms/DetailRow";
 import { Appointment } from "../types";
 import { formatAppointmentDate } from "../utils";
@@ -10,36 +11,24 @@ interface AppointmentDetailsProps {
   onCopy?: (message: string) => void;
 }
 
-export default function AppointmentDetails({
-  appointment,
-  isPast = false,
-  onCopy,
-}: AppointmentDetailsProps) {
+export default function AppointmentDetails({ appointment, isPast = false, onCopy }: AppointmentDetailsProps) {
   return (
     <View style={styles.appointmentDetails}>
       <DetailRow
-        icon="calendar"
+        icon={Calendar}
         text={formatAppointmentDate(appointment.date, isPast)}
-        color={isPast ? "#6B7280" : "#DC2626"}
+        tone={isPast ? "ink" : "crimson"}
         isPast={isPast}
       />
 
-      {!isPast && (
-        <DetailRow icon="time" text={appointment.time} color="#F59E0B" />
-      )}
+      {!isPast && <DetailRow icon={Clock} text={appointment.time} tone="warning" />}
 
-      {!isPast && (
-        <DetailRow
-          icon="location"
-          text={appointment.location}
-          color="#EF4444"
-        />
-      )}
+      {!isPast && <DetailRow icon={MapPin} text={appointment.location} tone="danger" />}
 
       <DetailRow
-        icon="document-text"
+        icon={FileText}
         text={`ID: ${appointment.confirmationId}`}
-        color={isPast ? "#6B7280" : "#10B981"}
+        tone={isPast ? "ink" : "success"}
         isPast={isPast}
         onCopy={onCopy}
         copyValue={appointment.confirmationId}
@@ -49,8 +38,5 @@ export default function AppointmentDetails({
 }
 
 const styles = StyleSheet.create({
-  appointmentDetails: {
-    gap: 8,
-    marginBottom: 16,
-  },
+  appointmentDetails: { gap: 8, marginBottom: 16 },
 });
