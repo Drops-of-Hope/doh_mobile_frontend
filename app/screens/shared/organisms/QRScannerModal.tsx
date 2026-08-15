@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
+  Pressable,
   Alert,
-  Dimensions,
   ActivityIndicator,
   Vibration,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { LinearGradient } from "expo-linear-gradient";
+import { X, Zap, ZapOff, Camera } from "lucide-react-native";
 
 import { qrService, QRScanResult, AttendanceMarkResult } from "../../../services/qrService";
 import { useAuth } from "../../../context/AuthContext";
 import { useLanguage } from "../../../context/LanguageContext";
+import { Text, Button, Icon, useTheme } from "../../../design";
 
 import { logger } from "../../../utils/logger";
+
 interface QRScannerModalProps {
   visible: boolean;
   onClose: () => void;
@@ -27,8 +26,6 @@ interface QRScannerModalProps {
   onScanSuccess?: (result: QRScanResult) => void;
 }
 
-const { width, height } = Dimensions.get("window");
-
 export default function QRScannerModal({
   visible,
   onClose,
@@ -36,13 +33,14 @@ export default function QRScannerModal({
   scanType = "CAMPAIGN_ATTENDANCE",
   onScanSuccess,
 }: QRScannerModalProps) {
+  const theme = useTheme();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [scannerEnabled, setScannerEnabled] = useState(true);
 
-  const { user, hasRole } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -55,7 +53,7 @@ export default function QRScannerModal({
     }
   }, [visible, permission]);
 
-  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
+  const handleBarCodeScanned = async ({ data }: { type: string; data: string }) => {
     if (scanned || processing) return;
 
     setScanned(true);
@@ -78,7 +76,7 @@ export default function QRScannerModal({
             name: parsedData.name,
             email: parsedData.email,
             uid: parsedData.uid,
-            timestamp: parsedData.timestamp
+            timestamp: parsedData.timestamp,
           };
         } else {
           throw new Error("Invalid QR format");
@@ -164,7 +162,7 @@ export default function QRScannerModal({
 
     try {
       setProcessing(true);
-      
+
       const result = await qrService.markAttendance({
         userId,
         campaignId,
@@ -192,7 +190,7 @@ export default function QRScannerModal({
       }
     } catch (error: any) {
       logger.error("Mark attendance error:", error);
-      
+
       // Handle the case where participation doesn't exist - offer to auto-register
       if (error.message?.includes("Participation not found") || error.message?.includes("not registered")) {
         const userName = donorData?.name || "This user";
@@ -216,7 +214,7 @@ export default function QRScannerModal({
                     scanType: "CHECK_IN",
                     notes: donorData ? `Auto-registered: ${donorData.name} (${donorData.email})` : "Auto-registered participant",
                   });
-                  
+
                   if (autoRegisterResult.success) {
                     Alert.alert(
                       "Success",
@@ -248,21 +246,17 @@ export default function QRScannerModal({
         );
         return;
       }
-      
+
       // Handle other errors
       let errorMessage = error.message || t("qr_scanner.attendance_failed");
       let errorTitle = t("qr_scanner.error");
-      
+
       if (error.message?.includes("404")) {
         errorTitle = "User Not Found";
         errorMessage = "This user could not be found in the system. Please verify the QR code.";
       }
-      
-      Alert.alert(
-        errorTitle,
-        errorMessage,
-        [{ text: t("common.ok"), onPress: resetScanner }]
-      );
+
+      Alert.alert(errorTitle, errorMessage, [{ text: t("common.ok"), onPress: resetScanner }]);
     } finally {
       setProcessing(false);
     }
@@ -270,22 +264,24 @@ export default function QRScannerModal({
 
   const getScanSuccessMessage = (result: QRScanResult, donorData?: any): string => {
     const { scannedUser } = result;
-    
+
     // Format the basic user information
     let message = `User Identified:\nName: ${scannedUser.name}\nBlood Group: ${formatBloodGroup(scannedUser.bloodGroup)}`;
-    
+
     // Add additional user info if available
     if (scannedUser.totalDonations !== undefined) {
       message += `\nTotal Donations: ${scannedUser.totalDonations}`;
     }
-    
+
     if (scannedUser.donationBadge) {
       message += `\nBadge: ${scannedUser.donationBadge}`;
     }
 
     // Add donor-specific information if available from QR code
     if (donorData) {
-      message += `\n\nQR Code Details:\nEmail: ${donorData.email}\nScanned at: ${donorData.timestamp ? new Date(donorData.timestamp).toLocaleString() : 'Unknown'}`;
+      message += `\n\nQR Code Details:\nEmail: ${donorData.email}\nScanned at: ${
+        donorData.timestamp ? new Date(donorData.timestamp).toLocaleString() : "Unknown"
+      }`;
     }
 
     return message;
@@ -331,9 +327,11 @@ export default function QRScannerModal({
   if (!permission) {
     return (
       <Modal visible={visible} animationType="slide">
-        <View style={styles.permissionContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
-          <Text style={styles.permissionText}>{t("qr_scanner.requesting_permission")}</Text>
+        <View style={[styles.permissionContainer, { backgroundColor: theme.color.paper }]}>
+          <ActivityIndicator size="large" color={theme.color.crimson} />
+          <Text variant="body" tone="inkMuted" style={{ marginTop: 16 }}>
+            {t("qr_scanner.requesting_permission")}
+          </Text>
         </View>
       </Modal>
     );
@@ -342,16 +340,18 @@ export default function QRScannerModal({
   if (!permission.granted) {
     return (
       <Modal visible={visible} animationType="slide">
-        <View style={styles.permissionContainer}>
-          <Ionicons name="camera-outline" size={64} color="#999" />
-          <Text style={styles.permissionTitle}>{t("qr_scanner.camera_permission_required")}</Text>
-          <Text style={styles.permissionText}>{t("qr_scanner.camera_permission_message")}</Text>
-          <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-            <Text style={styles.permissionButtonText}>{t("qr_scanner.grant_permission")}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-            <Text style={styles.closeButtonText}>{t("common.close")}</Text>
-          </TouchableOpacity>
+        <View style={[styles.permissionContainer, { backgroundColor: theme.color.paper }]}>
+          <Icon icon={Camera} size={64} color={theme.color.inkFaint} />
+          <Text variant="h2" align="center" style={{ marginTop: 20, marginBottom: 8 }}>
+            {t("qr_scanner.camera_permission_required")}
+          </Text>
+          <Text variant="body" tone="inkMuted" align="center" style={{ marginBottom: 24 }}>
+            {t("qr_scanner.camera_permission_message")}
+          </Text>
+          <Button title={t("qr_scanner.grant_permission")} onPress={requestPermission} />
+          <View style={{ marginTop: 12 }}>
+            <Button title={t("common.close")} onPress={handleClose} variant="ghost" />
+          </View>
         </View>
       </Modal>
     );
@@ -374,39 +374,34 @@ export default function QRScannerModal({
         {/* Overlay */}
         <View style={styles.overlay}>
           {/* Header */}
-          <LinearGradient
-            colors={["rgba(0,0,0,0.8)", "transparent"]}
-            style={styles.header}
-          >
-            <TouchableOpacity style={styles.headerButton} onPress={handleClose}>
-              <Ionicons name="close" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t("qr_scanner.scan_qr_code")}</Text>
-            <TouchableOpacity style={styles.headerButton} onPress={toggleFlash}>
-              <Ionicons 
-                name={flashEnabled ? "flash" : "flash-off"} 
-                size={24} 
-                color="#FFFFFF" 
-              />
-            </TouchableOpacity>
-          </LinearGradient>
+          <View style={styles.header}>
+            <Pressable style={styles.headerButton} onPress={handleClose} hitSlop={12}>
+              <Icon icon={X} size={24} color="#FFFFFF" />
+            </Pressable>
+            <Text variant="h3" tone="inverse">
+              {t("qr_scanner.scan_qr_code")}
+            </Text>
+            <Pressable style={styles.headerButton} onPress={toggleFlash} hitSlop={12}>
+              <Icon icon={flashEnabled ? Zap : ZapOff} size={24} color="#FFFFFF" />
+            </Pressable>
+          </View>
 
           {/* Scanning Frame */}
           <View style={styles.scanningContainer}>
             <View style={styles.scanningFrame}>
-              <View style={[styles.corner, styles.topLeft]} />
-              <View style={[styles.corner, styles.topRight]} />
-              <View style={[styles.corner, styles.bottomLeft]} />
-              <View style={[styles.corner, styles.bottomRight]} />
+              <View style={[styles.corner, styles.topLeft, { borderColor: theme.color.crimson }]} />
+              <View style={[styles.corner, styles.topRight, { borderColor: theme.color.crimson }]} />
+              <View style={[styles.corner, styles.bottomLeft, { borderColor: theme.color.crimson }]} />
+              <View style={[styles.corner, styles.bottomRight, { borderColor: theme.color.crimson }]} />
             </View>
-            
-            <Text style={styles.scanInstruction}>
+
+            <Text variant="body" tone="inverse" align="center" style={styles.scanInstruction}>
               {processing ? t("qr_scanner.processing") : t("qr_scanner.align_qr_code")}
             </Text>
 
             {campaignId && (
-              <View style={styles.campaignInfo}>
-                <Text style={styles.campaignInfoText}>
+              <View style={[styles.campaignInfo, { backgroundColor: theme.color.crimson }]}>
+                <Text variant="label" tone="inverse">
                   {t("qr_scanner.campaign_mode")}
                 </Text>
               </View>
@@ -417,27 +412,31 @@ export default function QRScannerModal({
           {processing && (
             <View style={styles.processingOverlay}>
               <ActivityIndicator size="large" color="#FFFFFF" />
-              <Text style={styles.processingText}>{t("qr_scanner.processing")}</Text>
+              <Text variant="body" tone="inverse" style={{ marginTop: 16 }}>
+                {t("qr_scanner.processing")}
+              </Text>
             </View>
           )}
 
           {/* Footer */}
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.8)"]}
-            style={styles.footer}
-          >
+          <View style={styles.footer}>
             <View style={styles.footerContent}>
-              <Text style={styles.footerText}>
+              <Text variant="caption" tone="inverse" align="center" style={styles.footerText}>
                 {t("qr_scanner.scan_instruction")}
               </Text>
-              
+
               {scanned && !processing && (
-                <TouchableOpacity style={styles.retryButton} onPress={resetScanner}>
-                  <Text style={styles.retryButtonText}>{t("qr_scanner.scan_again")}</Text>
-                </TouchableOpacity>
+                <Pressable
+                  style={[styles.retryButton, { backgroundColor: theme.color.crimson }]}
+                  onPress={resetScanner}
+                >
+                  <Text variant="label" tone="inverse">
+                    {t("qr_scanner.scan_again")}
+                  </Text>
+                </Pressable>
               )}
             </View>
-          </LinearGradient>
+          </View>
         </View>
       </View>
     </Modal>
@@ -463,14 +462,10 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   headerButton: {
     padding: 8,
-  },
-  headerTitle: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
   },
   scanningContainer: {
     flex: 1,
@@ -486,7 +481,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 30,
     height: 30,
-    borderColor: "#667eea",
     borderWidth: 4,
   },
   topLeft: {
@@ -514,23 +508,14 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
   },
   scanInstruction: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    textAlign: "center",
     marginTop: 30,
     marginHorizontal: 40,
   },
   campaignInfo: {
-    backgroundColor: "rgba(102, 126, 234, 0.8)",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     marginTop: 20,
-  },
-  campaignInfoText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
   },
   processingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -538,79 +523,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  processingText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    marginTop: 16,
-  },
   footer: {
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 40,
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   footerContent: {
     alignItems: "center",
   },
   footerText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-    opacity: 0.8,
+    opacity: 0.9,
   },
   retryButton: {
-    backgroundColor: "#667eea",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 25,
     marginTop: 20,
   },
-  retryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
   permissionContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
     paddingHorizontal: 40,
-  },
-  permissionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  permissionText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 30,
-  },
-  permissionButton: {
-    backgroundColor: "#667eea",
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 25,
-    marginBottom: 16,
-  },
-  permissionButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  closeButton: {
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-  },
-  closeButtonText: {
-    color: "#667eea",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
