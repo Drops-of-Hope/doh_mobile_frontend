@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import * as Sentry from "@sentry/react-native";
 import AppNavigator from "./app/navigation/AppNavigator";
 import { AuthProvider, useAuth } from "./app/context/AuthContext";
 import { LanguageProvider } from "./app/context/LanguageContext";
+import { ThemeProvider } from "./app/design";
 import ErrorBoundary from "./app/screens/shared/organisms/ErrorBoundary";
 import {
   registerForPushNotifications,
@@ -80,13 +82,17 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <LanguageProvider>
-        <AuthProvider>
-          <StatusBar style="dark" />
-          <PushNotifications />
-          <AppNavigator />
-        </AuthProvider>
-      </LanguageProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <StatusBar style="dark" />
+              <PushNotifications />
+              <AppNavigator />
+            </AuthProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
 }
