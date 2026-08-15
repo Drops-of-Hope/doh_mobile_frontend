@@ -3,6 +3,7 @@ export interface Campaign {
   title: string;
   description: string;
   participants: number;
+  expectedDonors?: number;
   location?: string;
   date?: string;
   time?: string;

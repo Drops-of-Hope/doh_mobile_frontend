@@ -1,14 +1,17 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, View, Image } from "react-native";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
+import { Pressable, View, StyleSheet } from "react-native";
+import { Calendar, MapPin, Users } from "lucide-react-native";
+import { Surface, Text, Icon, ProgressTrack, useTheme } from "../../../design";
 
 interface CampaignCardProps {
   title: string;
   description: string;
   participants: number;
+  expectedDonors?: number;
   location?: string;
   date?: string;
   time?: string;
+  isRegistered?: boolean;
   onPress: () => void;
 }
 
@@ -16,95 +19,112 @@ export default function CampaignCard({
   title,
   description,
   participants,
+  expectedDonors,
   location,
   date,
   time,
+  isRegistered,
   onPress,
 }: CampaignCardProps) {
+  const theme = useTheme();
+  const hasGoal = typeof expectedDonors === "number" && expectedDonors > 0;
+  const progress = hasGoal ? participants / (expectedDonors as number) : undefined;
+  const spotsRemaining = hasGoal ? Math.max((expectedDonors as number) - participants, 0) : undefined;
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      <View style={styles.imageContainer}>
-        <Image 
-          source={require("../../../../assets/logo.png")} 
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
-      
-      <View style={styles.contentContainer}>
-        <Text style={styles.title} numberOfLines={1}>{title}</Text>
-        {/* <Text style={styles.description} numberOfLines={3}>
-          {description}
-        </Text> */}
+    <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}>
+      <Surface style={styles.card}>
+        <View style={styles.headerRow}>
+          <Text variant="h3" style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+          {isRegistered ? (
+            <View style={[styles.badge, { backgroundColor: theme.color.successSoft }]}>
+              <Text variant="caption" tone="success">
+                Joined
+              </Text>
+            </View>
+          ) : null}
+        </View>
 
-        {location && <Text style={styles.detail}>{location}</Text>}
+        {description ? (
+          <Text variant="body" tone="inkMuted" numberOfLines={2} style={styles.description}>
+            {description}
+          </Text>
+        ) : null}
 
-        {date && <Text style={styles.detail}>{date}</Text>}
+        <View style={styles.detailRows}>
+          {date ? (
+            <View style={styles.detailRow}>
+              <Icon icon={Calendar} size={16} color={theme.color.inkMuted} />
+              <Text variant="label" tone="inkMuted">
+                {date}
+                {time ? ` · ${time}` : ""}
+              </Text>
+            </View>
+          ) : null}
+          {location ? (
+            <View style={styles.detailRow}>
+              <Icon icon={MapPin} size={16} color={theme.color.inkMuted} />
+              <Text variant="label" tone="inkMuted" numberOfLines={1} style={styles.flexText}>
+                {location}
+              </Text>
+            </View>
+          ) : null}
+          <View style={styles.detailRow}>
+            <Icon icon={Users} size={16} color={theme.color.inkMuted} />
+            <Text variant="label" tone="inkMuted">
+              {spotsRemaining !== undefined
+                ? `${spotsRemaining} spot${spotsRemaining === 1 ? "" : "s"} remaining`
+                : `${participants} joined`}
+            </Text>
+          </View>
+        </View>
 
-        {time && <Text style={styles.detail}>{time}</Text>}
-
-        <Text style={styles.participants}>{participants} participants</Text>
-      </View>
-    </TouchableOpacity>
+        {progress !== undefined ? (
+          <View style={styles.progressWrap}>
+            <ProgressTrack progress={progress} />
+          </View>
+        ) : null}
+      </Surface>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.BACKGROUND,
-    borderRadius: BORDER_RADIUS.LG,
-    borderWidth: 2,
-    borderColor: COLORS.PRIMARY,
-    padding: SPACING.SM,
-    margin: SPACING.XS,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    aspectRatio: 1, // Makes it square
-    flex: 1,
-    maxWidth: '48%', // For 2-column layout with some margin
+    marginBottom: 12,
   },
-  imageContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 60,
-    marginBottom: SPACING.SM,
-  },
-  logo: {
-    width: 50,
-    height: 50,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 8,
   },
   title: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.XS,
-    textAlign: 'center',
+    flex: 1,
+  },
+  badge: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   description: {
-    fontSize: 12,
-    color: COLORS.TEXT_SECONDARY,
-    lineHeight: 16,
-    marginBottom: SPACING.XS,
-    textAlign: 'center',
+    marginTop: 4,
   },
-  detail: {
-    fontSize: 11,
-    color: COLORS.TEXT_SECONDARY,
-    marginBottom: 2,
-    textAlign: 'center',
+  detailRows: {
+    marginTop: 12,
+    gap: 8,
   },
-  participants: {
-    fontSize: 10,
-    color: COLORS.TEXT_MUTED,
-    fontWeight: "500",
-    textAlign: 'center',
-    marginTop: SPACING.XS,
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  flexText: {
+    flex: 1,
+  },
+  progressWrap: {
+    marginTop: 12,
   },
 });
