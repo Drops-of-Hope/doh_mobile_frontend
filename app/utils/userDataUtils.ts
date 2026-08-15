@@ -1,5 +1,5 @@
 // Utility functions for user data management
-import * as SecureStore from 'expo-secure-store';
+import secureStorage from './secureStorage';
 
 import { logger } from "./logger";
 /**
@@ -19,7 +19,7 @@ export const clearAllUserData = async (): Promise<void> => {
     ];
 
     const deletePromises = keysToDelete.map(key => 
-      SecureStore.deleteItemAsync(key).catch(error => {
+      secureStorage.deleteItemAsync(key).catch(error => {
         // Don't throw if key doesn't exist
         if (!error.message?.includes('not found') && !error.message?.includes('does not exist')) {
           logger.warn(`Failed to delete ${key}:`, error);
@@ -40,9 +40,9 @@ export const clearAllUserData = async (): Promise<void> => {
  */
 export const debugUserIds = async (): Promise<void> => {
   try {
-    await SecureStore.getItemAsync('authState');
-    await SecureStore.getItemAsync('userData');
-    await SecureStore.getItemAsync('userAuthData');
+    await secureStorage.getItemAsync('authState');
+    await secureStorage.getItemAsync('userData');
+    await secureStorage.getItemAsync('userAuthData');
   } catch (error) {
     logger.error('Error debugging user IDs:', error);
   }
@@ -57,7 +57,7 @@ export const validateUserDataConsistency = async (): Promise<boolean> => {
     const userIds = [];
 
     // Get user ID from authState
-    const authState = await SecureStore.getItemAsync('authState');
+    const authState = await secureStorage.getItemAsync('authState');
     if (authState) {
       const parsed = JSON.parse(authState);
       if (parsed.userInfo?.sub) {
@@ -66,7 +66,7 @@ export const validateUserDataConsistency = async (): Promise<boolean> => {
     }
 
     // Get user ID from userData
-    const userData = await SecureStore.getItemAsync('userData');
+    const userData = await secureStorage.getItemAsync('userData');
     if (userData) {
       const parsed = JSON.parse(userData);
       if (parsed.id) {
@@ -75,7 +75,7 @@ export const validateUserDataConsistency = async (): Promise<boolean> => {
     }
 
     // Get user ID from userAuthData
-    const userAuthData = await SecureStore.getItemAsync('userAuthData');
+    const userAuthData = await secureStorage.getItemAsync('userAuthData');
     if (userAuthData) {
       const parsed = JSON.parse(userAuthData);
       if (parsed.sub) {
