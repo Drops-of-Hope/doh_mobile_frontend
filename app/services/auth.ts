@@ -1,4 +1,4 @@
-import * as SecureStore from "expo-secure-store";
+import secureStorage from "../utils/secureStorage";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
@@ -59,7 +59,7 @@ export interface AuthState {
 // Helper functions for SecureStore
 const saveAuthState = async (authState: AuthState) => {
   try {
-    await SecureStore.setItemAsync("authState", JSON.stringify(authState));
+    await secureStorage.setItemAsync("authState", JSON.stringify(authState));
   } catch (error) {
     logger.error("Failed to save auth state:", error);
   }
@@ -67,7 +67,7 @@ const saveAuthState = async (authState: AuthState) => {
 
 const getAuthState = async (): Promise<AuthState | null> => {
   try {
-    const authState = await SecureStore.getItemAsync("authState");
+    const authState = await secureStorage.getItemAsync("authState");
     return authState ? JSON.parse(authState) : null;
   } catch (error) {
     logger.error("Failed to retrieve auth state:", error);
@@ -99,7 +99,7 @@ const getUserInfo = async (accessToken: string): Promise<UserInfo | null> => {
 
 const clearAuthState = async () => {
   try {
-    await SecureStore.deleteItemAsync("authState");
+    await secureStorage.deleteItemAsync("authState");
   } catch (error) {
     logger.error("Failed to clear auth state:", error);
   }

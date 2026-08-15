@@ -1,5 +1,5 @@
 // Utility to get the actual database user ID
-import * as SecureStore from "expo-secure-store";
+import secureStorage from "./secureStorage";
 import { apiRequestWithAuth, API_ENDPOINTS } from "../services/api";
 
 import { logger } from "./logger";
@@ -25,9 +25,9 @@ export const testBackendEndpoints = async (): Promise<void> => {
 
 export const debugAllUserIds = async (): Promise<void> => {
   try {
-    await SecureStore.getItemAsync('userData');
-    await SecureStore.getItemAsync('authState');
-    await SecureStore.getItemAsync('userAuthData');
+    await secureStorage.getItemAsync('userData');
+    await secureStorage.getItemAsync('authState');
+    await secureStorage.getItemAsync('userAuthData');
   } catch (error) {
     logger.error('Error debugging user IDs:', error);
   }
@@ -39,7 +39,7 @@ export const getDatabaseUserId = async (): Promise<string | null> => {
     await debugAllUserIds();
 
     // First try to get from userData (which contains the database user ID)
-    const userData = await SecureStore.getItemAsync('userData');
+    const userData = await secureStorage.getItemAsync('userData');
     if (userData) {
       const parsed = JSON.parse(userData);
       if (parsed.id) {
@@ -48,7 +48,7 @@ export const getDatabaseUserId = async (): Promise<string | null> => {
     }
 
     // Fallback to authState sub if userData is not available
-    const authState = await SecureStore.getItemAsync('authState');
+    const authState = await secureStorage.getItemAsync('authState');
     if (authState) {
       const parsed = JSON.parse(authState);
       if (parsed.userInfo?.sub) {

@@ -5,7 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import * as SecureStore from "expo-secure-store";
+import secureStorage from "../utils/secureStorage";
 
 import { logger } from "../utils/logger";
 type Language = "en" | "si" | "ta";
@@ -47,7 +47,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 
   const loadSavedLanguage = async () => {
     try {
-      const savedLanguage = await SecureStore.getItemAsync("user_language");
+      const savedLanguage = await secureStorage.getItemAsync("user_language");
       if (savedLanguage && ["en", "si", "ta"].includes(savedLanguage)) {
         setCurrentLanguage(savedLanguage as Language);
       }
@@ -71,7 +71,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 
   const setLanguage = async (language: Language) => {
     try {
-      await SecureStore.setItemAsync("user_language", language);
+      await secureStorage.setItemAsync("user_language", language);
       setCurrentLanguage(language);
     } catch (error) {
       logger.error("Failed to save language preference:", error);

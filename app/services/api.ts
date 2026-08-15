@@ -2,7 +2,7 @@
 // Choose the correct host depending on platform/emulator and allow override.
 import { Platform } from "react-native";
 import * as Sentry from "@sentry/react-native";
-import * as SecureStore from "expo-secure-store";
+import secureStorage from "../utils/secureStorage";
 import { logger } from "../utils/logger";
 
 // 10.0.2.2 is the Android emulator's loopback to the host machine. Physical
@@ -182,7 +182,7 @@ export const apiRequest = async (
 // Auth token management using SecureStore instead of memory
 export const setAuthToken = async (token: string) => {
   try {
-    await SecureStore.setItemAsync("accessToken", token);
+    await secureStorage.setItemAsync("accessToken", token);
   } catch (error) {
     logger.error("Failed to save auth token:", error);
   }
@@ -191,11 +191,11 @@ export const setAuthToken = async (token: string) => {
 export const getAuthToken = async (): Promise<string | null> => {
   try {
     // First try to get from accessToken (legacy)
-    let token = await SecureStore.getItemAsync("accessToken");
+    let token = await secureStorage.getItemAsync("accessToken");
 
     if (!token) {
       // If not found, get from authState (current auth system)
-      const authState = await SecureStore.getItemAsync("authState");
+      const authState = await secureStorage.getItemAsync("authState");
 
       if (authState) {
         const parsedAuthState = JSON.parse(authState);
@@ -216,7 +216,7 @@ export const getAuthToken = async (): Promise<string | null> => {
 
 export const clearAuthToken = async () => {
   try {
-    await SecureStore.deleteItemAsync("accessToken");
+    await secureStorage.deleteItemAsync("accessToken");
   } catch (error) {
     logger.error("Failed to clear auth token:", error);
   }

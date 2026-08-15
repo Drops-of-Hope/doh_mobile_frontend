@@ -7,7 +7,7 @@ import React, {
 } from "react";
 
 // Import auth functions individually to avoid circular dependencies
-import * as SecureStore from "expo-secure-store";
+import secureStorage from "../utils/secureStorage";
 import {
   clearAllUserData,
   debugUserIds,
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Helper function to get auth state from secure store
   const getAuthState = async () => {
     try {
-      const authState = await SecureStore.getItemAsync("authState");
+      const authState = await secureStorage.getItemAsync("authState");
       return authState ? JSON.parse(authState) : null;
     } catch (error) {
       logger.error("Failed to retrieve auth state:", error);
@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Helper function to clear auth state
   const clearAuthState = async () => {
     try {
-      await SecureStore.deleteItemAsync("authState");
+      await secureStorage.deleteItemAsync("authState");
     } catch (error) {
       logger.error("Failed to clear auth state:", error);
     }

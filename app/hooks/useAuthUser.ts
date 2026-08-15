@@ -1,7 +1,7 @@
 // Enhanced Auth Hook - Handles user creation/login from auth provider data
 import { useState, useCallback } from 'react';
 import { authUserService, AuthUserData, UserCreateResponse } from '../services/authUserService';
-import * as SecureStore from 'expo-secure-store';
+import secureStorage from '../utils/secureStorage';
 
 import { logger } from "../utils/logger";
 export interface EnhancedUserInfo {
@@ -42,8 +42,8 @@ export const useAuthUser = () => {
       const enhancedUserInfo = authUserService.transformAuthDataForContext(authData, userResponse);
 
       // Store user data in secure storage
-      await SecureStore.setItemAsync('userData', JSON.stringify(enhancedUserInfo));
-      await SecureStore.setItemAsync('userAuthData', JSON.stringify(authData));
+      await secureStorage.setItemAsync('userData', JSON.stringify(enhancedUserInfo));
+      await secureStorage.setItemAsync('userAuthData', JSON.stringify(authData));
 
       return enhancedUserInfo;
     } catch (error: any) {
@@ -77,7 +77,7 @@ export const useAuthUser = () => {
       const userResponse = await authUserService.completeProfile(userId, profileData);
       
       // Get the original auth data to transform the response
-      const storedAuthData = await SecureStore.getItemAsync('userAuthData');
+      const storedAuthData = await secureStorage.getItemAsync('userAuthData');
       if (!storedAuthData) {
         throw new Error('Original auth data not found');
       }
@@ -86,7 +86,7 @@ export const useAuthUser = () => {
       const enhancedUserInfo = authUserService.transformAuthDataForContext(authData, userResponse);
 
       // Update stored user data
-      await SecureStore.setItemAsync('userData', JSON.stringify(enhancedUserInfo));
+      await secureStorage.setItemAsync('userData', JSON.stringify(enhancedUserInfo));
 
       return enhancedUserInfo;
     } catch (error: any) {
@@ -103,7 +103,7 @@ export const useAuthUser = () => {
    */
   const getStoredUserData = useCallback(async (): Promise<EnhancedUserInfo | null> => {
     try {
-      const userData = await SecureStore.getItemAsync('userData');
+      const userData = await secureStorage.getItemAsync('userData');
       return userData ? JSON.parse(userData) : null;
     } catch (error) {
       logger.error('Error getting stored user data:', error);
@@ -116,8 +116,8 @@ export const useAuthUser = () => {
    */
   const clearStoredUserData = useCallback(async (): Promise<void> => {
     try {
-      await SecureStore.deleteItemAsync('userData');
-      await SecureStore.deleteItemAsync('userAuthData');
+      await secureStorage.deleteItemAsync('userData');
+      await secureStorage.deleteItemAsync('userAuthData');
     } catch (error) {
       logger.error('Error clearing stored user data:', error);
     }
