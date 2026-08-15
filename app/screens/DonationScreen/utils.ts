@@ -2,6 +2,7 @@ import { Appointment, UserProfile } from "./types";
 import { appointmentService } from "../../services/appointmentService";
 import type { Appointment as ServiceAppointment, MedicalEstablishment } from "../../services/appointmentService";
 
+import { daysUntil } from "../../utils/appointmentUrgency";
 import { logger } from "../../utils/logger";
 // Transform service appointment to screen appointment format
 const transformAppointmentForDisplay = (
@@ -17,18 +18,12 @@ const transformAppointmentForDisplay = (
                    establishmentData?.district ||
                    "Location TBD";
   
-  // Use slot times if available, fallback to appointment datetime
-  const hasSlot = !!serviceAppointment.slot;
+  // Only the slot carries a real time. appointmentDate is stored at UTC
+  // midnight, so formatting its clock component yields a bogus "05:30" in
+  // UTC+5:30 — leave it blank rather than show a time the donor might trust.
   const slotData = serviceAppointment.slot;
-  
-  let timeDisplay: string;
-  if (hasSlot && slotData?.startTime && slotData?.endTime) {
-    // Use slot times (already formatted as strings like "09:00" and "10:00")
-    timeDisplay = `${slotData.startTime} - ${slotData.endTime}`;
-  } else {
-    // Fallback to extracting time from appointmentDate
-    timeDisplay = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
+  const timeDisplay =
+    slotData?.startTime && slotData?.endTime ? `${slotData.startTime} - ${slotData.endTime}` : "";
 
   const transformed: Appointment = {
     id: serviceAppointment.id,
@@ -59,22 +54,19 @@ export const getUserAppointments = async (userId: string): Promise<{
       new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime()
     );
     
-    const now = new Date();
-    
-    // Separate upcoming and completed appointments
+    // Compare by calendar day, not by instant: appointmentDate is stored at UTC
+    // midnight, which is already "in the past" by mid-morning local time, so a
+    // raw `aptDate >= now` check filed today's appointment under history.
+    const isUpcoming = (apt: ServiceAppointment) =>
+      daysUntil(apt.appointmentDate) >= 0 && apt.scheduled === "PENDING";
+
     const upcomingAppointments = sortedAppointments
-      .filter(apt => {
-        const aptDate = new Date(apt.appointmentDate);
-        return aptDate >= now && apt.scheduled === "PENDING";
-      })
+      .filter(isUpcoming)
       .map(apt => transformAppointmentForDisplay(apt));
 
-    // Get last 5 completed appointments
+    // Get last 5 past/closed appointments
     const historyAppointments = sortedAppointments
-      .filter(apt => {
-        const aptDate = new Date(apt.appointmentDate);
-        return aptDate < now || apt.scheduled === "COMPLETED" || apt.scheduled === "CANCELLED";
-      })
+      .filter(apt => !isUpcoming(apt))
       .slice(0, 5) // Last 5 appointments
       .map(apt => transformAppointmentForDisplay(apt));
 
@@ -84,11 +76,9 @@ export const getUserAppointments = async (userId: string): Promise<{
     };
   } catch (error) {
     logger.error("❌ Error fetching user appointments:", error);
-    // Return empty arrays on error
-    return {
-      upcoming: [],
-      history: []
-    };
+    // Let the caller distinguish "no appointments yet" from a real failure
+    // (appointmentService already resolves 404/not-found to an empty list).
+    throw error;
   }
 };
 

@@ -9,7 +9,20 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import {
+  Check,
+  MapPin,
+  Stethoscope,
+  Users,
+  ChevronRight,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  X,
+  ArrowLeft,
+  Building2,
+} from "lucide-react-native";
+import { Icon, useTheme } from "../../../design";
 import NoticeCard from "../atoms/NoticeCard";
 import {
   MedicalEstablishment,
@@ -35,6 +48,7 @@ export default function AppointmentBookingForm({
   onClose,
   onBookingSuccess,
 }: AppointmentBookingFormProps) {
+  const theme = useTheme();
   const [currentStep, setCurrentStep] = useState<
     "district" | "establishment" | "date" | "time" | "summary"
   >("district");
@@ -335,7 +349,7 @@ export default function AppointmentBookingForm({
                   ]}
                 >
                   {index < currentIndex ? (
-                    <Ionicons name="checkmark" size={16} color="white" />
+                    <Icon icon={Check} size={16} color={theme.color.inverse} />
                   ) : (
                     <Text
                       style={[
@@ -381,7 +395,7 @@ export default function AppointmentBookingForm({
   const renderDistrictSelection = () => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Ionicons name="location" size={24} color="#DC2626" />
+        <Icon icon={MapPin} size={24} color={theme.color.crimson} />
         <Text style={styles.sectionTitle}>Choose your preferred district</Text>
       </View>
       <Text style={styles.sectionSubtitle}>
@@ -397,7 +411,7 @@ export default function AppointmentBookingForm({
             activeOpacity={0.7}
           >
             <View style={styles.districtIconContainer}>
-              <Ionicons name="location-outline" size={20} color="#DC2626" />
+              <Icon icon={MapPin} size={20} color={theme.color.crimson} />
             </View>
             <Text style={styles.districtText}>
               {formatDistrictName(district)}
@@ -411,7 +425,7 @@ export default function AppointmentBookingForm({
   const renderEstablishmentSelection = () => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Ionicons name="medical" size={24} color="#DC2626" />
+        <Icon icon={Stethoscope} size={24} color={theme.color.crimson} />
         <Text style={styles.sectionTitle}>Select Medical Establishment</Text>
       </View>
       <Text style={styles.sectionSubtitle}>
@@ -420,7 +434,7 @@ export default function AppointmentBookingForm({
       </Text>
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#DC2626" />
+          <ActivityIndicator size="large" color="#C0362C" />
           <Text style={styles.loadingText}>
             Loading medical establishments...
           </Text>
@@ -435,10 +449,10 @@ export default function AppointmentBookingForm({
               activeOpacity={0.7}
             >
               <View style={styles.establishmentIconContainer}>
-                <Ionicons
-                  name={establishment.isBloodBank ? "medical" : "business"}
+                <Icon
+                  icon={establishment.isBloodBank ? Stethoscope : Building2}
                   size={24}
-                  color="#DC2626"
+                  color={theme.color.crimson}
                 />
               </View>
               <View style={styles.establishmentInfo}>
@@ -450,7 +464,7 @@ export default function AppointmentBookingForm({
                 </Text>
                 <View style={styles.establishmentMeta}>
                   <View style={styles.capacityBadge}>
-                    <Ionicons name="people-outline" size={12} color="#6B7280" />
+                    <Icon icon={Users} size={12} color={theme.color.inkMuted} />
                     <Text style={styles.capacityText}>
                       Capacity: {establishment.bloodCapacity}
                     </Text>
@@ -462,13 +476,13 @@ export default function AppointmentBookingForm({
                   )}
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              <Icon icon={ChevronRight} size={20} color={theme.color.inkFaint} />
             </TouchableOpacity>
           ))}
         </View>
       ) : (
         <View style={styles.emptyState}>
-          <Ionicons name="medical-outline" size={48} color="#9CA3AF" />
+          <Icon icon={Stethoscope} size={48} color={theme.color.inkFaint} />
           <Text style={styles.emptyStateTitle}>
             No Medical Establishments Found
           </Text>
@@ -483,7 +497,7 @@ export default function AppointmentBookingForm({
   const renderDateSelection = () => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Ionicons name="calendar" size={24} color="#DC2626" />
+        <Icon icon={Calendar} size={24} color={theme.color.crimson} />
         <Text style={styles.sectionTitle}>Choose Date</Text>
       </View>
       <Text style={styles.sectionSubtitle}>
@@ -509,10 +523,10 @@ export default function AppointmentBookingForm({
                 },
               ]}
             >
-              <Ionicons
-                name="calendar-outline"
+              <Icon
+                icon={Calendar}
                 size={16}
-                color={selectedDate === dateOption.date ? "white" : "#DC2626"}
+                color={selectedDate === dateOption.date ? theme.color.inverse : theme.color.crimson}
               />
             </View>
             <Text
@@ -532,7 +546,7 @@ export default function AppointmentBookingForm({
   const renderTimeSlotSelection = () => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Ionicons name="time" size={24} color="#DC2626" />
+        <Icon icon={Clock} size={24} color={theme.color.crimson} />
         <Text style={styles.sectionTitle}>Select Time Slot</Text>
       </View>
       <Text style={styles.sectionSubtitle}>
@@ -546,7 +560,7 @@ export default function AppointmentBookingForm({
       </Text>
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#DC2626" />
+          <ActivityIndicator size="large" color="#C0362C" />
           <Text style={styles.loadingText}>Loading available slots...</Text>
         </View>
       ) : availableSlots.length > 0 ? (
@@ -562,10 +576,10 @@ export default function AppointmentBookingForm({
               activeOpacity={0.7}
             >
               <View style={styles.timeSlotIconContainer}>
-                <Ionicons
-                  name="time-outline"
+                <Icon
+                  icon={Clock}
                   size={20}
-                  color={selectedSlot?.id === slot.id ? "white" : "#DC2626"}
+                  color={selectedSlot?.id === slot.id ? theme.color.inverse : theme.color.crimson}
                 />
               </View>
               <Text
@@ -596,7 +610,7 @@ export default function AppointmentBookingForm({
         </View>
       ) : (
         <View style={styles.noSlotsContainer}>
-          <Ionicons name="time-outline" size={48} color="#9CA3AF" />
+          <Icon icon={Clock} size={48} color={theme.color.inkFaint} />
           <Text style={styles.noSlotsText}>No available slots</Text>
           <Text style={styles.noSlotsSubtext}>
             Please try selecting a different date
@@ -609,7 +623,7 @@ export default function AppointmentBookingForm({
   const renderSummary = () => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Ionicons name="checkmark-circle" size={24} color="#DC2626" />
+        <Icon icon={CheckCircle2} size={24} color={theme.color.crimson} />
         <Text style={styles.sectionTitle}>Appointment Summary</Text>
       </View>
       <Text style={styles.sectionSubtitle}>
@@ -618,19 +632,19 @@ export default function AppointmentBookingForm({
 
       <View style={styles.summaryCard}>
         <View style={styles.summaryRow}>
-          <Ionicons name="location" size={20} color="#DC2626" />
+          <Icon icon={MapPin} size={20} color={theme.color.crimson} />
           <Text style={styles.summaryLabel}>District:</Text>
           <Text style={styles.summaryValue}>
             {selectedDistrict ? formatDistrictName(selectedDistrict) : ""}
           </Text>
         </View>
         <View style={styles.summaryRow}>
-          <Ionicons name="medical" size={20} color="#DC2626" />
+          <Icon icon={Stethoscope} size={20} color={theme.color.crimson} />
           <Text style={styles.summaryLabel}>Place:</Text>
           <Text style={styles.summaryValue}>{selectedEstablishment?.name}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Ionicons name="calendar" size={20} color="#DC2626" />
+          <Icon icon={Calendar} size={20} color={theme.color.crimson} />
           <Text style={styles.summaryLabel}>Date:</Text>
           <Text style={styles.summaryValue}>
             {new Date(selectedDate).toLocaleDateString("en-US", {
@@ -642,7 +656,7 @@ export default function AppointmentBookingForm({
           </Text>
         </View>
         <View style={styles.summaryRow}>
-          <Ionicons name="time" size={20} color="#DC2626" />
+          <Icon icon={Clock} size={20} color={theme.color.crimson} />
           <Text style={styles.summaryLabel}>Time:</Text>
           <Text style={styles.summaryValue}>
             {selectedSlot?.startTime} - {selectedSlot?.endTime}
@@ -659,7 +673,7 @@ export default function AppointmentBookingForm({
           <ActivityIndicator size="small" color="white" />
         ) : (
           <>
-            <Ionicons name="checkmark-circle" size={24} color="white" />
+            <Icon icon={CheckCircle2} size={24} color={theme.color.inverse} />
             <Text style={styles.buttonText}>Confirm Appointment</Text>
           </>
         )}
@@ -673,10 +687,10 @@ export default function AppointmentBookingForm({
         <TouchableOpacity
           onPress={currentStep === "district" ? onClose : goBack}
         >
-          <Ionicons
-            name={currentStep === "district" ? "close" : "arrow-back"}
+          <Icon
+            icon={currentStep === "district" ? X : ArrowLeft}
             size={24}
-            color="#6B7280"
+            color={theme.color.inkMuted}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{getStepTitle()}</Text>
@@ -728,7 +742,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#1F2937",
+    color: "#1A1917",
   },
   stepIndicator: {
     backgroundColor: "white",
@@ -764,13 +778,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   stepCircleActive: {
-    backgroundColor: "#DC2626",
+    backgroundColor: "#C0362C",
   },
   stepCircleInactive: {
     backgroundColor: "#E5E7EB",
   },
   stepCircleCurrent: {
-    backgroundColor: "#DC2626",
+    backgroundColor: "#C0362C",
     transform: [{ scale: 1.1 }],
   },
   stepCircleDisabled: {
@@ -785,7 +799,7 @@ const styles = StyleSheet.create({
     color: "white",
   },
   stepNumberInactive: {
-    color: "#9CA3AF",
+    color: "#9C958A",
   },
   stepLabel: {
     fontSize: 10,
@@ -793,13 +807,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   stepLabelActive: {
-    color: "#DC2626",
+    color: "#C0362C",
   },
   stepLabelInactive: {
-    color: "#9CA3AF",
+    color: "#9C958A",
   },
   stepLabelCurrent: {
-    color: "#DC2626",
+    color: "#C0362C",
     fontWeight: "700",
   },
   stepLine: {
@@ -809,7 +823,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   stepLineActive: {
-    backgroundColor: "#DC2626",
+    backgroundColor: "#C0362C",
   },
   stepLineInactive: {
     backgroundColor: "#E5E7EB",
@@ -840,11 +854,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#1F2937",
+    color: "#1A1917",
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#6B655C",
     lineHeight: 20,
     marginBottom: 20,
   },
@@ -919,12 +933,12 @@ const styles = StyleSheet.create({
   establishmentName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1F2937",
+    color: "#1A1917",
     marginBottom: 4,
   },
   establishmentAddress: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#6B655C",
     marginBottom: 12,
   },
   establishmentMeta: {
@@ -943,11 +957,11 @@ const styles = StyleSheet.create({
   },
   capacityText: {
     fontSize: 12,
-    color: "#6B7280",
+    color: "#6B655C",
     fontWeight: "500",
   },
   bloodBankBadge: {
-    backgroundColor: "#DC2626",
+    backgroundColor: "#C0362C",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -982,8 +996,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   selectedDateCard: {
-    backgroundColor: "#DC2626",
-    borderColor: "#DC2626",
+    backgroundColor: "#C0362C",
+    borderColor: "#C0362C",
     transform: [{ scale: 1.02 }],
   },
   dateIconContainer: {
@@ -1029,8 +1043,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   selectedTimeSlotCard: {
-    backgroundColor: "#DC2626",
-    borderColor: "#DC2626",
+    backgroundColor: "#C0362C",
+    borderColor: "#C0362C",
     transform: [{ scale: 1.02 }],
   },
   timeSlotIconContainer: {
@@ -1064,7 +1078,7 @@ const styles = StyleSheet.create({
   tokenText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#6B7280",
+    color: "#6B655C",
   },
   selectedTokenText: {
     color: "white",
@@ -1076,7 +1090,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: "#6B7280",
+    color: "#6B655C",
     marginTop: 16,
   },
   emptyState: {
@@ -1092,7 +1106,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#6B655C",
     textAlign: "center",
   },
   noSlotsContainer: {
@@ -1108,7 +1122,7 @@ const styles = StyleSheet.create({
   },
   noSlotsSubtext: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#6B655C",
     textAlign: "center",
   },
   // Summary Section
@@ -1121,7 +1135,7 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#1F2937",
+    color: "#1A1917",
     marginBottom: 20,
   },
   summaryCard: {
@@ -1146,12 +1160,12 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     fontSize: 14,
-    color: "#1F2937",
+    color: "#1A1917",
     flex: 1,
     fontWeight: "500",
   },
   bookButton: {
-    backgroundColor: "#DC2626",
+    backgroundColor: "#C0362C",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -1159,14 +1173,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 16,
     gap: 12,
-    shadowColor: "#DC2626",
+    shadowColor: "#C0362C",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   bookButtonDisabled: {
-    backgroundColor: "#9CA3AF",
+    backgroundColor: "#9C958A",
     shadowOpacity: 0.1,
   },
   buttonText: {
@@ -1194,8 +1208,8 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
   },
   selectedCard: {
-    backgroundColor: "#DC2626",
-    borderColor: "#DC2626",
+    backgroundColor: "#C0362C",
+    borderColor: "#C0362C",
   },
   optionText: {
     fontSize: 14,
@@ -1209,11 +1223,11 @@ const styles = StyleSheet.create({
   },
   slotTokenText: {
     fontSize: 12,
-    color: "#6B7280",
+    color: "#6B655C",
     textAlign: "center",
   },
   metaText: {
     fontSize: 12,
-    color: "#6B7280",
+    color: "#6B655C",
   },
 });
