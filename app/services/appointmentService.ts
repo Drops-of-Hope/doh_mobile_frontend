@@ -78,6 +78,9 @@ export const appointmentService = {
         establishments = response;
       } else if (response?.data && Array.isArray(response.data)) {
         establishments = response.data;
+      } else if (response?.data?.establishments && Array.isArray(response.data.establishments)) {
+        // Backend envelope: { success, data: { establishments: [...] } }
+        establishments = response.data.establishments;
       } else if (response?.establishments && Array.isArray(response.establishments)) {
         establishments = response.establishments;
       } else {
@@ -94,8 +97,7 @@ export const appointmentService = {
       
     } catch (error) {
       logger.error("Error fetching medical establishments:", error);
-      // Don't throw here, let the caller handle the empty array
-      return [];
+      throw error;
     }
   },
 
@@ -127,6 +129,9 @@ export const appointmentService = {
         slots = response;
       } else if (response?.data && Array.isArray(response.data)) {
         slots = response.data;
+      } else if (response?.data?.slots && Array.isArray(response.data.slots)) {
+        // Backend envelope: { success, data: { slots: [...] } }
+        slots = response.data.slots;
       } else if (response?.slots && Array.isArray(response.slots)) {
         slots = response.slots;
       }
@@ -201,10 +206,13 @@ export const appointmentService = {
       // Handle different response formats and empty data gracefully
       let appointments: Appointment[] = [];
       
-      // Backend format: { success: true, data: [...] }
+      // Backend format: { success: true, data: [...] } or
+      // { success: true, data: { appointments: [...] } }
       if (response?.success === true && response?.data) {
         if (Array.isArray(response.data)) {
           appointments = response.data;
+        } else if (Array.isArray(response.data.appointments)) {
+          appointments = response.data.appointments;
         } else {
           logger.warn("📋 Response has success=true but data is not an array:", response.data);
           return [];
@@ -227,13 +235,6 @@ export const appointmentService = {
         return [];
       }
 
-      // Log each appointment's medicalEstablishment data in detail
-      appointments.forEach((apt) => {
-        if (!apt.medicalEstablishment) {
-          logger.warn(`   ⚠️ NO medicalEstablishment data for appointment ${apt.id}`);
-        }
-      });
-
       return appointments;
       
     } catch (error: any) {
@@ -243,17 +244,18 @@ export const appointmentService = {
       logger.error("❌ Error status:", error?.status);
       logger.error("❌ Full error object:", JSON.stringify(error, null, 2));
       
-      // For new users who don't have appointments yet, don't throw an error
-      if (error.message?.includes("404") || 
+      // For new users who don't have appointments yet, the backend 404s —
+      // that's a legitimate empty state, not a failure.
+      if (error.message?.includes("404") ||
           error.message?.includes("not found") ||
-          error.message?.includes("Network request failed") ||
           error.status === 404) {
         return [];
       }
-      
-      // For other errors, still return empty array but log it
-      logger.warn("⚠️ Returning empty appointments array due to error:", error.message);
-      return [];
+
+      // Any other error (network failure, 5xx, auth, etc.) is a real
+      // failure — surface it so the caller can show an error instead of
+      // silently rendering "no appointments".
+      throw error;
     }
   },
 

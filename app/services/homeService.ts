@@ -78,6 +78,11 @@ export interface Appointment {
     address: string;
     district: string;
   };
+  slot?: {
+    id: string;
+    startTime: string;
+    endTime: string;
+  } | null;
 }
 
 export interface Activity {
@@ -260,11 +265,14 @@ export const homeService = {
       
       // Handle different response formats gracefully
       let appointments: Appointment[] = [];
-      
+
       if (Array.isArray(response)) {
         appointments = response;
       } else if (response?.data && Array.isArray(response.data)) {
         appointments = response.data;
+      } else if (Array.isArray(response?.data?.appointments)) {
+        // The backend's actual envelope: { success, data: { appointments: [...] } }
+        appointments = response.data.appointments;
       } else if (response?.appointments && Array.isArray(response.appointments)) {
         appointments = response.appointments;
       }
@@ -274,7 +282,7 @@ export const homeService = {
         ...a,
         appointmentDateTime: (a as any).appointmentDateTime || (a as any).appointmentDate,
       }));
-      
+
       return appointments.length > 0 ? appointments[0] : null;
     } catch (error) {
       logger.error("Failed to fetch upcoming appointment:", error);
@@ -474,15 +482,18 @@ export const homeService = {
       
       // Handle different response formats gracefully
       let appointments: Appointment[] = [];
-      
+
       if (Array.isArray(response)) {
         appointments = response;
       } else if (response?.data && Array.isArray(response.data)) {
         appointments = response.data;
+      } else if (Array.isArray(response?.data?.appointments)) {
+        // The backend's actual envelope: { success, data: { appointments: [...] } }
+        appointments = response.data.appointments;
       } else if (response?.appointments && Array.isArray(response.appointments)) {
         appointments = response.appointments;
       }
-      
+
       // Normalize date field name if backend uses appointmentDate
       appointments = appointments.map((a) => ({
         ...a,
