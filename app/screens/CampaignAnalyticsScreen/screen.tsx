@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-} from "react-native";
+import { View, Alert, ActivityIndicator } from "react-native";
+import { Users, CheckCircle2, Droplet, TrendingUp, Trophy } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
-import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { campaignService } from "../../services/campaignService";
+
+import {
+  Screen,
+  AppBar,
+  Surface,
+  Text,
+  StatRow,
+  StatTile,
+  SectionHeader,
+  EmptyState,
+  Icon,
+  useTheme,
+} from "../../design";
 
 import { logger } from "../../utils/logger";
 interface CampaignAnalyticsScreenProps {
@@ -50,6 +53,7 @@ export default function CampaignAnalyticsScreen({
   navigation,
   route,
 }: CampaignAnalyticsScreenProps) {
+  const theme = useTheme();
   const { user } = useAuth();
   const { t } = useLanguage();
   const { campaignId } = route?.params || {};
@@ -89,316 +93,144 @@ export default function CampaignAnalyticsScreen({
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <DashboardHeader
-          title="Campaign Analytics"
-          onBack={handleBack}
-          onAdd={() => {}}
-        />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#DC2626" />
-          <Text style={styles.loadingText}>Loading analytics...</Text>
+      <Screen>
+        <AppBar title="Campaign Analytics" onBack={handleBack} />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
+          <ActivityIndicator size="large" color={theme.color.crimson} />
+          <Text variant="body" tone="inkMuted">
+            Loading analytics...
+          </Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (!analytics) {
     return (
-      <SafeAreaView style={styles.container}>
-        <DashboardHeader
-          title="Campaign Analytics"
-          onBack={handleBack}
-          onAdd={() => {}}
-        />
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No analytics data available</Text>
-        </View>
-      </SafeAreaView>
+      <Screen>
+        <AppBar title="Campaign Analytics" onBack={handleBack} />
+        <EmptyState icon={TrendingUp} title="No Analytics Data" body="No analytics data available for this campaign yet." />
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <Screen scroll refreshing={isRefreshing} onRefresh={handleRefresh}>
+      <AppBar title="Campaign Analytics" onBack={handleBack} />
 
-      <DashboardHeader
-        title="Campaign Analytics"
-        onBack={handleBack}
-        onAdd={() => {}}
-      />
-
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={["#DC2626"]}
-          />
-        }
-      >
+      <View style={{ marginTop: theme.space.lg }}>
         {/* Overview Stats */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Overview</Text>
-          <View style={styles.statsGrid}>
-            <StatCard
-              title="Registrations"
+        <SectionHeader title="Overview" />
+        <View style={{ gap: theme.space.md, marginBottom: theme.space.xxl }}>
+          <StatRow>
+            <StatTile
               value={analytics.totalRegistrations}
-              icon="👥"
-              color="#3B82F6"
+              label="Registrations"
+              icon={<Icon icon={Users} size={20} color={theme.color.info} />}
             />
-            <StatCard
-              title="Attendance"
+            <StatTile
               value={analytics.totalAttendance}
-              icon="✅"
-              color="#10B981"
+              label="Attendance"
+              icon={<Icon icon={CheckCircle2} size={20} color={theme.color.success} />}
             />
-            <StatCard
-              title="Donations"
+          </StatRow>
+          <StatRow>
+            <StatTile
               value={analytics.totalDonations}
-              icon="🩸"
-              color="#DC2626"
+              label="Donations"
+              icon={<Icon icon={Droplet} size={20} color={theme.color.crimson} />}
             />
-            <StatCard
-              title="Attendance Rate"
+            <StatTile
               value={`${analytics.attendanceRate.toFixed(1)}%`}
-              icon="📊"
-              color="#F59E0B"
+              label="Attendance Rate"
+              icon={<Icon icon={TrendingUp} size={20} color={theme.color.warning} />}
             />
-          </View>
+          </StatRow>
         </View>
 
         {/* Blood Type Distribution */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Donations by Blood Type</Text>
-          <View style={styles.bloodTypeContainer}>
-            {Object.entries(analytics.donationsByBloodType).map(([bloodType, count]) => (
-              <View key={bloodType} style={styles.bloodTypeItem}>
-                <Text style={styles.bloodTypeLabel}>{bloodType}</Text>
-                <Text style={styles.bloodTypeCount}>{count}</Text>
-              </View>
-            ))}
-          </View>
+        <SectionHeader title="Donations by Blood Type" />
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: theme.space.md,
+            marginBottom: theme.space.xxl,
+          }}
+        >
+          {Object.entries(analytics.donationsByBloodType).map(([bloodType, count]) => (
+            <Surface key={bloodType} padding="md" style={{ alignItems: "center", minWidth: 84 }}>
+              <Text variant="h3" tone="crimson" style={{ marginBottom: 4 }}>
+                {bloodType}
+              </Text>
+              <Text variant="h2">{count}</Text>
+            </Surface>
+          ))}
         </View>
 
         {/* Top Donors */}
         {analytics.topDonors.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Top Donors</Text>
+          <View style={{ marginBottom: theme.space.xxl }}>
+            <SectionHeader title="Top Donors" />
             {analytics.topDonors.map((donor, index) => (
-              <View key={donor.id} style={styles.donorItem}>
-                <View style={styles.donorRank}>
-                  <Text style={styles.rankText}>{index + 1}</Text>
+              <Surface key={donor.id} style={{ marginBottom: theme.space.sm, flexDirection: "row", alignItems: "center" }}>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: theme.color.crimson,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: theme.space.md,
+                  }}
+                >
+                  {index === 0 ? (
+                    <Icon icon={Trophy} size={16} color={theme.color.inverse} />
+                  ) : (
+                    <Text variant="label" tone="inverse">
+                      {index + 1}
+                    </Text>
+                  )}
                 </View>
-                <View style={styles.donorInfo}>
-                  <Text style={styles.donorName}>{donor.name}</Text>
-                  <Text style={styles.donorDetails}>
+                <View style={{ flex: 1 }}>
+                  <Text variant="body" style={{ fontWeight: "600" }}>
+                    {donor.name}
+                  </Text>
+                  <Text variant="caption" tone="inkMuted">
                     {donor.bloodGroup} • {donor.donationCount} donations
                   </Text>
                 </View>
-              </View>
+              </Surface>
             ))}
           </View>
         )}
 
         {/* Daily Stats */}
         {analytics.dailyStats.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Daily Activity</Text>
+          <View>
+            <SectionHeader title="Daily Activity" />
             {analytics.dailyStats.map((day) => (
-              <View key={day.date} style={styles.dailyItem}>
-                <Text style={styles.dailyDate}>
+              <Surface key={day.date} style={{ marginBottom: theme.space.sm }}>
+                <Text variant="body" style={{ fontWeight: "600", marginBottom: theme.space.sm }}>
                   {new Date(day.date).toLocaleDateString()}
                 </Text>
-                <View style={styles.dailyStats}>
-                  <Text style={styles.dailyStat}>📝 {day.registrations}</Text>
-                  <Text style={styles.dailyStat}>✅ {day.attendance}</Text>
-                  <Text style={styles.dailyStat}>🩸 {day.donations}</Text>
+                <View style={{ flexDirection: "row", gap: theme.space.lg }}>
+                  <Text variant="caption" tone="inkMuted">
+                    Registrations {day.registrations}
+                  </Text>
+                  <Text variant="caption" tone="inkMuted">
+                    Attendance {day.attendance}
+                  </Text>
+                  <Text variant="caption" tone="inkMuted">
+                    Donations {day.donations}
+                  </Text>
                 </View>
-              </View>
+              </Surface>
             ))}
           </View>
         )}
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-// Stat Card Component
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  icon: string;
-  color: string;
-}
-
-function StatCard({ title, value, icon, color }: StatCardProps) {
-  return (
-    <View style={[styles.statCard, { borderLeftColor: color }]}>
-      <Text style={styles.statIcon}>{icon}</Text>
-      <View style={styles.statContent}>
-        <Text style={styles.statValue}>{value}</Text>
-        <Text style={styles.statTitle}>{title}</Text>
       </View>
-    </View>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    paddingTop: StatusBar.currentHeight || 0,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#6B7280",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#6B7280",
-  },
-  section: {
-    marginVertical: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 16,
-  },
-  statsGrid: {
-    gap: 12,
-  },
-  statCard: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  statIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  statContent: {
-    flex: 1,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1F2937",
-  },
-  statTitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginTop: 2,
-  },
-  bloodTypeContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  bloodTypeItem: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    minWidth: 80,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  bloodTypeLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#DC2626",
-    marginBottom: 4,
-  },
-  bloodTypeCount: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1F2937",
-  },
-  donorItem: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  donorRank: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#DC2626",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  rankText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  donorInfo: {
-    flex: 1,
-  },
-  donorName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-  },
-  donorDetails: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginTop: 2,
-  },
-  dailyItem: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  dailyDate: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  dailyStats: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  dailyStat: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-});

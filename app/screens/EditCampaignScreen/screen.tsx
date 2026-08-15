@@ -1,20 +1,10 @@
 import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
-import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { campaignService } from "../../services/campaignService";
+
+import { Screen, AppBar, Field, Button, Text, useTheme } from "../../design";
 
 import { logger } from "../../utils/logger";
 interface EditCampaignScreenProps {
@@ -65,6 +55,7 @@ export default function EditCampaignScreen({
 }: EditCampaignScreenProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const theme = useTheme();
   const { campaignId } = route?.params || {};
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -99,7 +90,7 @@ export default function EditCampaignScreen({
 
     try {
       setIsLoading(true);
-      
+
       // Load campaign details
       const campaignData = await campaignService.getCampaignDetails(campaignId);
       setCampaign(campaignData);
@@ -141,11 +132,11 @@ export default function EditCampaignScreen({
       }
     } catch (error) {
       logger.error("Failed to load campaign:", error);
-      
+
       // Handle specific error cases
       let errorMessage = "Failed to load campaign details.";
       let errorTitle = "Error";
-      
+
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMsg = error.message as string;
         if (errorMsg.includes('not found')) {
@@ -156,7 +147,7 @@ export default function EditCampaignScreen({
           errorMessage = "You don't have permission to edit this campaign.";
         }
       }
-      
+
       Alert.alert(errorTitle, errorMessage, [
         { text: "OK", onPress: () => navigation?.goBack() }
       ]);
@@ -190,7 +181,7 @@ export default function EditCampaignScreen({
       const selectedDate = new Date(formData.date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       if (selectedDate < today) {
         newErrors.date = "Date cannot be in the past";
       }
@@ -273,325 +264,208 @@ export default function EditCampaignScreen({
 
   const handleBack = () => navigation?.goBack();
 
+  const updateField = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <DashboardHeader
-          title="Edit Campaign"
-          onBack={handleBack}
-          onAdd={() => {}}
-        />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#DC2626" />
-          <Text style={styles.loadingText}>Loading campaign...</Text>
+      <Screen edges={["top", "bottom"]}>
+        <AppBar title="Edit Campaign" onBack={handleBack} />
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={theme.color.crimson} />
+          <Text variant="body" tone="inkMuted" style={styles.centeredText}>
+            Loading campaign...
+          </Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (!canEdit) {
     return (
-      <SafeAreaView style={styles.container}>
-        <DashboardHeader
-          title="Edit Campaign"
-          onBack={handleBack}
-          onAdd={() => {}}
-        />
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>This campaign cannot be edited</Text>
+      <Screen edges={["top", "bottom"]}>
+        <AppBar title="Edit Campaign" onBack={handleBack} />
+        <View style={styles.centered}>
+          <Text variant="body" tone="inkMuted">
+            This campaign cannot be edited
+          </Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <Screen keyboardAvoiding scroll edges={["top", "bottom"]}>
+      <AppBar title="Edit Campaign" onBack={handleBack} />
 
-      <DashboardHeader
-        title="Edit Campaign"
-        onBack={handleBack}
-        onAdd={() => {}}
-      />
+      <View style={styles.form}>
+        <Field
+          label="Campaign Title"
+          value={formData.title}
+          onChangeText={(text) => updateField("title", text)}
+          placeholder="Enter campaign title"
+          maxLength={100}
+          error={errors.title}
+          required
+        />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.form}>
-          {/* Campaign Title */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Campaign Title *</Text>
-            <TextInput
-              style={[styles.input, errors.title && styles.inputError]}
-              value={formData.title}
-              onChangeText={(text) => setFormData({ ...formData, title: text })}
-              placeholder="Enter campaign title"
-              maxLength={100}
-            />
-            {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
-          </View>
+        <Field
+          label="Description"
+          value={formData.description}
+          onChangeText={(text) => updateField("description", text)}
+          placeholder="Describe the campaign"
+          multiline
+          maxLength={500}
+          error={errors.description}
+          required
+        />
 
-          {/* Description */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Description *</Text>
-            <TextInput
-              style={[styles.input, styles.textArea, errors.description && styles.inputError]}
-              value={formData.description}
-              onChangeText={(text) => setFormData({ ...formData, description: text })}
-              placeholder="Describe the campaign"
-              multiline
-              numberOfLines={4}
-              maxLength={500}
-            />
-            {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
-          </View>
+        <Field
+          label="Location"
+          value={formData.location}
+          onChangeText={(text) => updateField("location", text)}
+          placeholder="Enter location"
+          maxLength={100}
+          error={errors.location}
+          required
+        />
 
-          {/* Location */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Location *</Text>
-            <TextInput
-              style={[styles.input, errors.location && styles.inputError]}
-              value={formData.location}
-              onChangeText={(text) => setFormData({ ...formData, location: text })}
-              placeholder="Enter location"
-              maxLength={100}
-            />
-            {errors.location && <Text style={styles.errorText}>{errors.location}</Text>}
-          </View>
+        <Field
+          label="Address"
+          value={formData.address}
+          onChangeText={(text) => updateField("address", text)}
+          placeholder="Enter full address"
+          maxLength={200}
+          error={errors.address}
+          required
+        />
 
-          {/* Address */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Address *</Text>
-            <TextInput
-              style={[styles.input, errors.address && styles.inputError]}
-              value={formData.address}
-              onChangeText={(text) => setFormData({ ...formData, address: text })}
-              placeholder="Enter full address"
-              maxLength={200}
-            />
-            {errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
-          </View>
+        <Field
+          label="Date"
+          value={formData.date}
+          onChangeText={(text) => updateField("date", text)}
+          placeholder="YYYY-MM-DD"
+          error={errors.date}
+          required
+        />
 
-          {/* Date */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Date *</Text>
-            <TextInput
-              style={[styles.input, errors.date && styles.inputError]}
-              value={formData.date}
-              onChangeText={(text) => setFormData({ ...formData, date: text })}
-              placeholder="YYYY-MM-DD"
-            />
-            {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
-          </View>
-
-          {/* Time Fields */}
-          <View style={styles.row}>
-            <View style={[styles.field, styles.halfField]}>
-              <Text style={styles.label}>Start Time *</Text>
-              <TextInput
-                style={[styles.input, errors.startTime && styles.inputError]}
-                value={formData.startTime}
-                onChangeText={(text) => setFormData({ ...formData, startTime: text })}
-                placeholder="HH:MM"
-              />
-              {errors.startTime && <Text style={styles.errorText}>{errors.startTime}</Text>}
-            </View>
-
-            <View style={[styles.field, styles.halfField]}>
-              <Text style={styles.label}>End Time *</Text>
-              <TextInput
-                style={[styles.input, errors.endTime && styles.inputError]}
-                value={formData.endTime}
-                onChangeText={(text) => setFormData({ ...formData, endTime: text })}
-                placeholder="HH:MM"
-              />
-              {errors.endTime && <Text style={styles.errorText}>{errors.endTime}</Text>}
-            </View>
-          </View>
-
-          {/* Donation Goal */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Donation Goal *</Text>
-            <TextInput
-              style={[styles.input, errors.donationGoal && styles.inputError]}
-              value={formData.donationGoal}
-              onChangeText={(text) => setFormData({ ...formData, donationGoal: text })}
-              placeholder="Enter target number"
-              keyboardType="numeric"
-            />
-            {errors.donationGoal && <Text style={styles.errorText}>{errors.donationGoal}</Text>}
-          </View>
-
-          {/* Contact Person */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Contact Person *</Text>
-            <TextInput
-              style={[styles.input, errors.contactPerson && styles.inputError]}
-              value={formData.contactPerson}
-              onChangeText={(text) => setFormData({ ...formData, contactPerson: text })}
-              placeholder="Enter contact person name"
-              maxLength={100}
-            />
-            {errors.contactPerson && <Text style={styles.errorText}>{errors.contactPerson}</Text>}
-          </View>
-
-          {/* Contact Phone */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Contact Phone *</Text>
-            <TextInput
-              style={[styles.input, errors.contactPhone && styles.inputError]}
-              value={formData.contactPhone}
-              onChangeText={(text) => setFormData({ ...formData, contactPhone: text })}
-              placeholder="Enter contact phone number"
-              keyboardType="phone-pad"
-              maxLength={20}
-            />
-            {errors.contactPhone && <Text style={styles.errorText}>{errors.contactPhone}</Text>}
-          </View>
-
-          {/* Contact Email */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Contact Email *</Text>
-            <TextInput
-              style={[styles.input, errors.contactEmail && styles.inputError]}
-              value={formData.contactEmail}
-              onChangeText={(text) => setFormData({ ...formData, contactEmail: text })}
-              placeholder="Enter contact email"
-              keyboardType="email-address"
-              maxLength={100}
-              autoCapitalize="none"
-            />
-            {errors.contactEmail && <Text style={styles.errorText}>{errors.contactEmail}</Text>}
-          </View>
-
-          {/* Requirements */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Requirements</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.requirements}
-              onChangeText={(text) => setFormData({ ...formData, requirements: text })}
-              placeholder="Special requirements (optional)"
-              multiline
-              numberOfLines={3}
-              maxLength={300}
+        <View style={styles.row}>
+          <View style={styles.halfField}>
+            <Field
+              label="Start Time"
+              value={formData.startTime}
+              onChangeText={(text) => updateField("startTime", text)}
+              placeholder="HH:MM"
+              error={errors.startTime}
+              required
             />
           </View>
 
-          {/* Additional Notes */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Additional Notes</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.additionalNotes}
-              onChangeText={(text) => setFormData({ ...formData, additionalNotes: text })}
-              placeholder="Additional notes (optional)"
-              multiline
-              numberOfLines={3}
-              maxLength={300}
+          <View style={styles.halfField}>
+            <Field
+              label="End Time"
+              value={formData.endTime}
+              onChangeText={(text) => updateField("endTime", text)}
+              placeholder="HH:MM"
+              error={errors.endTime}
+              required
             />
           </View>
-
-          {/* Save Button */}
-          <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.saveButtonText}>Update Campaign</Text>
-            )}
-          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+
+        <Field
+          label="Donation Goal"
+          value={formData.donationGoal}
+          onChangeText={(text) => updateField("donationGoal", text)}
+          placeholder="Enter target number"
+          keyboardType="numeric"
+          error={errors.donationGoal}
+          required
+        />
+
+        <Field
+          label="Contact Person"
+          value={formData.contactPerson}
+          onChangeText={(text) => updateField("contactPerson", text)}
+          placeholder="Enter contact person name"
+          maxLength={100}
+          error={errors.contactPerson}
+          required
+        />
+
+        <Field
+          label="Contact Phone"
+          value={formData.contactPhone}
+          onChangeText={(text) => updateField("contactPhone", text)}
+          placeholder="Enter contact phone number"
+          keyboardType="phone-pad"
+          maxLength={20}
+          error={errors.contactPhone}
+          required
+        />
+
+        <Field
+          label="Contact Email"
+          value={formData.contactEmail}
+          onChangeText={(text) => updateField("contactEmail", text)}
+          placeholder="Enter contact email"
+          keyboardType="email-address"
+          maxLength={100}
+          autoCapitalize="none"
+          error={errors.contactEmail}
+          required
+        />
+
+        <Field
+          label="Requirements"
+          value={formData.requirements}
+          onChangeText={(text) => updateField("requirements", text)}
+          placeholder="Special requirements (optional)"
+          multiline
+          maxLength={300}
+        />
+
+        <Field
+          label="Additional Notes"
+          value={formData.additionalNotes}
+          onChangeText={(text) => updateField("additionalNotes", text)}
+          placeholder="Additional notes (optional)"
+          multiline
+          maxLength={300}
+        />
+
+        <Button
+          title="Update Campaign"
+          onPress={handleSave}
+          loading={isSaving}
+          disabled={isSaving}
+        />
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    paddingTop: StatusBar.currentHeight || 0,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  loadingContainer: {
+  centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  loadingText: {
+  centeredText: {
     marginTop: 16,
-    fontSize: 16,
-    color: "#6B7280",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#6B7280",
   },
   form: {
-    paddingVertical: 20,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  halfField: {
     flex: 1,
   },
   row: {
     flexDirection: "row",
     gap: 12,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#1F2937",
-  },
-  inputError: {
-    borderColor: "#DC2626",
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  errorText: {
-    color: "#DC2626",
-    fontSize: 14,
-    marginTop: 4,
-  },
-  saveButton: {
-    backgroundColor: "#DC2626",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 40,
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
+  halfField: {
+    flex: 1,
   },
 });

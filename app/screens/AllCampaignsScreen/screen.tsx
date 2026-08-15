@@ -1,16 +1,8 @@
 import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { Screen, AppBar, useTheme } from "../../design";
 
 // Import refactored components
-import ScreenHeader from "./atoms/ScreenHeader";
 import StatsOverview from "./molecules/StatsOverview";
 import CampaignList from "./molecules/CampaignList";
 import CampaignModal from "./organisms/CampaignModal";
@@ -29,6 +21,7 @@ interface AllCampaignsScreenProps {
 export default function AllCampaignsScreen({
   navigation,
 }: AllCampaignsScreenProps) {
+  const theme = useTheme();
   // State management
   const [showCampaignModal, setShowCampaignModal] = useState<boolean>(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
@@ -37,7 +30,7 @@ export default function AllCampaignsScreen({
   const [joiningCampaign, setJoiningCampaign] = useState<boolean>(false);
   
   // Auth context
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
   // Navigation handlers
   const handleBack = () => {
@@ -60,9 +53,11 @@ export default function AllCampaignsScreen({
         "Please log in to join campaigns.",
         [
           { text: "Cancel", style: "cancel" },
-          { 
-            text: "Login", 
-            onPress: () => navigation?.navigate('Login') 
+          {
+            // No standalone "Login" route exists; signing out returns the
+            // root navigator to the unauthenticated Entry screen.
+            text: "Log In",
+            onPress: () => logout(),
           },
         ]
       );
@@ -141,25 +136,18 @@ export default function AllCampaignsScreen({
   const stats = getCampaignStats(allCampaigns);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <Screen scroll>
+      <AppBar title="All Campaigns" onBack={handleBack} />
 
-      <ScreenHeader title="All Campaigns" onBackPress={handleBack} />
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.statsWrap}>
         <StatsOverview stats={stats} />
+      </View>
 
-        <CampaignList
-          campaigns={allCampaigns}
-          onDetails={handleCampaignDetails}
-          onJoin={handleJoinCampaign}
-        />
-
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+      <CampaignList
+        campaigns={allCampaigns}
+        onDetails={handleCampaignDetails}
+        onJoin={handleJoinCampaign}
+      />
 
       {/* Campaign Details Modal */}
       <CampaignModal
@@ -172,31 +160,17 @@ export default function AllCampaignsScreen({
       {/* Loading Overlay for Campaign Registration */}
       {joiningCampaign && (
         <View style={styles.loadingOverlay}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#DC2626" />
-            <StatusBar 
-              barStyle="light-content" 
-              backgroundColor="rgba(0,0,0,0.5)" 
-              translucent 
-            />
+          <View style={[styles.loadingContainer, { backgroundColor: theme.color.surface, borderRadius: theme.radius.md }]}>
+            <ActivityIndicator size="large" color={theme.color.crimson} />
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  bottomPadding: {
-    height: 100,
-  },
+  statsWrap: { marginBottom: 24 },
   loadingOverlay: {
     position: "absolute",
     top: 0,
@@ -209,9 +183,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   loadingContainer: {
-    backgroundColor: "white",
     padding: 20,
-    borderRadius: 10,
     alignItems: "center",
   },
 });

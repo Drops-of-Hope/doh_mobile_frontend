@@ -1,24 +1,21 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Surface, SectionHeader } from "../../../design";
 import { FormSectionProps } from "../types";
 
 export default function FormSection({ title, children }: FormSectionProps) {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
+    <View style={styles.wrap}>
+      <SectionHeader title={title} />
+      <Surface padding="lg" radius="lg" bordered tone="surface">
+        {children}
+      </Surface>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
+  wrap: {
     marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 16,
   },
 });

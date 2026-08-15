@@ -38,28 +38,6 @@ export interface CreateCampaignScreenProps {
   navigation?: any;
 }
 
-export interface InputFieldProps {
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-  multiline?: boolean;
-  keyboardType?: "default" | "numeric" | "email-address" | "phone-pad";
-  error?: string;
-  required?: boolean;
-  maxLength?: number;
-}
-
-export interface DropdownFieldProps {
-  label: string;
-  value: string;
-  onValueChange: (value: string) => void;
-  options: { label: string; value: string }[];
-  placeholder: string;
-  error?: string;
-  required?: boolean;
-}
-
 export interface DateSelectorProps {
   day: string;
   month: string;

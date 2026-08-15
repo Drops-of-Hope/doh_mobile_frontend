@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Alert,
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, Alert, ActivityIndicator, Pressable } from "react-native";
+import { Plus, QrCode, BarChart3, Pencil, Eye, Calendar } from "lucide-react-native";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
 
-// Import refactored components
-import DashboardHeader from "./molecules/DashboardHeader";
+import {
+  Screen,
+  AppBar,
+  Surface,
+  Text,
+  Button,
+  StatRow,
+  StatTile,
+  ProgressTrack,
+  EmptyState,
+  Icon,
+  useTheme,
+} from "../../design";
 
 // Import types and utilities
 import {
@@ -41,6 +41,7 @@ interface CampaignSection {
 export default function CampaignDashboardScreen({
   navigation,
 }: CampaignDashboardScreenProps) {
+  const theme = useTheme();
   // Context
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -73,10 +74,10 @@ export default function CampaignDashboardScreen({
 
     campaigns.forEach((campaign) => {
       // Check if campaign is cancelled first (check both isApproved field and status)
-      const isCancelled = 
+      const isCancelled =
         (typeof campaign.isApproved === 'string' && campaign.isApproved === 'CANCELLED') ||
         campaign.status === 'cancelled';
-        
+
       if (isCancelled) {
         categorized.cancelled.push(campaign);
         return;
@@ -85,10 +86,10 @@ export default function CampaignDashboardScreen({
       // Strip .000Z suffix to prevent UTC conversion - treat times as local
       const startTimeStr = campaign.startTime.replace(/\.000Z$/, '');
       const endTimeStr = campaign.endTime.replace(/\.000Z$/, '');
-      
+
       const startTime = new Date(startTimeStr);
       const endTime = new Date(endTimeStr);
-      
+
       if (now >= startTime && now <= endTime) {
         categorized.active.push(campaign);
       } else if (now < startTime) {
@@ -186,17 +187,6 @@ export default function CampaignDashboardScreen({
     navigation?.navigate("QRScanner", { campaignId });
   };
 
-  const handleDebugUserIds = async () => {
-    await debugAllUserIds();
-
-    await testBackendEndpoints();
-
-    Alert.alert(
-      "Debug Complete",
-      "Check console for user ID and endpoint information"
-    );
-  };
-
   const formatDate = (dateString: string) => {
     // Strip .000Z to prevent UTC conversion
     const cleanString = dateString.replace(/\.000Z$/, '');
@@ -212,450 +202,243 @@ export default function CampaignDashboardScreen({
     return extractTimeFromISO(dateString);
   };
 
+  const rightAction = (
+    <Button
+      title="Create"
+      size="sm"
+      fullWidth={false}
+      icon={<Icon icon={Plus} size={16} color={theme.color.inverse} />}
+      onPress={handleCreateCampaign}
+    />
+  );
+
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <DashboardHeader
-          title={t("campaign.dashboard_title")}
-          onBack={handleBack}
-          onAdd={handleCreateCampaign}
-        />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E53E3E" />
-          <Text style={styles.loadingText}>Loading campaigns...</Text>
+      <Screen>
+        <AppBar title={t("campaign.dashboard_title")} onBack={handleBack} right={rightAction} />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
+          <ActivityIndicator size="large" color={theme.color.crimson} />
+          <Text variant="body" tone="inkMuted">
+            Loading campaigns...
+          </Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
+  const noCampaigns =
+    campaigns.active.length === 0 &&
+    campaigns.upcoming.length === 0 &&
+    campaigns.previous.length === 0;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <Screen scroll refreshing={refreshing} onRefresh={onRefresh}>
+      <AppBar title={t("campaign.dashboard_title")} onBack={handleBack} right={rightAction} />
 
-      <DashboardHeader
-        title={t("campaign.dashboard_title")}
-        onBack={handleBack}
-        onAdd={handleCreateCampaign}
-      />
-
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Active Campaign Section */}
+      <View style={{ marginTop: theme.space.lg }}>
+        {/* Active Campaigns */}
         {campaigns.active.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🔴 Active Campaign</Text>
-            {campaigns.active.map((campaign) => (
-              <View
-                key={campaign.id}
-                style={[styles.campaignCard, styles.activeCampaignCard]}
-              >
-                <View style={styles.campaignHeader}>
-                  <Text style={styles.campaignTitle}>{campaign.title}</Text>
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>LIVE</Text>
+          <View style={{ marginBottom: theme.space.xxl }}>
+            <Text variant="overline" tone="crimson" style={{ marginBottom: theme.space.md }}>
+              ACTIVE CAMPAIGN
+            </Text>
+            {campaigns.active.map((campaign) => {
+              const goalProgress = activeCampaignStats
+                ? Math.max(0, Math.min(1, activeCampaignStats.goalProgress / 100))
+                : 0;
+              return (
+                <Surface key={campaign.id} style={{ marginBottom: theme.space.lg }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: theme.space.sm,
+                    }}
+                  >
+                    <Text variant="h3" style={{ flex: 1, marginRight: theme.space.sm }}>
+                      {campaign.title}
+                    </Text>
+                    <Surface tone="crimsonSoft" bordered={false} padding={0} radius="pill" style={{ paddingHorizontal: 10, paddingVertical: 4 }}>
+                      <Text variant="overline" tone="crimson">
+                        LIVE
+                      </Text>
+                    </Surface>
                   </View>
-                </View>
 
-                <View style={styles.campaignInfo}>
-                  <Text style={styles.campaignLocation}>
-                    {" "}
+                  <Text variant="caption" tone="inkMuted" style={{ marginBottom: 2 }}>
                     {campaign.location}
                   </Text>
-                  <Text style={styles.campaignTime}>
-                    {formatTime(campaign.startTime)} -{" "}
-                    {formatTime(campaign.endTime)}
+                  <Text variant="caption" tone="inkMuted" style={{ marginBottom: theme.space.lg }}>
+                    {formatTime(campaign.startTime)} - {formatTime(campaign.endTime)}
                   </Text>
-                </View>
 
-                {activeCampaignStats && (
-                  <View style={styles.statsSection}>
-                    <Text style={styles.statsTitle}>Real-time Progress</Text>
-                    <View style={styles.statsGrid}>
-                      <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>
-                          {activeCampaignStats.totalAttendance}
+                  {activeCampaignStats && (
+                    <View style={{ marginBottom: theme.space.lg }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          marginBottom: theme.space.sm,
+                        }}
+                      >
+                        <Text variant="label" tone="inkMuted">
+                          Goal Progress
                         </Text>
-                        <Text style={styles.statLabel}>Attendees</Text>
-                      </View>
-                      <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>
-                          {activeCampaignStats.screenedPassed}
-                        </Text>
-                        <Text style={styles.statLabel}>Screened</Text>
-                      </View>
-                      <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>
-                          {activeCampaignStats.currentDonations}
-                        </Text>
-                        <Text style={styles.statLabel}>Donations</Text>
-                      </View>
-                      <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>
+                        <Text variant="label" tone="ink">
                           {Math.round(activeCampaignStats.goalProgress)}%
                         </Text>
-                        <Text style={styles.statLabel}>Goal</Text>
+                      </View>
+                      <ProgressTrack progress={goalProgress} />
+                      <View style={{ marginTop: theme.space.lg }}>
+                        <StatRow>
+                          <StatTile value={activeCampaignStats.totalAttendance} label="Attendees" />
+                          <StatTile value={activeCampaignStats.screenedPassed} label="Screened" />
+                          <StatTile value={activeCampaignStats.currentDonations} label="Donations" />
+                        </StatRow>
                       </View>
                     </View>
+                  )}
+
+                  <View style={{ flexDirection: "row", gap: theme.space.md }}>
+                    <View style={{ flex: 1 }}>
+                      <Button
+                        title="QR Scan"
+                        size="md"
+                        icon={<Icon icon={QrCode} size={18} color={theme.color.inverse} />}
+                        onPress={() => handleQRScan(campaign.id)}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Button
+                        title="Details"
+                        size="md"
+                        variant="outline"
+                        icon={<Icon icon={BarChart3} size={18} color={theme.color.crimson} />}
+                        onPress={() => handleCampaignDetails(campaign.id)}
+                      />
+                    </View>
                   </View>
-                )}
-
-                <View style={styles.campaignActions}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.qrButton]}
-                    onPress={() => handleQRScan(campaign.id)}
-                  >
-                    <Ionicons name="qr-code" size={20} color="#fff" />
-                    <Text style={styles.actionButtonText}>QR Scan</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.detailsButton]}
-                    onPress={() => handleCampaignDetails(campaign.id)}
-                  >
-                    <Ionicons name="analytics" size={20} color="#fff" />
-                    <Text style={styles.actionButtonText}>Details</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
+                </Surface>
+              );
+            })}
           </View>
         )}
 
-        {/* Upcoming Campaigns Section */}
+        {/* Upcoming Campaigns */}
         {campaigns.upcoming.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}> Upcoming Campaigns</Text>
+          <View style={{ marginBottom: theme.space.xxl }}>
+            <Text variant="overline" tone="inkMuted" style={{ marginBottom: theme.space.md }}>
+              UPCOMING CAMPAIGNS
+            </Text>
             {campaigns.upcoming.map((campaign) => (
-              <View key={campaign.id} style={styles.campaignCard}>
-                <View style={styles.campaignHeader}>
-                  <Text style={styles.campaignTitle}>{campaign.title}</Text>
-                  <View style={[styles.statusBadge, styles.upcomingBadge]}>
-                    <Text style={[styles.statusText, styles.upcomingText]}>
+              <Surface key={campaign.id} style={{ marginBottom: theme.space.lg }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: theme.space.sm,
+                  }}
+                >
+                  <Text variant="h3" style={{ flex: 1, marginRight: theme.space.sm }}>
+                    {campaign.title}
+                  </Text>
+                  <Surface tone="infoSoft" bordered={false} padding={0} radius="pill" style={{ paddingHorizontal: 10, paddingVertical: 4 }}>
+                    <Text variant="overline" tone="info">
                       UPCOMING
                     </Text>
+                  </Surface>
+                </View>
+
+                <Text variant="caption" tone="inkMuted" style={{ marginBottom: 2 }}>
+                  {campaign.location}
+                </Text>
+                <Text variant="caption" tone="inkMuted" style={{ marginBottom: 2 }}>
+                  {formatDate(campaign.startTime)}
+                </Text>
+                <Text variant="caption" tone="inkMuted" style={{ marginBottom: theme.space.lg }}>
+                  {formatTime(campaign.startTime)} - {formatTime(campaign.endTime)}
+                </Text>
+
+                <View style={{ flexDirection: "row", gap: theme.space.md }}>
+                  <View style={{ flex: 1 }}>
+                    <Button
+                      title="Edit"
+                      size="md"
+                      variant="outline"
+                      icon={<Icon icon={Pencil} size={18} color={theme.color.crimson} />}
+                      onPress={() => handleEditCampaign(campaign.id)}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Button
+                      title="View"
+                      size="md"
+                      icon={<Icon icon={Eye} size={18} color={theme.color.inverse} />}
+                      onPress={() => handleCampaignDetails(campaign.id)}
+                    />
                   </View>
                 </View>
-
-                <View style={styles.campaignInfo}>
-                  <Text style={styles.campaignLocation}>
-                    {campaign.location}
-                  </Text>
-                  <Text style={styles.campaignDate}>
-                    {formatDate(campaign.startTime)}
-                  </Text>
-                  <Text style={styles.campaignTime}>
-                    {formatTime(campaign.startTime)} -{" "}
-                    {formatTime(campaign.endTime)}
-                  </Text>
-                </View>
-
-                <View style={styles.campaignActions}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.editButton]}
-                    onPress={() => handleEditCampaign(campaign.id)}
-                  >
-                    <Ionicons name="create" size={20} color="#fff" />
-                    <Text style={styles.actionButtonText}>Edit</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.detailsButton]}
-                    onPress={() => handleCampaignDetails(campaign.id)}
-                  >
-                    <Ionicons name="eye" size={20} color="#fff" />
-                    <Text style={styles.actionButtonText}>View</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              </Surface>
             ))}
           </View>
         )}
 
-        {/* Previous Campaigns Section */}
+        {/* Previous Campaigns */}
         {campaigns.previous.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              🟢 Previous Campaigns (Track Record)
+          <View style={{ marginBottom: theme.space.xxl }}>
+            <Text variant="overline" tone="inkMuted" style={{ marginBottom: theme.space.md }}>
+              PREVIOUS CAMPAIGNS
             </Text>
             {campaigns.previous.map((campaign) => (
-              <TouchableOpacity
-                key={campaign.id}
-                style={[styles.campaignCard, styles.previousCampaignCard]}
-                onPress={() => handleCampaignDetails(campaign.id)}
-              >
-                <View style={styles.campaignHeader}>
-                  <Text style={styles.campaignTitle}>{campaign.title}</Text>
-                  <View style={[styles.statusBadge, styles.completedBadge]}>
-                    <Text style={[styles.statusText, styles.completedText]}>
-                      COMPLETED
+              <Pressable key={campaign.id} onPress={() => handleCampaignDetails(campaign.id)}>
+                <Surface style={{ marginBottom: theme.space.lg, opacity: 0.9 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: theme.space.sm,
+                    }}
+                  >
+                    <Text variant="h3" style={{ flex: 1, marginRight: theme.space.sm }}>
+                      {campaign.title}
                     </Text>
+                    <Surface tone="successSoft" bordered={false} padding={0} radius="pill" style={{ paddingHorizontal: 10, paddingVertical: 4 }}>
+                      <Text variant="overline" tone="success">
+                        COMPLETED
+                      </Text>
+                    </Surface>
                   </View>
-                </View>
 
-                <View style={styles.campaignInfo}>
-                  <Text style={styles.campaignLocation}>
+                  <Text variant="caption" tone="inkMuted" style={{ marginBottom: 2 }}>
                     {campaign.location}
                   </Text>
-                  <Text style={styles.campaignDate}>
+                  <Text variant="caption" tone="inkMuted" style={{ marginBottom: theme.space.md }}>
                     {formatDate(campaign.startTime)}
                   </Text>
-                </View>
 
-                <View style={styles.campaignSummary}>
-                  <Text style={styles.summaryText}>
-                    Goal: {campaign.donationGoal || "N/A"} | Actual:{" "}
-                    {campaign.actualDonors || 0}
+                  <Text variant="label" tone="inkMuted">
+                    Goal: {campaign.donationGoal || "N/A"} | Actual: {campaign.actualDonors || 0}
                   </Text>
-                </View>
-
-                <View style={styles.viewMoreIndicator}>
-                  <Text style={styles.viewMoreText}>
-                    Tap to view full details
-                  </Text>
-                  <Ionicons name="chevron-forward" size={16} color="#666" />
-                </View>
-              </TouchableOpacity>
+                </Surface>
+              </Pressable>
             ))}
           </View>
         )}
 
         {/* No Campaigns State */}
-        {campaigns.active.length === 0 &&
-          campaigns.upcoming.length === 0 &&
-          campaigns.previous.length === 0 && (
-            <View style={styles.emptyState}>
-              <Ionicons name="calendar-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyStateTitle}>No Campaigns Yet</Text>
-              <Text style={styles.emptyStateText}>
-                Start organizing blood donation campaigns to help save lives
-              </Text>
-              <TouchableOpacity
-                style={styles.createFirstCampaignButton}
-                onPress={handleCreateCampaign}
-              >
-                <Text style={styles.createFirstCampaignText}>
-                  Create Your First Campaign
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-      </ScrollView>
-    </SafeAreaView>
+        {noCampaigns && (
+          <EmptyState
+            icon={Calendar}
+            title="No Campaigns Yet"
+            body="Start organizing blood donation campaigns to help save lives"
+            actionLabel="Create Your First Campaign"
+            onAction={handleCreateCampaign}
+          />
+        )}
+      </View>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    paddingTop: StatusBar.currentHeight || 0,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 100,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#666",
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1A202C",
-    marginBottom: 12,
-  },
-  campaignCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  activeCampaignCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: "#E53E3E",
-  },
-  previousCampaignCard: {
-    opacity: 0.8,
-  },
-  campaignHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  campaignTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1A202C",
-    flex: 1,
-    marginRight: 8,
-  },
-  statusBadge: {
-    backgroundColor: "#E53E3E",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  upcomingBadge: {
-    backgroundColor: "#3182CE",
-  },
-  completedBadge: {
-    backgroundColor: "#38A169",
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  upcomingText: {
-    color: "#FFFFFF",
-  },
-  completedText: {
-    color: "#FFFFFF",
-  },
-  campaignInfo: {
-    marginBottom: 12,
-  },
-  campaignLocation: {
-    fontSize: 14,
-    color: "#4A5568",
-    marginBottom: 4,
-  },
-  campaignDate: {
-    fontSize: 14,
-    color: "#4A5568",
-    marginBottom: 4,
-  },
-  campaignTime: {
-    fontSize: 14,
-    color: "#4A5568",
-  },
-  campaignSummary: {
-    marginBottom: 8,
-  },
-  summaryText: {
-    fontSize: 12,
-    color: "#718096",
-  },
-  statsSection: {
-    backgroundColor: "#F7FAFC",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-  },
-  statsTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2D3748",
-    marginBottom: 8,
-  },
-  statsGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  statItem: {
-    alignItems: "center",
-  },
-  statNumber: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#E53E3E",
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#718096",
-    marginTop: 2,
-  },
-  campaignActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 6,
-  },
-  qrButton: {
-    backgroundColor: "#E53E3E",
-  },
-  editButton: {
-    backgroundColor: "#E53E3E",
-  },
-  detailsButton: {
-    backgroundColor: "#E53E3E",
-  },
-  actionButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  viewMoreIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#E2E8F0",
-  },
-  viewMoreText: {
-    fontSize: 12,
-    color: "#718096",
-    fontStyle: "italic",
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 80,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#4A5568",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#718096",
-    textAlign: "center",
-    marginBottom: 24,
-    paddingHorizontal: 32,
-  },
-  createFirstCampaignButton: {
-    backgroundColor: "#E53E3E",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  createFirstCampaignText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
