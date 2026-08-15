@@ -1,66 +1,50 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { COLORS, SPACING, BORDER_RADIUS } from "../../../../constants/theme";
+import { View, StyleSheet } from "react-native";
+import { Heart } from "lucide-react-native";
+import { Surface, Text, Icon, useTheme } from "../../../design";
+import { useLanguage } from "../../../context/LanguageContext";
 
-export default function ThankYouCard() {
+interface ThankYouCardProps {
+  totalDonations: number;
+  firstName: string;
+}
+
+export default function ThankYouCard({ totalDonations, firstName }: ThankYouCardProps) {
+  const theme = useTheme();
+  const { t } = useLanguage();
+
+  const hasDonated = totalDonations > 0;
+  const title = hasDonated ? t("home.thank_you_title", { name: firstName }) : t("home.first_donation_title");
+  const body = hasDonated
+    ? t("home.thank_you_body", { count: totalDonations, lives: totalDonations * 3 })
+    : t("home.first_donation_body");
+
   return (
-    <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <Ionicons name="heart" size={32} color={COLORS.PRIMARY} />
+    <Surface tone="crimsonSoft" style={styles.container}>
+      <View style={[styles.iconWrap, { borderColor: theme.color.crimson }]}>
+        <Icon icon={Heart} size={26} color={theme.color.crimson} />
       </View>
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>Thank You For Your Donation</Text>
-        <Text style={styles.subtitle}>
-          Did you know? One donation can save up to 3 lives!
-        </Text>
-      </View>
-    </View>
+      <Text variant="h3" align="center" style={styles.title}>
+        {title}
+      </Text>
+      <Text variant="caption" tone="inkMuted" align="center" style={styles.subtitle}>
+        {body}
+      </Text>
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 24,
-    minHeight: 120,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+  container: { alignItems: "center", paddingVertical: 28 },
+  iconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 12,
   },
-  content: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: BORDER_RADIUS.FULL,
-    backgroundColor: `${COLORS.PRIMARY}15`, // 15% opacity
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.XS,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: COLORS.TEXT_SECONDARY,
-    fontStyle: "italic",
-    lineHeight: 18,
-  },
+  title: { marginBottom: 4 },
+  subtitle: { maxWidth: 240 },
 });

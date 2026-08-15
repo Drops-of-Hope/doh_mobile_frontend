@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import ActionButton from "../atoms/ActionButton";
+import { Button, useTheme } from "../../../design";
 
 interface ModalActionsProps {
   primaryTitle: string;
@@ -9,39 +9,27 @@ interface ModalActionsProps {
   onSecondary: () => void;
 }
 
+// Shared footer for the HomeScreen sheets — two design-system Buttons in a row.
 export default function ModalActions({
   primaryTitle,
   secondaryTitle,
   onPrimary,
   onSecondary,
 }: ModalActionsProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.modalActions}>
-      <ActionButton
-        title={secondaryTitle}
-        onPress={onSecondary}
-        variant="secondary"
-        style={styles.actionButtonSpacing}
-      />
-      <ActionButton
-        title={primaryTitle}
-        onPress={onPrimary}
-        variant="primary"
-      />
+    <View style={[styles.row, { borderTopColor: theme.color.hairline, marginTop: theme.space.lg }]}>
+      <View style={styles.flex}>
+        <Button title={secondaryTitle} variant="outline" onPress={onSecondary} />
+      </View>
+      <View style={styles.flex}>
+        <Button title={primaryTitle} variant="solid" onPress={onPrimary} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  modalActions: {
-    flexDirection: "row",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-    gap: 12,
-  },
-  actionButtonSpacing: {
-    marginRight: 8,
-  },
+  row: { flexDirection: "row", gap: 12, paddingTop: 16, borderTopWidth: 1.5 },
+  flex: { flex: 1 },
 });

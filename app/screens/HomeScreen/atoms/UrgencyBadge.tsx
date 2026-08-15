@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Text, useTheme } from "../../../design";
 
 export type UrgencyLevel = "Critical" | "Moderate" | "Low";
 
@@ -7,39 +8,37 @@ interface UrgencyBadgeProps {
   urgency: UrgencyLevel;
 }
 
+// Maps urgency to the Ink & Paper semantic tones — crimson for Critical
+// (must read as unmissable), warning for Moderate, info for Low.
 export default function UrgencyBadge({ urgency }: UrgencyBadgeProps) {
-  const getUrgencyColors = (level: UrgencyLevel) => {
-    switch (level) {
-      case "Critical":
-        return { text: "#FF4757", bg: "#FFF5F5" };
-      case "Moderate":
-        return { text: "#DC2626", bg: "#FEF2F2" };
-      case "Low":
-        return { text: "#00D2D3", bg: "#F0FDFA" };
-      default:
-        return { text: "#DC2626", bg: "#FEF2F2" };
-    }
-  };
+  const theme = useTheme();
 
-  const urgencyColors = getUrgencyColors(urgency);
+  const tone =
+    urgency === "Critical"
+      ? { bg: theme.color.crimsonSoft, border: theme.color.crimson, text: "crimson" as const }
+      : urgency === "Moderate"
+      ? { bg: theme.color.warningSoft, border: theme.color.warning, text: "warning" as const }
+      : { bg: theme.color.infoSoft, border: theme.color.info, text: "info" as const };
 
   return (
-    <View style={[styles.urgencyBadge, { backgroundColor: urgencyColors.bg }]}>
-      <Text style={[styles.urgencyText, { color: urgencyColors.text }]}>
-        {urgency}
+    <View
+      style={[
+        styles.badge,
+        { backgroundColor: tone.bg, borderColor: tone.border, borderRadius: theme.radius.pill },
+      ]}
+    >
+      <Text variant="overline" tone={tone.text}>
+        {urgency.toUpperCase()}
       </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  urgencyBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  urgencyText: {
-    fontSize: 12,
-    fontWeight: "700",
+  badge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1.5,
   },
 });

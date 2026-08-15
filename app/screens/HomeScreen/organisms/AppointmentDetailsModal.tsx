@@ -1,12 +1,11 @@
 import React from "react";
-import { Modal, View, ScrollView, StyleSheet, Alert, TouchableOpacity, Text } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import ModalHeader from "../molecules/ModalHeader";
+import { View, StyleSheet, Alert } from "react-native";
+import { FileText, Calendar, MapPin, Hospital, CheckCircle2, Info, Copy } from "lucide-react-native";
+import { Sheet, Text, Icon, Surface, useTheme } from "../../../design";
 import ModalActions from "../molecules/ModalActions";
 import DetailRow from "../atoms/DetailRow";
 import { Appointment } from "../types";
 
-import { logger } from "../../../utils/logger";
 interface AppointmentDetailsModalProps {
   visible: boolean;
   appointment: Appointment | null;
@@ -20,99 +19,63 @@ export default function AppointmentDetailsModal({
   onClose,
   onReschedule,
 }: AppointmentDetailsModalProps) {
-  const copyAppointmentId = async () => {
-    if (appointment?.id) {
-      try {
-        // Simple copy using built-in clipboard
-        const textToCopy = appointment.id;
-        
-        Alert.alert(
-          "Appointment ID Copied",
-          `ID: ${textToCopy}\n\nThis has been prepared for copying.`,
-          [{ text: "OK" }]
-        );
-      } catch (error) {
-        Alert.alert("Error", "Failed to copy appointment ID");
-      }
-    }
+  const theme = useTheme();
+
+  const copyAppointmentId = () => {
+    if (!appointment?.id) return;
+    Alert.alert("Appointment ID", `ID: ${appointment.id}`, [{ text: "OK" }]);
   };
+
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <ModalHeader title="Appointment Details" onClose={onClose} />
-
-          {appointment && (
-            <ScrollView
-              style={styles.modalBody}
-              showsVerticalScrollIndicator={false}
+    <Sheet visible={visible} onClose={onClose} title="Appointment Details">
+      {appointment ? (
+        <View style={styles.body}>
+          <View style={styles.idRow}>
+            <View style={styles.idText}>
+              <DetailRow icon={FileText} label="Appointment ID" value={appointment.id} />
+            </View>
+            <Surface
+              tone="surface"
+              padding="sm"
+              radius="sm"
+              style={[styles.copyButton, { borderColor: theme.color.crimson }]}
+              onTouchEnd={copyAppointmentId}
             >
-              {/* Appointment ID with Copy Button */}
-              <View style={styles.appointmentIdContainer}>
-                <DetailRow
-                  icon="document-text"
-                  iconColor="#6366F1"
-                  label="Appointment ID"
-                  value={appointment.id}
-                />
-                <TouchableOpacity 
-                  style={styles.copyButton}
-                  onPress={copyAppointmentId}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="copy-outline" size={16} color="#6366F1" />
-                  <Text style={styles.copyButtonText}>Copy</Text>
-                </TouchableOpacity>
-              </View>
+              <Icon icon={Copy} size={14} color={theme.color.crimson} />
+              <Text variant="caption" tone="crimson">
+                Copy
+              </Text>
+            </Surface>
+          </View>
 
-              <DetailRow
-                icon="calendar"
-                iconColor="#3B82F6"
-                label="Date & Time"
-                value={`${appointment.date} at ${appointment.time}`}
-              />
+          <DetailRow icon={Calendar} label="Date & Time" value={`${appointment.date} at ${appointment.time}`} />
+          <DetailRow icon={MapPin} label="Location" value={appointment.location} />
+          <DetailRow icon={Hospital} label="Hospital" value={appointment.hospital} />
+          <DetailRow icon={CheckCircle2} label="Status" value={appointment.status.toUpperCase()} isStatus />
 
-              <DetailRow
-                icon="location"
-                iconColor="#10B981"
-                label="Location"
-                value={appointment.location}
-              />
-
-              <DetailRow
-                icon="medical"
-                iconColor="#F59E0B"
-                label="Hospital"
-                value={appointment.hospital}
-              />
-
-              <DetailRow
-                icon="checkmark-circle"
-                iconColor="#8B5CF6"
-                label="Status"
-                value={appointment.status.toUpperCase()}
-                isStatus
-              />
-
-              <View style={styles.instructionsContainer}>
-                <DetailRow
-                  icon="information-circle"
-                  iconColor="#6B7280"
-                  label="Preparation Instructions"
-                  value="• Eat a healthy meal before donating
-• Drink plenty of water
-• Bring a valid ID
-• Avoid alcohol 24 hours before donation
-• Get a good night's sleep"
-                />
-              </View>
-            </ScrollView>
-          )}
+          <View style={[styles.instructions, { backgroundColor: theme.color.infoSoft }]}>
+            <View style={styles.instructionsHeader}>
+              <Icon icon={Info} size={16} color={theme.color.info} />
+              <Text variant="label" tone="info">
+                Preparation Instructions
+              </Text>
+            </View>
+            <Text variant="caption" tone="inkMuted" style={styles.instructionLine}>
+              • Eat a healthy meal before donating
+            </Text>
+            <Text variant="caption" tone="inkMuted" style={styles.instructionLine}>
+              • Drink plenty of water
+            </Text>
+            <Text variant="caption" tone="inkMuted" style={styles.instructionLine}>
+              • Bring a valid ID
+            </Text>
+            <Text variant="caption" tone="inkMuted" style={styles.instructionLine}>
+              • Avoid alcohol 24 hours before donation
+            </Text>
+            <Text variant="caption" tone="inkMuted" style={styles.instructionLine}>
+              • Get a good night's sleep
+            </Text>
+          </View>
 
           <ModalActions
             primaryTitle="Got it"
@@ -124,62 +87,17 @@ export default function AppointmentDetailsModal({
             }}
           />
         </View>
-      </View>
-    </Modal>
+      ) : null}
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    width: "90%",
-    maxHeight: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  modalBody: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    maxHeight: 400,
-  },
-  instructionsContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: "#F9FAFB",
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#3B82F6",
-  },
-  appointmentIdContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  copyButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "#F0F0FF",
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#6366F1",
-  },
-  copyButtonText: {
-    fontSize: 12,
-    color: "#6366F1",
-    fontWeight: "600",
-    marginLeft: 4,
-  },
+  body: { paddingBottom: 8 },
+  idRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  idText: { flex: 1 },
+  copyButton: { flexDirection: "row", alignItems: "center", gap: 4, borderWidth: 1.5, marginBottom: 16 },
+  instructions: { borderRadius: 12, padding: 14, marginTop: 8, marginBottom: 16 },
+  instructionsHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 },
+  instructionLine: { marginBottom: 4, lineHeight: 16 },
 });

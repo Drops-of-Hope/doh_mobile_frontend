@@ -1,28 +1,25 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, StyleSheet } from "react-native";
+import { LucideIcon } from "lucide-react-native";
+import { Text, Icon, useTheme } from "../../../design";
 
 interface DetailRowProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  iconColor: string;
+  icon: LucideIcon;
   label: string;
   value: string;
   isStatus?: boolean;
 }
 
-export default function DetailRow({
-  icon,
-  iconColor,
-  label,
-  value,
-  isStatus = false,
-}: DetailRowProps) {
+export default function DetailRow({ icon, label, value, isStatus = false }: DetailRowProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.detailRow}>
-      <Ionicons name={icon} size={20} color={iconColor} />
-      <View style={styles.detailText}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={[styles.detailValue, isStatus && styles.statusText]}>
+    <View style={styles.row}>
+      <Icon icon={icon} size={20} color={theme.color.inkMuted} />
+      <View style={styles.text}>
+        <Text variant="caption" tone="inkMuted">
+          {label}
+        </Text>
+        <Text variant={isStatus ? "overline" : "body"} tone={isStatus ? "crimson" : "ink"}>
           {value}
         </Text>
       </View>
@@ -31,30 +28,6 @@ export default function DetailRow({
 }
 
 const styles = StyleSheet.create({
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 16,
-    paddingHorizontal: 4,
-  },
-  detailText: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: 16,
-    color: "#1F2937",
-    fontWeight: "500",
-  },
-  statusText: {
-    textTransform: "uppercase",
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#8B5CF6",
-  },
+  row: { flexDirection: "row", alignItems: "flex-start", marginBottom: 16, gap: 12 },
+  text: { flex: 1 },
 });
