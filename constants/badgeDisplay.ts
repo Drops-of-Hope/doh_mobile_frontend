@@ -1,34 +1,33 @@
 // Badge display metadata (icon/color/label), mirroring the backend's
 // BadgeService.getBadgeDisplayInfo / OrganizerBadgeService.getTierDisplayInfo.
-import { Ionicons } from "@expo/vector-icons";
-
-type IconName = keyof typeof Ionicons.glyphMap;
+import { Star, Award, Medal, Trophy, Gem, Flag, LucideIcon } from "lucide-react-native";
 
 interface BadgeDisplay {
   label: string;
   color: string;
-  icon: IconName;
+  icon: LucideIcon;
 }
 
+// Aligned to app/design/tokens.ts badge tier colors.
 export const DONOR_BADGE_DISPLAY: Record<string, BadgeDisplay> = {
-  BRONZE: { label: "Bronze Donor", color: "#92400E", icon: "star" },
-  SILVER: { label: "Silver Donor", color: "#9CA3AF", icon: "ribbon" },
-  GOLD: { label: "Gold Donor", color: "#F59E0B", icon: "medal" },
-  PLATINUM: { label: "Platinum Donor", color: "#9CA3AF", icon: "trophy" },
-  DIAMOND: { label: "Diamond Donor", color: "#9333EA", icon: "diamond" },
+  BRONZE: { label: "Bronze Donor", color: "#A56A3A", icon: Star },
+  SILVER: { label: "Silver Donor", color: "#8E9196", icon: Award },
+  GOLD: { label: "Gold Donor", color: "#C08A2E", icon: Medal },
+  PLATINUM: { label: "Platinum Donor", color: "#5E7E8C", icon: Trophy },
+  DIAMOND: { label: "Diamond Donor", color: "#6C63B5", icon: Gem },
 };
 
 export const ORGANIZER_BADGE_DISPLAY: Record<string, BadgeDisplay> = {
-  NONE: { label: "New Organizer", color: "#9CA3AF", icon: "flag-outline" },
-  HOST: { label: "Host", color: "#0284C7", icon: "flag" },
-  SILVER_HOST: { label: "Silver Host", color: "#9CA3AF", icon: "ribbon" },
-  GOLD_HOST: { label: "Gold Host", color: "#F59E0B", icon: "medal" },
-  PLATINUM_HOST: { label: "Platinum Host", color: "#9CA3AF", icon: "trophy" },
-  DIAMOND_HOST: { label: "Diamond Host", color: "#9333EA", icon: "diamond" },
+  NONE: { label: "New Organizer", color: "#9C958A", icon: Flag },
+  HOST: { label: "Host", color: "#3A6B8A", icon: Flag },
+  SILVER_HOST: { label: "Silver Host", color: "#8E9196", icon: Award },
+  GOLD_HOST: { label: "Gold Host", color: "#C08A2E", icon: Medal },
+  PLATINUM_HOST: { label: "Platinum Host", color: "#5E7E8C", icon: Trophy },
+  DIAMOND_HOST: { label: "Diamond Host", color: "#6C63B5", icon: Gem },
 };
 
 export const EMERGENCY_RESPONDER_BADGE_DISPLAY: BadgeDisplay = {
   label: "Emergency Responder",
-  color: "#DC2626",
-  icon: "medkit",
+  color: "#C0362C",
+  icon: Star,
 };
