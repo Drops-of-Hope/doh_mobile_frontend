@@ -2,3 +2,6 @@ allowBuilds:
   '@sentry/cli': true
   core-js-pure: true
   unrs-resolver: true
+
+overrides:
+  eslint-plugin-react-hooks: ^6.1.1

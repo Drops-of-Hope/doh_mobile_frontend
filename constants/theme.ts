@@ -1,41 +1,46 @@
-// UI Color Constants
+// UI Color Constants — legacy token file.
+//
+// The canonical design system now lives in app/design/tokens.ts ("Ink & Paper").
+// This file remains only for components that haven't been migrated to
+// useTheme() yet; its values are aligned to the same palette so legacy-styled
+// components harmonize with rebuilt screens. Prefer app/design for new code.
 export const COLORS = {
   // Primary colors
-  PRIMARY: "#dc2626", // red-600
-  PRIMARY_LIGHT: "#ef4444", // red-500
-  PRIMARY_DARK: "#b91c1c", // red-700
+  PRIMARY: "#C0362C", // crimson
+  PRIMARY_LIGHT: "#D4574E",
+  PRIMARY_DARK: "#9C2B23",
 
   // Secondary colors
-  SECONDARY: "#6b7280", // gray-500
-  SECONDARY_LIGHT: "#9ca3af", // gray-400
-  SECONDARY_DARK: "#374151", // gray-700
+  SECONDARY: "#6B655C", // ink muted
+  SECONDARY_LIGHT: "#9C958A", // ink faint
+  SECONDARY_DARK: "#3E3A34",
 
   // Background colors
-  BACKGROUND: "#ffffff",
-  BACKGROUND_SECONDARY: "#f9fafb", // gray-50
-  BACKGROUND_TERTIARY: "#f3f4f6", // gray-100
+  BACKGROUND: "#FFFFFF", // surface
+  BACKGROUND_SECONDARY: "#F7F5F1", // paper
+  BACKGROUND_TERTIARY: "#EFECE6", // surface sunken
 
   // Text colors
-  TEXT_PRIMARY: "#111827", // gray-900
-  TEXT_SECONDARY: "#6b7280", // gray-500
-  TEXT_MUTED: "#9ca3af", // gray-400
+  TEXT_PRIMARY: "#1A1917", // ink
+  TEXT_SECONDARY: "#6B655C", // ink muted
+  TEXT_MUTED: "#9C958A", // ink faint
 
   // Border colors
-  BORDER: "#e5e7eb", // gray-200
-  BORDER_LIGHT: "#f3f4f6", // gray-100
+  BORDER: "#E3DED4", // hairline
+  BORDER_LIGHT: "#EFECE6",
 
   // State colors
-  SUCCESS: "#10b981", // emerald-500
-  WARNING: "#f59e0b", // amber-500
-  ERROR: "#ef4444", // red-500
-  INFO: "#3b82f6", // blue-500
+  SUCCESS: "#3F7D5C", // moss
+  WARNING: "#B8862F", // ochre
+  ERROR: "#B23120",
+  INFO: "#3A6B8A", // slate
 } as const;
 
 // Tab Bar Specific Colors
 export const TAB_COLORS = {
   ACTIVE: COLORS.PRIMARY,
   INACTIVE: COLORS.TEXT_SECONDARY,
-  BACKGROUND: COLORS.BACKGROUND,
+  BACKGROUND: COLORS.BACKGROUND_SECONDARY,
   BORDER: COLORS.BORDER,
 } as const;
 
@@ -51,9 +56,9 @@ export const SPACING = {
 
 // Common border radius values
 export const BORDER_RADIUS = {
-  SM: 4,
-  MD: 8,
-  LG: 12,
-  XL: 16,
+  SM: 8,
+  MD: 12,
+  LG: 16,
+  XL: 20,
   FULL: 9999,
 } as const;

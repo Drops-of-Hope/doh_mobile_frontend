@@ -1,7 +1,3 @@
-// Export all tab-related constants
-export * from "./tabIcons";
-export * from "./tabItems";
-
 // Export theme constants
 export * from "./theme";
 
