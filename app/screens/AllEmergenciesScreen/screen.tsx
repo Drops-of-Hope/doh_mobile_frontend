@@ -1,15 +1,8 @@
 import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  ScrollView,
-  Alert,
-} from "react-native";
+import { Alert } from "react-native";
+import { Screen, AppBar } from "../../design";
 
 // Import refactored components
-import ScreenHeader from "./atoms/ScreenHeader";
 import StatsOverview from "./molecules/StatsOverview";
 import EmergencyList from "./molecules/EmergencyList";
 
@@ -98,25 +91,16 @@ export default function AllEmergenciesScreen({
   const stats = getEmergencyStats(allEmergencies);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+    <Screen scroll>
+      <AppBar title="All Emergencies" onBack={handleBack} />
 
-      <ScreenHeader title="All Emergencies" onBackPress={handleBack} />
+      <StatsOverview stats={stats} />
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <StatsOverview stats={stats} />
-
-        <EmergencyList
-          emergencies={allEmergencies}
-          onDonate={handleDonateNow}
-          onViewDetails={handleViewEmergencyDetails}
-        />
-
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+      <EmergencyList
+        emergencies={allEmergencies}
+        onDonate={handleDonateNow}
+        onViewDetails={handleViewEmergencyDetails}
+      />
 
       {/* Modals */}
       <EmergencyDetailsModal
@@ -138,19 +122,6 @@ export default function AllEmergenciesScreen({
         onClose={closeDonationModal}
         onSubmit={handleDonationSubmit}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  bottomPadding: {
-    height: 100,
-  },
-});
