@@ -1,7 +1,10 @@
 // Shared param-list types for the navigator tree.
 // Root (native-stack)
-//  ├─ Splash / Entry           (unauthenticated)
-//  └─ AppTabs (bottom-tabs)    (authenticated)
+//  ├─ Loading                    (auth/profile bootstrap in progress)
+//  ├─ Splash / Entry             (unauthenticated)
+//  ├─ ProfileLoadError           (authenticated, backend profile couldn't be resolved)
+//  ├─ ProfileCompletion          (authenticated, backend profile incomplete)
+//  └─ AppTabs (bottom-tabs)      (authenticated, profile complete)
 //      ├─ HomeStack
 //      ├─ ExploreStack
 //      ├─ ActivitiesStack
@@ -48,8 +51,11 @@ export type AppTabsParamList = {
 };
 
 export type RootStackParamList = {
+  Loading: undefined;
   Splash: undefined;
   Entry: undefined;
+  ProfileLoadError: undefined;
+  ProfileCompletion: undefined;
   AppTabs: undefined;
   Donate: undefined;
   DonationEligibility: undefined;

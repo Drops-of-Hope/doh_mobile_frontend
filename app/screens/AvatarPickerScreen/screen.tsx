@@ -66,7 +66,7 @@ interface AvatarPickerScreenProps {
 
 export default function AvatarPickerScreen({ navigation }: AvatarPickerScreenProps) {
   const theme = useTheme();
-  const { user } = useAuth();
+  const { user, refreshBackendUser } = useAuth();
   const [options, setOptions] = useState<AvatarOptions>({ seed: user?.sub || user?.email || randomSeed() });
   const [activeCategory, setActiveCategory] = useState<keyof AvatarOptions>("hair");
   const [saving, setSaving] = useState(false);
@@ -101,6 +101,7 @@ export default function AvatarPickerScreen({ navigation }: AvatarPickerScreenPro
     setSaving(true);
     try {
       await userService.updateProfile({ profileImageUrl: previewUrl });
+      await refreshBackendUser();
       navigation?.goBack();
     } catch (error) {
       logger.error("Failed to save avatar:", error);

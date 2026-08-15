@@ -16,7 +16,6 @@ import EmergencyDetailsModal from "./organisms/EmergencyDetailsModal";
 import CampaignsSection from "./organisms/CampaignsSection";
 import ThankYouCard from "./molecules/ThankYouCard";
 import HomeScreenSkeleton from "../shared/molecules/skeletons/HomeScreenSkeleton";
-import ProfileCompletionScreen from "../ProfileCompletionScreen/screen";
 import DonorIdCard from "../shared/organisms/DonorIdCard";
 
 import { Emergency } from "./molecules/EmergencyCard";
@@ -25,7 +24,6 @@ import { userService } from "../../services/userService";
 
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { useAuthUser } from "../../hooks/useAuthUser";
 
 import { getUrgency, isUrgent } from "../../utils/appointmentUrgency";
 import { logger } from "../../utils/logger";
@@ -34,20 +32,26 @@ interface HomeScreenProps {
   navigation?: any;
 }
 
+// Format badge name for display (e.g., "BRONZE" -> "Bronze Donor")
+const formatBadgeName = (badge: string | undefined): string => {
+  if (!badge) return "Bronze Donor"; // Default
+  const formatted = badge.charAt(0).toUpperCase() + badge.slice(1).toLowerCase();
+  return `${formatted} Donor`;
+};
+
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   // State management
   const [homeData, setHomeData] = useState<HomeScreenData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   const [selectedEmergency, setSelectedEmergency] = useState<Emergency | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showIdCard, setShowIdCard] = useState(false);
 
-  // Context
-  const { user, getFirstName } = useAuth();
+  // Context — AuthContext already resolved the backend profile before this screen could
+  // mount (see AppNavigator), so onboarding/create-or-login is never this screen's job.
+  const { user, getFirstName, profile, refreshBackendUser } = useAuth();
   const { t } = useLanguage();
-  const { getStoredUserData, processAuthUser } = useAuthUser();
 
   // Helper functions
   const getLastDonationDays = () => {
@@ -59,30 +63,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     return diffDays;
   };
 
-  // Format badge name for display (e.g., "BRONZE" -> "Bronze Donor")
-  const formatBadgeName = (badge: string | undefined): string => {
-    if (!badge) return "Bronze Donor"; // Default
-
-    const formatted = badge.charAt(0).toUpperCase() + badge.slice(1).toLowerCase();
-    return `${formatted} Donor`;
-  };
-
-  // Get donor badge from stored user data
-  const getDonorBadge = async (): Promise<string> => {
-    try {
-      const userData = await getStoredUserData();
-      return formatBadgeName(userData?.donationBadge);
-    } catch (error) {
-      logger.error("Error getting donor badge:", error);
-      return "Bronze Donor"; // Default fallback
-    }
-  };
-
-  const [donorBadge, setDonorBadge] = useState<string>("Bronze Donor");
+  const donorBadge = formatBadgeName(profile?.donationBadge);
 
   useEffect(() => {
-    initializeUser();
-    getDonorBadge().then(setDonorBadge);
+    loadHomeData();
     // Best-effort avatar fetch for the header; the initials fallback covers failure.
     userService
       .getUserProfile()
@@ -90,63 +74,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       .catch(() => {});
   }, []);
 
-  const initializeUser = async () => {
-    try {
-      // First check if we have stored user data
-      let userData = await getStoredUserData();
-
-      // If no stored user data but we have an authenticated user,
-      // we need to process/create the user in the backend
-      if (!userData && user?.sub) {
-        const authData = {
-          sub: user.sub,
-          email: user.email,
-          given_name: user.given_name || user.name?.split(" ")[0] || "User",
-          family_name: user.family_name || user.name?.split(" ").slice(1).join(" ") || "",
-          name: user.name || `${user.given_name} ${user.family_name}`,
-          roles: user.roles || [],
-          birthdate: user.birthdate || "",
-          username: user.username || user.email,
-          updated_at: Math.floor(Date.now() / 1000),
-        };
-
-        // Process the user (creates in backend if needed)
-        userData = await processAuthUser(authData);
-      }
-
-      await checkProfileCompletion(userData);
-      await loadHomeData();
-    } catch (error) {
-      logger.error("❌ Error initializing user:", error);
-      Alert.alert(
-        "Initialization Error",
-        "Failed to initialize user data. Please try logging out and back in.",
-        [{ text: "OK" }]
-      );
-    }
-  };
-
-  const checkProfileCompletion = async (userData?: any) => {
-    try {
-      const userDataToCheck = userData || (await getStoredUserData());
-
-      if (!userDataToCheck) {
-        return;
-      }
-
-      if (userDataToCheck?.needsProfileCompletion) {
-        setShowProfileCompletion(true);
-        return;
-      }
-    } catch (error) {
-      logger.error("Error checking profile completion:", error);
-    }
-  };
-
   const loadHomeData = async () => {
-    // Don't load if profile completion is needed
-    if (showProfileCompletion) return;
-
     try {
       setLoading(true);
       const data = await homeService.getHomeData();
@@ -154,9 +82,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     } catch (error) {
       logger.error("Failed to load home data:", error);
 
-      // Check if error is due to user not existing
+      // The backend profile can drift (e.g. it was deactivated) between AppNavigator's
+      // bootstrap and this call — re-resolve status from the server rather than assuming
+      // onboarding is needed; AppNavigator will react to the updated profileStatus.
       if (error instanceof Error && error.message.includes("User not found")) {
-        setShowProfileCompletion(true);
+        await refreshBackendUser();
         return;
       }
 
@@ -164,11 +94,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleProfileComplete = async (userInfo: any) => {
-    setShowProfileCompletion(false);
-    await loadHomeData();
   };
 
   const handleRefresh = useCallback(async () => {
@@ -266,16 +191,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? "" : date.toLocaleDateString();
   };
-
-  if (showProfileCompletion) {
-    return (
-      <ProfileCompletionScreen
-        userId={user?.sub || ""}
-        onComplete={handleProfileComplete}
-        onSkip={() => setShowProfileCompletion(false)}
-      />
-    );
-  }
 
   const emergencies = getEmergenciesData();
   const campaigns = getCampaignsData();

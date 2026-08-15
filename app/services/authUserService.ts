@@ -1,5 +1,5 @@
 // Authentication User Service - Handle user creation and login from auth provider
-import { API_BASE_URL, API_ENDPOINTS, apiRequestWithAuth } from './api';
+import { API_ENDPOINTS, apiRequestWithAuth } from './api';
 
 import { logger } from "../utils/logger";
 // Types for auth provider response
@@ -57,7 +57,7 @@ class AuthUserService {
           id: authData.sub, // Use sub as the primary key
           email: authData.email,
           name: `${authData.given_name} ${authData.family_name}`.trim(),
-          authProvider: 'auth0', // or whatever provider you're using
+          authProvider: 'asgardeo',
           authProviderId: authData.sub,
           roles: authData.roles,
           birthdate: authData.birthdate,
@@ -91,55 +91,6 @@ class AuthUserService {
       return result;
     } catch (error) {
       logger.error('Error in completeProfile:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Check if user exists by ID (sub from auth provider)
-   */
-  async checkUserExists(userId: string): Promise<boolean> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/users/exists/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.status === 404) {
-        return false;
-      }
-
-      if (!response.ok) {
-        throw new Error(`Failed to check user existence: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return result.exists;
-    } catch (error) {
-      logger.error('Error checking user existence:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Get user profile by ID
-   * Note: This method is for getting specific user profiles by ID.
-   * For getting the current authenticated user's profile, use userService.getUserProfile() instead.
-   */
-  async getUserProfile(userId: string): Promise<any> {
-    try {
-      // Import the API function to use proper authentication
-      const { apiRequestWithAuth } = await import('./api');
-      
-      const response = await apiRequestWithAuth(`/users/${userId}`, {
-        method: 'GET',
-      });
-
-      return response;
-    } catch (error) {
-      logger.error('Error getting user profile:', error);
       throw error;
     }
   }

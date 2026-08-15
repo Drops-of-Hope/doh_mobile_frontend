@@ -19,7 +19,7 @@ interface DonorIdCardProps {
   onClose: () => void;
 }
 
-const CARD_HEIGHT = 300;
+const CARD_HEIGHT = 420;
 
 export default function DonorIdCard({ visible, onClose }: DonorIdCardProps) {
   const theme = useTheme();
@@ -133,35 +133,37 @@ export default function DonorIdCard({ visible, onClose }: DonorIdCardProps) {
                 { borderColor: theme.color.hairline, backgroundColor: theme.color.surface, transform: [{ rotateY: frontRotate }] },
               ]}
             >
-              <View style={styles.brandRow}>
-                <DropMark size={16} color={theme.color.crimson} filled />
-                <Text variant="overline" tone="crimson">
-                  {t("id_card.brand")}
-                </Text>
-              </View>
-
-              <View style={styles.identityRow}>
-                <UserAvatar url={profile.profileImageUrl} name={profile.name} seed={profile.id} size={72} />
-                <View style={styles.identityInfo}>
-                  <Text variant="h3" numberOfLines={1}>
-                    {profile.name}
+              <View>
+                <View style={styles.brandRow}>
+                  <DropMark size={16} color={theme.color.crimson} filled />
+                  <Text variant="overline" tone="crimson">
+                    {t("id_card.brand")}
                   </Text>
-                  <View style={styles.bloodRow}>
-                    <Icon icon={Droplet} size={16} color={theme.color.crimson} />
-                    <Text variant="h2" tone="crimson">
-                      {formatBloodGroup(profile.bloodGroup)}
-                    </Text>
-                  </View>
-                  <Badge tier={badgeTier} label={profile.donationBadge} size="sm" />
                 </View>
-              </View>
 
-              <View style={[styles.detailsRow, { borderTopColor: theme.color.hairline }]}>
-                {age !== null ? (
-                  <DetailCell label={t("id_card.age")} value={t("id_card.years", { age })} />
-                ) : null}
-                <DetailCell label={t("id_card.nic")} value={profile.nic || "—"} />
-                <DetailCell label={t("id_card.id_number")} value={profile.id.slice(0, 8).toUpperCase()} />
+                <View style={styles.identityRow}>
+                  <UserAvatar url={profile.profileImageUrl} name={profile.name} seed={profile.id} size={72} />
+                  <View style={styles.identityInfo}>
+                    <Text variant="h3" numberOfLines={1}>
+                      {profile.name}
+                    </Text>
+                    <View style={styles.bloodRow}>
+                      <Icon icon={Droplet} size={16} color={theme.color.crimson} />
+                      <Text variant="h2" tone="crimson">
+                        {formatBloodGroup(profile.bloodGroup)}
+                      </Text>
+                    </View>
+                    <Badge tier={badgeTier} label={profile.donationBadge} size="sm" />
+                  </View>
+                </View>
+
+                <View style={[styles.detailsRow, { borderTopColor: theme.color.hairline }]}>
+                  {age !== null ? (
+                    <DetailCell label={t("id_card.age")} value={t("id_card.years", { age })} />
+                  ) : null}
+                  <DetailCell label={t("id_card.nic")} value={profile.nic || "—"} />
+                  <DetailCell label={t("id_card.id_number")} value={profile.id.slice(0, 8).toUpperCase()} />
+                </View>
               </View>
 
               <Text variant="caption" tone="inkFaint" align="center" style={styles.hint}>
@@ -176,37 +178,45 @@ export default function DonorIdCard({ visible, onClose }: DonorIdCardProps) {
                 { borderColor: theme.color.hairline, backgroundColor: theme.color.surface, transform: [{ rotateY: backRotate }] },
               ]}
             >
-              {qrData ? (
-                <View style={styles.qrWrap}>
-                  <Surface tone="surface" padding="md">
-                    <QRCode
-                      value={qrData.userId}
-                      size={140}
-                      color={theme.color.ink}
-                      backgroundColor={theme.color.surface}
-                      logo={require("../../../../assets/logo.png")}
-                      logoSize={28}
-                      logoBackgroundColor="transparent"
-                      getRef={(c) => setQrRef(c)}
-                    />
-                  </Surface>
-                  <Text variant="caption" tone="inkMuted" align="center" style={styles.scanHint}>
-                    {t("id_card.scan_instruction")}
-                  </Text>
-                </View>
-              ) : null}
+              <View style={styles.backContent}>
+                {qrData ? (
+                  <View style={styles.qrWrap}>
+                    <Surface tone="surface" padding="md">
+                      <QRCode
+                        value={qrData.userId}
+                        size={140}
+                        color={theme.color.ink}
+                        backgroundColor={theme.color.surface}
+                        logo={require("../../../../assets/logo.png")}
+                        logoSize={26}
+                        logoMargin={6}
+                        logoBorderRadius={6}
+                        logoBackgroundColor={theme.color.surface}
+                        getRef={(c) => setQrRef(c)}
+                      />
+                    </Surface>
+                    <Text variant="caption" tone="inkMuted" align="center" style={styles.scanHint}>
+                      {t("id_card.scan_instruction")}
+                    </Text>
+                  </View>
+                ) : null}
 
-              <View style={[styles.detailsColumn, { borderTopColor: theme.color.hairline }]}>
-                <DetailCell
-                  label={t("id_card.address")}
-                  value={profile.userDetails?.address || "—"}
-                  full
-                />
-                <DetailCell
-                  label={t("id_card.emergency_contact")}
-                  value={profile.userDetails?.emergencyContact || "—"}
-                  full
-                />
+                <View style={[styles.detailsColumn, { borderTopColor: theme.color.hairline }]}>
+                  <View style={styles.detailsRowCompact}>
+                    <DetailCell label={t("id_card.nic")} value={profile.nic || "—"} />
+                    <DetailCell label={t("id_card.id_number")} value={profile.id.slice(0, 8).toUpperCase()} />
+                  </View>
+                  <DetailCell
+                    label={t("id_card.address")}
+                    value={profile.userDetails?.address || "—"}
+                    full
+                  />
+                  <DetailCell
+                    label={t("id_card.emergency_contact")}
+                    value={profile.userDetails?.emergencyContact || "—"}
+                    full
+                  />
+                </View>
               </View>
 
               <Text variant="caption" tone="inkFaint" align="center" style={styles.hint}>
@@ -263,17 +273,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     backfaceVisibility: "hidden",
+    justifyContent: "space-between",
   },
   faceBack: { alignItems: "center" },
+  backContent: { width: "100%" },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 16 },
   identityRow: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 16 },
   identityInfo: { flex: 1, gap: 4 },
   bloodRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   detailsRow: { flexDirection: "row", borderTopWidth: 1.5, paddingTop: 12, gap: 16 },
   detailsColumn: { width: "100%", borderTopWidth: 1.5, paddingTop: 12, gap: 10 },
+  detailsRowCompact: { flexDirection: "row", gap: 16 },
   detailCell: { flex: 1, gap: 2 },
   detailCellFull: { width: "100%", gap: 2 },
-  hint: { position: "absolute", bottom: 10, left: 0, right: 0 },
+  hint: { marginTop: 10 },
   qrWrap: { alignItems: "center", marginBottom: 12 },
   scanHint: { marginTop: 10, maxWidth: 200 },
   actionRow: { flexDirection: "row", gap: 10, marginTop: 20, marginBottom: 8 },

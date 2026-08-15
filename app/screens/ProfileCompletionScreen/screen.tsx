@@ -1,23 +1,21 @@
-// Profile Completion Screen - For users who need to complete their profile after auth
+// Profile Completion Screen - shown by AppNavigator as a root screen whenever the backend
+// says profileStatus === "incomplete". Talks to the backend directly and refreshes
+// AuthContext's profile afterwards; the navigator swaps to the tabs on its own once
+// profileStatus flips to "complete" (see AppNavigator.tsx).
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { useAuthUser } from '../../hooks/useAuthUser';
+import { useAuth } from '../../context/AuthContext';
+import authUserService from '../../services/authUserService';
 import ValidationUtils from '../../utils/ValidationUtils';
 
 import { Screen, Field, Select, Button, Text } from '../../design';
 
 import { logger } from "../../utils/logger";
-interface ProfileCompletionScreenProps {
-  userId: string;
-  onComplete: (userInfo: any) => void;
-  onSkip?: () => void;
-}
 
-const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
-  userId,
-  onComplete,
-  onSkip,
-}) => {
+const ProfileCompletionScreen: React.FC = () => {
+  const { user, refreshBackendUser, logout } = useAuth();
+  const userId = user?.sub || '';
+
   const [nic, setNic] = useState('');
   const [bloodGroup, setBloodGroup] = useState('A_POSITIVE');
   const [address, setAddress] = useState('');
@@ -26,8 +24,8 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-
-  const { completeUserProfile, isProcessing, error } = useAuthUser();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const bloodGroups = [
     { label: 'A+', value: 'A_POSITIVE' },
@@ -90,6 +88,8 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
 
     // Clear any previous validation errors
     setValidationErrors({});
+    setError(null);
+    setIsProcessing(true);
 
     try {
       const profileData = {
@@ -102,17 +102,25 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
         emergencyContact: emergencyContact ? ValidationUtils.cleanPhoneNumber(emergencyContact) : undefined,
       };
 
-      const userInfo = await completeUserProfile(userId, profileData);
-
-      if (userInfo) {
-        Alert.alert('Success', 'Profile completed successfully!', [
-          { text: 'OK', onPress: () => onComplete(userInfo) },
-        ]);
-      }
-    } catch (error: any) {
-      logger.error("Profile completion error:", error);
-      Alert.alert('Error', error.message || 'Failed to complete profile');
+      await authUserService.completeProfile(userId, profileData);
+      // Re-fetch profile status from the server; AppNavigator swaps to the tabs once
+      // profileStatus flips to "complete".
+      await refreshBackendUser();
+    } catch (err: any) {
+      logger.error("Profile completion error:", err);
+      const message = err?.message || 'Failed to complete profile';
+      setError(message);
+      Alert.alert('Error', message);
+    } finally {
+      setIsProcessing(false);
     }
+  };
+
+  const handleSignOut = () => {
+    Alert.alert('Sign out', 'You need to complete your profile to use the app. Sign out instead?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: () => logout() },
+    ]);
   };
 
   return (
@@ -232,14 +240,12 @@ const ProfileCompletionScreen: React.FC<ProfileCompletionScreenProps> = ({
           disabled={isProcessing}
         />
 
-        {onSkip ? (
-          <Button
-            title="Skip for Now"
-            variant="outline"
-            onPress={onSkip}
-            disabled={isProcessing}
-          />
-        ) : null}
+        <Button
+          title="Sign out"
+          variant="outline"
+          onPress={handleSignOut}
+          disabled={isProcessing}
+        />
       </View>
     </Screen>
   );
