@@ -268,8 +268,13 @@ class CampaignService {
       const campaignData = statsData.campaign || {};
       const participationData = statsData.participation || {};
       
+      // Attendance covers everyone who showed up, whether or not they went on
+      // to donate — the backend advances a participant's status from
+      // ATTENDED to COMPLETED once the donation is recorded, so counting
+      // ATTENDED alone makes the tile drop by one every time a donation
+      // completes.
       const transformedStats: CampaignStats = {
-        totalAttendance: participationData.ATTENDED || 0,
+        totalAttendance: (participationData.ATTENDED || 0) + (participationData.COMPLETED || 0),
         screenedPassed: participationData.screenedPassed || 0,
         walkInsScreened: participationData.walkInsScreened || 0,
         goalProgress: campaignData.actualDonors && campaignData.expectedDonors
@@ -382,75 +387,88 @@ class CampaignService {
   // Get single campaign details
   async getCampaignDetails(campaignId: string): Promise<Campaign> {
     try {
-      const apiData = await apiRequestWithAuth(
+      const response = await apiRequestWithAuth(
         `${API_ENDPOINTS.CAMPAIGNS}/${campaignId}`,
         {
           method: "GET",
         }
       );
 
+      // Backend wraps every response as { success, data }; unwrap it the
+      // same way getCampaignStats/getCampaignAnalytics do — this endpoint
+      // previously read the envelope itself as the campaign, so apiData.id
+      // was always undefined and every call fell into "Campaign not found".
+      const apiData = response?.data || response;
+
       if (!apiData || !apiData.id) {
         throw new Error("Invalid campaign data received from API");
       }
 
-      // Transform backend API format to frontend expected format
+      // Compute the upcoming/active/completed/cancelled lifecycle state the
+      // same way CampaignDashboardScreen.categorizeByStatus does — the
+      // backend has no `status` column, only startTime/endTime/isApproved.
+      const isCancelled = apiData.isApproved === "CANCELLED";
+      const now = new Date();
+      const start = new Date(apiData.startTime);
+      const end = new Date(apiData.endTime);
+      const lifecycleStatus = isCancelled
+        ? "cancelled"
+        : now >= start && now <= end
+        ? "active"
+        : now < start
+        ? "upcoming"
+        : "completed";
+
+      // Transform backend API format to frontend expected format. GET
+      // /campaigns/:id (cloudflare_doh_backend) returns a flat row — id,
+      // title, type, location, motivation, description, startTime, endTime,
+      // expectedDonors, actualDonors, contactPersonName, contactPersonPhone,
+      // medicalEstablishmentId, organizerId, isActive, isApproved (PENDING/
+      // ACCEPTED/CANCELLED), requirements, createdAt, plus joined
+      // establishmentName/establishmentAddress/organizerName/organizerEmail
+      // — there is no nested organizer/medicalEstablishment/stats object.
       const transformedCampaign: Campaign = {
         id: apiData.id,
         title: apiData.title || "",
         type: apiData.type || "MOBILE",
         location: apiData.location || "",
-        organizerId: apiData.organizer?.id || apiData.organizerId || "",
+        organizerId: apiData.organizerId || "",
         motivation: apiData.motivation || "",
         description: apiData.description || "",
 
-        // Transform date/time fields
-        startTime: apiData.startTime || apiData.startDate || new Date().toISOString(),
-        endTime: apiData.endTime || apiData.endDate || new Date().toISOString(),
+        startTime: apiData.startTime || new Date().toISOString(),
+        endTime: apiData.endTime || new Date().toISOString(),
 
-        // Transform numeric fields
-        expectedDonors: apiData.goalBloodUnits || 0,
-        actualDonors:
-          apiData.currentBloodUnits || apiData.stats?.currentDonations || 0,
+        expectedDonors: apiData.expectedDonors || 0,
+        actualDonors: apiData.actualDonors || 0,
 
-        // Contact information from organizer
-        contactPersonName: apiData.organizer?.name || "",
-        contactPersonPhone: apiData.organizer?.phone || "",
+        contactPersonName: apiData.contactPersonName || apiData.organizerName || "",
+        contactPersonPhone: apiData.contactPersonPhone || "",
 
         // Status and approval
-        isApproved: true, // Assume approved if returned by API
-        isActive: apiData.status === "active",
-        status: apiData.status || "upcoming",
+        isApproved: apiData.isApproved === "ACCEPTED",
+        isActive: Boolean(apiData.isActive),
+        status: lifecycleStatus,
 
-        // Medical establishment
-        medicalEstablishmentId: apiData.medicalEstablishment?.id || "",
+        medicalEstablishmentId: apiData.medicalEstablishmentId || "",
 
-        // Timestamps
         createdAt: apiData.createdAt || new Date().toISOString(),
         updatedAt: apiData.updatedAt || new Date().toISOString(),
 
         // Computed UI fields
-        hasLinkedDonations: (apiData.stats?.currentDonations || 0) > 0,
-        canEdit: apiData.status === "upcoming" || apiData.status === "active",
-        canDelete:
-          apiData.status === "upcoming" &&
-          (apiData.stats?.currentDonations || 0) === 0,
-        currentDonations: apiData.stats?.currentDonations || 0,
-        donationGoal: apiData.goalBloodUnits || 0,
-        totalAttendance: apiData.stats?.totalAttendance || 0,
-        screenedPassed: apiData.stats?.screenedPassed || 0,
+        hasLinkedDonations: (apiData.actualDonors || 0) > 0,
+        canEdit: lifecycleStatus === "upcoming" || lifecycleStatus === "active",
+        canDelete: lifecycleStatus === "upcoming" && (apiData.actualDonors || 0) === 0,
+        currentDonations: apiData.actualDonors || 0,
+        donationGoal: apiData.expectedDonors || 0,
 
         // Backward compatibility fields for EditCampaignScreen
-        address:
-          apiData.medicalEstablishment?.address || apiData.location || "",
-        date: apiData.startDate
-          ? new Date(apiData.startDate).toISOString().split("T")[0]
-          : "",
-        contactPerson: apiData.organizer?.name || "",
-        contactPhone: apiData.organizer?.phone || "",
-        contactEmail: apiData.organizer?.email || "",
-        requirements: apiData.requirements
-          ? JSON.stringify(apiData.requirements)
-          : "",
+        address: apiData.establishmentAddress || apiData.location || "",
+        date: apiData.startTime ? new Date(apiData.startTime).toISOString().split("T")[0] : "",
+        contactPerson: apiData.contactPersonName || apiData.organizerName || "",
+        contactPhone: apiData.contactPersonPhone || "",
+        contactEmail: apiData.organizerEmail || "",
+        requirements: apiData.requirements ? JSON.stringify(apiData.requirements) : "",
         additionalNotes: "",
       };
 
@@ -492,7 +510,37 @@ class CampaignService {
           method: "GET",
         }
       );
-      return response.data;
+
+      // The backend's /analytics endpoint is currently an alias for /stats —
+      // it returns { campaign, participation, donations }, not the shape
+      // this method promises. Map it here so the analytics screen doesn't
+      // reference undefined fields. dailyStats/topDonors have no backend
+      // source yet, so they stay empty (the screen already hides those
+      // sections when empty).
+      const apiData = response.data || response;
+      const statsData = apiData.stats || apiData;
+      const participationData: Record<string, number> = statsData.participation || {};
+      const donationsData = statsData.donations || {};
+
+      const totalRegistrations = Object.values(participationData).reduce(
+        (sum: number, count) => sum + (Number(count) || 0),
+        0
+      );
+      // Same ATTENDED+COMPLETED merge as getCampaignStats — COMPLETED means
+      // the donor attended *and* donated, not that they never attended.
+      const totalAttendance = (participationData.ATTENDED || 0) + (participationData.COMPLETED || 0);
+      const totalDonations = Number(donationsData.totalDonations) || 0;
+
+      return {
+        totalRegistrations,
+        totalAttendance,
+        totalDonations,
+        donationsByBloodType: donationsData.bloodGroupDistribution || {},
+        attendanceRate: totalRegistrations > 0 ? (totalAttendance / totalRegistrations) * 100 : 0,
+        donationRate: totalAttendance > 0 ? (totalDonations / totalAttendance) * 100 : 0,
+        dailyStats: [],
+        topDonors: [],
+      };
     } catch (error) {
       logger.error("Failed to get campaign analytics:", error);
       throw new Error("Failed to get campaign analytics");

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, StyleSheet, Alert } from "react-native";
+import { View, StyleSheet, Alert, Pressable } from "react-native";
 import { MapPin, Calendar, Clock, User, Phone, Pencil } from "lucide-react-native";
 import { Screen, AppBar, Surface, Text, Icon, StatRow, StatTile, SectionHeader, Button, useTheme } from "../../design";
 import { useLanguage } from "../../context/LanguageContext";
@@ -119,6 +119,7 @@ export default function CampaignDetailsScreen({ navigation, route }: CampaignDet
   if (!campaign) {
     return (
       <Screen>
+        <AppBar title="Campaign Details" onBack={handleBack} />
         <View style={styles.errorContainer}>
           <Text variant="h3" tone="crimson" align="center" style={styles.errorText}>
             Campaign not found
@@ -140,7 +141,9 @@ export default function CampaignDetailsScreen({ navigation, route }: CampaignDet
         title="Campaign Details"
         onBack={handleBack}
         right={
-          <Icon icon={Pencil} size={22} color={theme.color.crimson} strokeWidth={1.75} />
+          <Pressable onPress={handleEdit} hitSlop={12}>
+            <Icon icon={Pencil} size={22} color={theme.color.crimson} strokeWidth={1.75} />
+          </Pressable>
         }
       />
 

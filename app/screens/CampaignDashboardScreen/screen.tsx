@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Alert, ActivityIndicator, Pressable } from "react-native";
+import { View, Alert, ActivityIndicator } from "react-native";
 import { Plus, QrCode, BarChart3, Pencil, Eye, Calendar } from "lucide-react-native";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
 
@@ -191,6 +191,10 @@ export default function CampaignDashboardScreen({
     navigation?.navigate("CampaignDetails", { campaignId });
   };
 
+  const handleCampaignResults = (campaignId: string) => {
+    navigation?.navigate("CampaignAnalytics", { campaignId });
+  };
+
   const handleQRScan = (campaignId: string) => {
     navigation?.navigate("QRScanner", { campaignId });
   };
@@ -308,8 +312,8 @@ export default function CampaignDashboardScreen({
                     </View>
                   )}
 
-                  <View style={{ flexDirection: "row", gap: theme.space.md }}>
-                    <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space.sm }}>
+                    <View style={{ flex: 1, minWidth: 110 }}>
                       <Button
                         title="QR Scan"
                         size="md"
@@ -317,13 +321,22 @@ export default function CampaignDashboardScreen({
                         onPress={() => handleQRScan(campaign.id)}
                       />
                     </View>
-                    <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1, minWidth: 110 }}>
                       <Button
                         title="Details"
                         size="md"
                         variant="outline"
-                        icon={<Icon icon={BarChart3} size={18} color={theme.color.crimson} />}
+                        icon={<Icon icon={Eye} size={18} color={theme.color.crimson} />}
                         onPress={() => handleCampaignDetails(campaign.id)}
+                      />
+                    </View>
+                    <View style={{ flex: 1, minWidth: 110 }}>
+                      <Button
+                        title="Results"
+                        size="md"
+                        variant="outline"
+                        icon={<Icon icon={BarChart3} size={18} color={theme.color.crimson} />}
+                        onPress={() => handleCampaignResults(campaign.id)}
                       />
                     </View>
                   </View>
@@ -400,38 +413,56 @@ export default function CampaignDashboardScreen({
               PREVIOUS CAMPAIGNS
             </Text>
             {campaigns.previous.map((campaign) => (
-              <Pressable key={campaign.id} onPress={() => handleCampaignDetails(campaign.id)}>
-                <Surface style={{ marginBottom: theme.space.lg, opacity: 0.9 }}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      marginBottom: theme.space.sm,
-                    }}
-                  >
-                    <Text variant="h3" style={{ flex: 1, marginRight: theme.space.sm }}>
-                      {campaign.title}
+              <Surface key={campaign.id} style={{ marginBottom: theme.space.lg, opacity: 0.9 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: theme.space.sm,
+                  }}
+                >
+                  <Text variant="h3" style={{ flex: 1, marginRight: theme.space.sm }}>
+                    {campaign.title}
+                  </Text>
+                  <Surface tone="successSoft" bordered={false} padding={0} radius="pill" style={{ paddingHorizontal: 10, paddingVertical: 4 }}>
+                    <Text variant="overline" tone="success">
+                      COMPLETED
                     </Text>
-                    <Surface tone="successSoft" bordered={false} padding={0} radius="pill" style={{ paddingHorizontal: 10, paddingVertical: 4 }}>
-                      <Text variant="overline" tone="success">
-                        COMPLETED
-                      </Text>
-                    </Surface>
+                  </Surface>
+                </View>
+
+                <Text variant="caption" tone="inkMuted" style={{ marginBottom: 2 }}>
+                  {campaign.location}
+                </Text>
+                <Text variant="caption" tone="inkMuted" style={{ marginBottom: theme.space.md }}>
+                  {formatDate(campaign.startTime)}
+                </Text>
+
+                <Text variant="label" tone="inkMuted" style={{ marginBottom: theme.space.lg }}>
+                  Goal: {campaign.donationGoal || "N/A"} | Actual: {campaign.actualDonors || 0}
+                </Text>
+
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space.sm }}>
+                  <View style={{ flex: 1, minWidth: 110 }}>
+                    <Button
+                      title="Details"
+                      size="md"
+                      variant="outline"
+                      icon={<Icon icon={Eye} size={18} color={theme.color.crimson} />}
+                      onPress={() => handleCampaignDetails(campaign.id)}
+                    />
                   </View>
-
-                  <Text variant="caption" tone="inkMuted" style={{ marginBottom: 2 }}>
-                    {campaign.location}
-                  </Text>
-                  <Text variant="caption" tone="inkMuted" style={{ marginBottom: theme.space.md }}>
-                    {formatDate(campaign.startTime)}
-                  </Text>
-
-                  <Text variant="label" tone="inkMuted">
-                    Goal: {campaign.donationGoal || "N/A"} | Actual: {campaign.actualDonors || 0}
-                  </Text>
-                </Surface>
-              </Pressable>
+                  <View style={{ flex: 1, minWidth: 110 }}>
+                    <Button
+                      title="Results"
+                      size="md"
+                      icon={<Icon icon={BarChart3} size={18} color={theme.color.inverse} />}
+                      onPress={() => handleCampaignResults(campaign.id)}
+                    />
+                  </View>
+                </View>
+              </Surface>
             ))}
           </View>
         )}

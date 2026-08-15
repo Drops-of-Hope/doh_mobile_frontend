@@ -12,6 +12,7 @@ import CampaignManagementScreen from "../screens/CampaignManagementScreen/screen
 import CampaignAnalyticsScreen from "../screens/CampaignAnalyticsScreen/screen";
 import CreateCampaignScreen from "../screens/CreateCampaignScreen/screen";
 import EditCampaignScreen from "../screens/EditCampaignScreen/screen";
+import CampaignDetailsScreen from "../screens/CampaignDetailsScreen/screen";
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
@@ -28,6 +29,7 @@ export default function ProfileStack() {
       <Stack.Screen name="CampaignAnalytics" component={CampaignAnalyticsScreen} />
       <Stack.Screen name="CreateCampaign" component={CreateCampaignScreen} />
       <Stack.Screen name="EditCampaign" component={EditCampaignScreen} />
+      <Stack.Screen name="CampaignDetails" component={CampaignDetailsScreen} />
     </Stack.Navigator>
   );
 }
