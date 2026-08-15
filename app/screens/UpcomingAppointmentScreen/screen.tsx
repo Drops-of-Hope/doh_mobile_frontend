@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Alert, ActivityIndicator, StyleSheet } from "react-native";
 import { Calendar, ClipboardCheck } from "lucide-react-native";
 
@@ -12,26 +12,22 @@ import { appointmentService } from "../../services/appointmentService";
 import { useAuth } from "../../context/AuthContext";
 
 import { logger } from "../../utils/logger";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 
 export default function UpcomingAppointmentScreen({ navigation }: AppointmentScreenProps) {
   const theme = useTheme();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user?.id || user?.sub) {
-      loadUserAppointments();
-    }
-  }, [user]);
-
-  const loadUserAppointments = async () => {
+  const loadUserAppointments = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!user?.id && !user?.sub) {
       return;
     }
 
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const userId = user.id || user.sub;
 
       const userAppointments = await appointmentService.getUserAppointments(userId);
@@ -65,7 +61,8 @@ export default function UpcomingAppointmentScreen({ navigation }: AppointmentScr
 
       // 404/not found means the user genuinely has no appointments yet;
       // anything else is a real failure worth surfacing.
-      if (error instanceof Error &&
+      if (!silent &&
+          error instanceof Error &&
           !error.message.includes("404") &&
           !error.message.includes("not found")) {
         Alert.alert(
@@ -75,9 +72,23 @@ export default function UpcomingAppointmentScreen({ navigation }: AppointmentScr
         );
       }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.id || user?.sub) {
+      loadUserAppointments();
+    }
+  }, [user, loadUserAppointments]);
+
+  useFocusRefresh(useCallback(() => loadUserAppointments({ silent: true }), [loadUserAppointments]));
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadUserAppointments();
+    setRefreshing(false);
+  }, [loadUserAppointments]);
 
   const handleCancelAppointment = async (appointmentId: string) => {
     Alert.alert("Cancel Appointment", "Are you sure you want to cancel this appointment?", [
@@ -132,7 +143,7 @@ export default function UpcomingAppointmentScreen({ navigation }: AppointmentScr
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll refreshing={refreshing} onRefresh={handleRefresh}>
       <AppBar title="My Appointments" onBack={() => navigation?.goBack()} />
 
       <AppointmentSection

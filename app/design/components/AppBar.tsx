@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1.5,
   },
   side: { width: 56, justifyContent: "center" },
-  rightSide: { alignItems: "flex-end" },
+  rightSide: { width: "auto", minWidth: 56, flexShrink: 0, alignItems: "flex-end" },
   center: { flex: 1, alignItems: "center" },
   backBtn: { padding: 8 },
 });

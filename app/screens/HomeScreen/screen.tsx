@@ -27,6 +27,7 @@ import { useLanguage } from "../../context/LanguageContext";
 
 import { getUrgency, isUrgent } from "../../utils/appointmentUrgency";
 import { logger } from "../../utils/logger";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 
 interface HomeScreenProps {
   navigation?: any;
@@ -74,9 +75,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       .catch(() => {});
   }, []);
 
-  const loadHomeData = async () => {
+  const loadHomeData = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await homeService.getHomeData();
       setHomeData(data);
     } catch (error) {
@@ -90,11 +91,19 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         return;
       }
 
-      Alert.alert(t("home.error_title"), t("home.load_error"), [{ text: t("common.ok") }]);
+      if (!silent) {
+        Alert.alert(t("home.error_title"), t("home.load_error"), [{ text: t("common.ok") }]);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [refreshBackendUser, t]);
+
+  // Every screen in this app previously loaded data once on mount and never
+  // refetched, so returning to Home after booking an appointment (or any other
+  // mutation on another screen) showed stale data until a full logout/login
+  // remounted the tree. Refetch silently whenever Home regains focus.
+  useFocusRefresh(useCallback(() => loadHomeData({ silent: true }), [loadHomeData]));
 
   const handleRefresh = useCallback(async () => {
     try {

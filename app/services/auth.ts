@@ -117,7 +117,11 @@ export const authenticate = async (
       scopes: authConfig.scopes,
       redirectUri: redirectUri,
       responseType: AuthSession.ResponseType.Code,
-      extraParams: isSignup ? { signup: "true" } : {},
+      // prompt: "login" forces the credentials screen even when Asgardeo's
+      // own SSO cookie is still alive — without it, login/signup can
+      // silently re-authenticate the previous session with no prompt
+      // (the same fix applied on the web side; see AuthProvider.tsx).
+      extraParams: isSignup ? { signup: "true", prompt: "login" } : { prompt: "login" },
       // PKCE configuration - let AuthRequest generate the challenge
       codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
     });
@@ -224,10 +228,12 @@ export const logout = async () => {
 
     if (authState) {
       // Step 1: Revoke both tokens + terminate the Asgardeo session
-      // server-side. This must go through the backend — Asgardeo's
-      // /oauth2/revoke endpoint requires confidential-client credentials
-      // this app (a public client) doesn't have; posting client_id alone
-      // (the old behavior) was rejected by Asgardeo and revoked nothing.
+      // server-side, via the backend rather than calling /oauth2/revoke
+      // directly. This app is a public client (no secret) on its own
+      // Asgardeo application — web and mobile are two SEPARATE Asgardeo
+      // apps on the same tenant — so the backend needs to know which
+      // one's credentials to revoke with; `client: "mobile"` selects
+      // that (see cloudflare_doh_backend's ASGARDEO_MOBILE_CLIENT_ID).
       if (authState.accessToken) {
         try {
           await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGOUT}`, {
@@ -236,7 +242,7 @@ export const logout = async () => {
               Authorization: `Bearer ${authState.accessToken}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ refreshToken: authState.refreshToken }),
+            body: JSON.stringify({ refreshToken: authState.refreshToken, client: "mobile" }),
           });
         } catch (error) {
           logger.error("Backend logout call failed:", error);

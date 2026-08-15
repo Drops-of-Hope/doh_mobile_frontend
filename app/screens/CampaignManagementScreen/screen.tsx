@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Alert, ActivityIndicator } from "react-native";
 import { Plus, Settings2, BarChart3, Pencil, Trash2 } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
@@ -20,6 +20,7 @@ import {
 import { Calendar } from "lucide-react-native";
 
 import { logger } from "../../utils/logger";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 interface CampaignManagementScreenProps {
   navigation?: any;
 }
@@ -47,22 +48,28 @@ export default function CampaignManagementScreen({
     loadCampaigns();
   }, []);
 
-  const loadCampaigns = async () => {
+  const loadCampaigns = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!user?.sub) return;
 
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       const userCampaigns = await campaignService.getOrganizerCampaigns(
         user.sub
       );
       setCampaigns(userCampaigns);
     } catch (error) {
       logger.error("Failed to load campaigns:", error);
-      Alert.alert("Error", "Failed to load campaigns. Please try again.");
+      if (!silent) {
+        Alert.alert("Error", "Failed to load campaigns. Please try again.");
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
-  };
+  }, [user?.sub]);
+
+  // Previously loaded once on mount, so a newly-created or edited campaign
+  // never appeared here without a logout/login. Refetch silently on focus.
+  useFocusRefresh(useCallback(() => loadCampaigns({ silent: true }), [loadCampaigns]));
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

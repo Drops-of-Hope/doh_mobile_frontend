@@ -10,6 +10,7 @@ import { AppBar, Screen, Text, Segmented, Skeleton, useTheme } from "../../desig
 import { useLanguage } from "../../context/LanguageContext";
 
 import { logger } from "../../utils/logger";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 
 interface ActivitiesScreenProps {
   navigation?: any;
@@ -180,6 +181,17 @@ const ActivitiesScreen: React.FC<ActivitiesScreenProps> = ({ navigation }) => {
       setLoadingMore(false);
     }
   };
+
+  // The timeline is populated by donations, appointments, and campaigns
+  // created on other screens; previously it only loaded on mount, so a
+  // fresh activity never showed up without restarting the app. `isRefresh`
+  // already skips the full-screen skeleton, so this is silent by nature.
+  useFocusRefresh(
+    useCallback(() => {
+      void loadActivities(1, true);
+      void loadLocalActivities();
+    }, [selectedFilter])
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);

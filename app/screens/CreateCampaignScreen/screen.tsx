@@ -36,7 +36,7 @@ export default function CreateCampaignScreen({
     year: "",
     startTime: "",
     endTime: "",
-    expectedDonors: "",
+    expectedDonors: "1",
     contactPersonName: user?.name || "",
     contactPersonPhone: "",
     medicalEstablishmentId: "",

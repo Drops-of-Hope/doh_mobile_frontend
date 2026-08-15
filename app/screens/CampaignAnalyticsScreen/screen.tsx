@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Alert, ActivityIndicator } from "react-native";
 import { Users, CheckCircle2, Droplet, TrendingUp, Trophy } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { campaignService } from "../../services/campaignService";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 
 import {
   Screen,
@@ -68,20 +69,24 @@ export default function CampaignAnalyticsScreen({
     }
   }, [campaignId]);
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!campaignId) return;
 
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       const data = await campaignService.getCampaignAnalytics(campaignId);
       setAnalytics(data);
     } catch (error) {
       logger.error("Failed to load analytics:", error);
-      Alert.alert("Error", "Failed to load campaign analytics.");
+      if (!silent) {
+        Alert.alert("Error", "Failed to load campaign analytics.");
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useFocusRefresh(useCallback(() => loadAnalytics({ silent: true }), [loadAnalytics]));
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

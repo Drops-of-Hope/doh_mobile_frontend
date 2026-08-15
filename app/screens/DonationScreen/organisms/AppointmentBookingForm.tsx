@@ -37,6 +37,7 @@ import {
 import { getAppointmentService } from "../../../services/appointmentConfig";
 import { useContext } from "react";
 import { useAuth } from "../../../context/AuthContext";
+import { toLocalISODate } from "../../../utils/appointmentUrgency";
 
 import { logger } from "../../../utils/logger";
 interface AppointmentBookingFormProps {
@@ -79,7 +80,7 @@ export default function AppointmentBookingForm({
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       dates.push({
-        date: date.toISOString().split("T")[0],
+        date: toLocalISODate(date),
         display: date.toLocaleDateString("en-US", {
           weekday: "short",
           month: "short",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { Screen, AppBar, useTheme } from "../../design";
 
@@ -20,6 +20,7 @@ import { donationService } from "../../services/donationService";
 import { notificationService } from "../../services/notificationService";
 
 import { logger } from "../../utils/logger";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 interface DonationScreenProps {
   navigation?: any;
   route?: {
@@ -46,6 +47,7 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
     history: Appointment[];
   }>({ upcoming: [], history: [] });
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+  const [appointmentsRefreshing, setAppointmentsRefreshing] = useState(false);
   const [qrScanned, setQrScanned] = useState(false);
   const [isTimerStarted, setIsTimerStarted] = useState(false);
   const [currentAppointmentId, setCurrentAppointmentId] = useState<string | undefined>(undefined);
@@ -59,14 +61,15 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
   const pollingIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load user appointments
-  const loadUserAppointments = async () => {
+  // Load user appointments. `silent` is used for focus-triggered refetches so
+  // returning to this screen after booking doesn't flash the loading state.
+  const loadUserAppointments = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!userProfile?.id) {
       return;
     }
 
     try {
-      setAppointmentsLoading(true);
+      if (!silent) setAppointmentsLoading(true);
 
       const appointmentData = await getUserAppointments(userProfile.id);
 
@@ -75,10 +78,11 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
       logger.error("❌ Error loading user appointments:", error);
       // Set empty appointments instead of showing error for new users
       setAppointments({ upcoming: [], history: [] });
-      
+
       // Only show error if it's a real network/server issue (404/not found
       // means the user genuinely has no appointments yet, so stay quiet).
-      if (error instanceof Error &&
+      if (!silent &&
+          error instanceof Error &&
           !error.message.includes("404") &&
           !error.message.includes("not found")) {
         Alert.alert(
@@ -88,9 +92,19 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
         );
       }
     } finally {
-      setAppointmentsLoading(false);
+      if (!silent) setAppointmentsLoading(false);
     }
-  };
+  }, [userProfile?.id]);
+
+  const handleRefreshAppointments = useCallback(async () => {
+    setAppointmentsRefreshing(true);
+    await loadUserAppointments();
+    setAppointmentsRefreshing(false);
+  }, [loadUserAppointments]);
+
+  // Booking happens on this same screen, but a user can also cancel/rebook
+  // from elsewhere and come back — refetch on every return to this screen.
+  useFocusRefresh(useCallback(() => loadUserAppointments({ silent: true }), [loadUserAppointments]));
 
   // Polling function to check for attendance notification
   const pollForAttendanceNotification = async () => {
@@ -323,7 +337,7 @@ export default function DonationScreen({ navigation, route }: DonationScreenProp
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll refreshing={appointmentsRefreshing} onRefresh={handleRefreshAppointments}>
         <AppBar title="Donate" onBack={() => navigation?.goBack()} transparent />
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
