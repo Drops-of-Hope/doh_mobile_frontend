@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  StyleSheet,
-  StatusBar,
-} from "react-native";
+import { View, Alert, ActivityIndicator } from "react-native";
+import { Search, Users } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
-import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { donorSearchService, DonorSearchResult, DonorSearchFilters } from "../../services/donorSearchService";
 import { campaignService } from "../../services/campaignService";
+
+import {
+  Screen,
+  AppBar,
+  Surface,
+  Text,
+  Field,
+  Chip,
+  Button,
+  UserAvatar,
+  SectionHeader,
+  EmptyState,
+  Icon,
+  useTheme,
+} from "../../design";
 
 import { logger } from "../../utils/logger";
 interface ManualSearchScreenProps {
@@ -31,6 +35,7 @@ export default function ManualSearchScreen({
   navigation,
   route,
 }: ManualSearchScreenProps) {
+  const theme = useTheme();
   const { user } = useAuth();
   const { t } = useLanguage();
   const { campaignId } = route?.params || {};
@@ -190,97 +195,66 @@ export default function ManualSearchScreen({
   const handleBack = () => navigation?.goBack();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <Screen scroll>
+      <AppBar title="Manual Search" onBack={handleBack} />
 
-      <DashboardHeader
-        title="Manual Search"
-        onBack={handleBack}
-      />
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={{ marginTop: theme.space.lg }}>
         {/* Search Section */}
-        <View style={styles.searchSection}>
-          <Text style={styles.sectionTitle}>Search Donors</Text>
-          
-          <TextInput
-            style={styles.searchInput}
+        <View style={{ marginBottom: theme.space.xxl }}>
+          <SectionHeader title="Search Donors" />
+
+          <Field
             placeholder="Enter NIC, name, email, or phone"
-            placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
+            leftIcon={<Icon icon={Search} size={18} color={theme.color.inkFaint} />}
           />
 
-          {/* Blood Group Filter */}
-          <Text style={styles.filterLabel}>Filter by Blood Group:</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bloodGroupContainer}>
-            <TouchableOpacity
-              style={[styles.bloodGroupChip, !selectedBloodGroup && styles.bloodGroupChipSelected]}
-              onPress={() => setSelectedBloodGroup("")}
-            >
-              <Text style={[styles.bloodGroupText, !selectedBloodGroup && styles.bloodGroupTextSelected]}>
-                All
-              </Text>
-            </TouchableOpacity>
+          <Text variant="label" tone="inkMuted" style={{ marginBottom: theme.space.sm }}>
+            Filter by Blood Group
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space.sm, marginBottom: theme.space.lg }}>
+            <Chip label="All" selected={!selectedBloodGroup} onPress={() => setSelectedBloodGroup("")} />
             {bloodGroups.map((group) => (
-              <TouchableOpacity
+              <Chip
                 key={group}
-                style={[styles.bloodGroupChip, selectedBloodGroup === group && styles.bloodGroupChipSelected]}
+                label={group}
+                selected={selectedBloodGroup === group}
                 onPress={() => setSelectedBloodGroup(group)}
-              >
-                <Text style={[styles.bloodGroupText, selectedBloodGroup === group && styles.bloodGroupTextSelected]}>
-                  {group}
-                </Text>
-              </TouchableOpacity>
+              />
             ))}
-          </ScrollView>
+          </View>
 
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} disabled={isLoading}>
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.searchButtonText}>Search</Text>
-            )}
-          </TouchableOpacity>
+          <Button title="Search" onPress={handleSearch} loading={isLoading} />
         </View>
 
         {/* Recent Donors */}
         {recentDonors.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recent Donors</Text>
+          <View style={{ marginBottom: theme.space.xxl }}>
+            <SectionHeader title="Recent Donors" />
             {recentDonors.map((donor) => (
-              <DonorCard
-                key={donor.id}
-                donor={donor}
-                onPress={() => handleSelectDonor(donor)}
-              />
+              <DonorCard key={donor.id} donor={donor} onPress={() => handleSelectDonor(donor)} />
             ))}
           </View>
         )}
 
         {/* Search Results */}
         {searchResults.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Search Results ({searchResults.length})</Text>
+          <View style={{ marginBottom: theme.space.xxl }}>
+            <SectionHeader title={`Search Results (${searchResults.length})`} />
             {searchResults.map((donor) => (
-              <DonorCard
-                key={donor.id}
-                donor={donor}
-                onPress={() => handleSelectDonor(donor)}
-              />
+              <DonorCard key={donor.id} donor={donor} onPress={() => handleSelectDonor(donor)} />
             ))}
           </View>
         )}
 
         {/* No Results */}
         {!isLoading && searchQuery && searchResults.length === 0 && (
-          <View style={styles.noResultsContainer}>
-            <Text style={styles.noResultsText}>No donors found matching your search</Text>
-          </View>
+          <EmptyState icon={Users} title="No Donors Found" body="No donors found matching your search" />
         )}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </Screen>
   );
 }
 
@@ -291,155 +265,39 @@ interface DonorCardProps {
 }
 
 function DonorCard({ donor, onPress }: DonorCardProps) {
+  const theme = useTheme();
   return (
-    <TouchableOpacity style={styles.donorCard} onPress={onPress}>
-      <View style={styles.donorInfo}>
-        <Text style={styles.donorName}>{donor.name}</Text>
-        <Text style={styles.donorDetails}>
+    <Surface
+      onTouchEnd={onPress}
+      style={{ marginBottom: theme.space.md, flexDirection: "row", alignItems: "center" }}
+    >
+      <UserAvatar url={donor.profilePicture} name={donor.name} seed={donor.id} size={40} />
+      <View style={{ flex: 1, marginLeft: theme.space.md }}>
+        <Text variant="bodyBold">{donor.name}</Text>
+        <Text variant="caption" tone="inkMuted">
           {donor.bloodGroup} • {donor.totalDonations} donations • {donor.donationBadge}
         </Text>
-        <Text style={styles.donorContact}>{donor.email}</Text>
-        {donor.phone && <Text style={styles.donorContact}>{donor.phone}</Text>}
-      </View>
-      
-      <View style={styles.eligibilityContainer}>
-        <View style={[styles.eligibilityBadge, { backgroundColor: donor.eligibleToDonate ? "#10B981" : "#EF4444" }]}>
-          <Text style={styles.eligibilityText}>
-            {donor.eligibleToDonate ? "Eligible" : "Not Eligible"}
+        <Text variant="caption" tone="inkFaint">
+          {donor.email}
+        </Text>
+        {donor.phone ? (
+          <Text variant="caption" tone="inkFaint">
+            {donor.phone}
           </Text>
-        </View>
+        ) : null}
       </View>
-    </TouchableOpacity>
+
+      <Surface
+        tone={donor.eligibleToDonate ? "successSoft" : "dangerSoft"}
+        bordered={false}
+        padding={0}
+        radius="pill"
+        style={{ paddingHorizontal: 10, paddingVertical: 4 }}
+      >
+        <Text variant="overline" tone={donor.eligibleToDonate ? "success" : "danger"}>
+          {donor.eligibleToDonate ? "ELIGIBLE" : "NOT ELIGIBLE"}
+        </Text>
+      </Surface>
+    </Surface>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    paddingTop: StatusBar.currentHeight || 0,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  searchSection: {
-    marginBottom: 24,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 12,
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#111827",
-    backgroundColor: "#fff",
-    marginBottom: 16,
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6B7280",
-    marginBottom: 8,
-  },
-  bloodGroupContainer: {
-    marginBottom: 16,
-  },
-  bloodGroupChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    borderRadius: 20,
-    backgroundColor: "#F3F4F6",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-  },
-  bloodGroupChipSelected: {
-    backgroundColor: "#DC2626",
-    borderColor: "#DC2626",
-  },
-  bloodGroupText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#374151",
-  },
-  bloodGroupTextSelected: {
-    color: "#fff",
-  },
-  searchButton: {
-    backgroundColor: "#DC2626",
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  searchButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  donorCard: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  donorInfo: {
-    flex: 1,
-  },
-  donorName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  donorDetails: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  donorContact: {
-    fontSize: 12,
-    color: "#9CA3AF",
-  },
-  eligibilityContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  eligibilityBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  eligibilityText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  noResultsContainer: {
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  noResultsText: {
-    fontSize: 16,
-    color: "#6B7280",
-    textAlign: "center",
-  },
-});

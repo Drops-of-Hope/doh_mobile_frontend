@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { View, Animated } from "react-native";
+import { View, Animated, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import SplashContent from "../shared/organisms/SplashContent";
+import { useTheme, Text } from "../../design";
+import { DropMark } from "../../design/icons/brand";
 
 type RootStackParamList = {
   Splash: undefined;
@@ -10,125 +11,96 @@ type RootStackParamList = {
 };
 
 export default function SplashScreen() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const theme = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.3)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const titleFadeAnim = useRef(new Animated.Value(0)).current;
-  const titleSlideAnim = useRef(new Animated.Value(50)).current;
-  const loadingFadeAnim = useRef(new Animated.Value(0)).current;
+  const titleSlideAnim = useRef(new Animated.Value(16)).current;
   const dot1Anim = useRef(new Animated.Value(0.3)).current;
   const dot2Anim = useRef(new Animated.Value(0.3)).current;
   const dot3Anim = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
-    // Sequence animations
     Animated.sequence([
-      Animated.delay(300),
+      Animated.delay(200),
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 50,
-          friction: 8,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.spring(scaleAnim, { toValue: 1, tension: 50, friction: 8, useNativeDriver: true }),
       ]),
     ]).start();
 
     Animated.sequence([
-      Animated.delay(800),
+      Animated.delay(500),
       Animated.parallel([
-        Animated.timing(titleFadeAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(titleSlideAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
+        Animated.timing(titleFadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(titleSlideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
       ]),
     ]).start();
 
-    Animated.sequence([
-      Animated.delay(1500),
-      Animated.timing(loadingFadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    const createDotAnimation = (animValue: Animated.Value, delay: number) => {
-      return Animated.loop(
+    const createDotAnimation = (animValue: Animated.Value, delay: number) =>
+      Animated.loop(
         Animated.sequence([
           Animated.delay(delay),
-          Animated.timing(animValue, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animValue, {
-            toValue: 0.3,
-            duration: 800,
-            useNativeDriver: true,
-          }),
+          Animated.timing(animValue, { toValue: 1, duration: 700, useNativeDriver: true }),
+          Animated.timing(animValue, { toValue: 0.3, duration: 700, useNativeDriver: true }),
         ])
       );
-    };
 
-    setTimeout(() => {
+    const dotTimer = setTimeout(() => {
       createDotAnimation(dot1Anim, 0).start();
-      createDotAnimation(dot2Anim, 300).start();
-      createDotAnimation(dot3Anim, 600).start();
-    }, 1000);
+      createDotAnimation(dot2Anim, 250).start();
+      createDotAnimation(dot3Anim, 500).start();
+    }, 900);
 
-    // Navigate to Entry screen after animations
-    const timer = setTimeout(() => {
-      navigation.replace("Entry");
-    }, 3000); // Reduced from 4000ms to 3000ms
-
-    return () => clearTimeout(timer);
+    const navTimer = setTimeout(() => navigation.replace("Entry"), 2400);
+    return () => {
+      clearTimeout(dotTimer);
+      clearTimeout(navTimer);
+    };
   }, [navigation]);
 
   return (
-    <View className="flex-1 bg-blue-200">
-      <View className="absolute inset-0 bg-blue-200" />
-      <SplashContent
-        fadeAnim={fadeAnim}
-        scaleAnim={scaleAnim}
-        pulseAnim={pulseAnim}
-        titleFadeAnim={titleFadeAnim}
-        titleSlideAnim={titleSlideAnim}
-        loadingFadeAnim={loadingFadeAnim}
-        dot1Anim={dot1Anim}
-        dot2Anim={dot2Anim}
-        dot3Anim={dot3Anim}
-      />
+    <View style={[styles.container, { backgroundColor: theme.color.paper }]}>
+      <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
+        <View style={[styles.markWrap, { borderColor: theme.color.hairlineStrong, borderRadius: theme.radius.pill }]}>
+          <DropMark size={44} color={theme.color.crimson} filled />
+        </View>
+      </Animated.View>
+
+      <Animated.View style={{ opacity: titleFadeAnim, transform: [{ translateY: titleSlideAnim }] }}>
+        <Text variant="h1" align="center" style={styles.title}>
+          Drops of Hope
+        </Text>
+        <Text variant="body" tone="inkMuted" align="center">
+          Every donation, a lifeline
+        </Text>
+      </Animated.View>
+
+      <View style={styles.dotsRow}>
+        <Dot anim={dot1Anim} color={theme.color.crimson} />
+        <Dot anim={dot2Anim} color={theme.color.crimson} />
+        <Dot anim={dot3Anim} color={theme.color.crimson} />
+      </View>
     </View>
   );
 }
+
+function Dot({ anim, color }: { anim: Animated.Value; color: string }) {
+  return <Animated.View style={[styles.dot, { opacity: anim, backgroundColor: color }]} />;
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, alignItems: "center", justifyContent: "center", gap: 24 },
+  markWrap: {
+    width: 88,
+    height: 88,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+  },
+  title: { marginTop: 20, marginBottom: 4 },
+  dotsRow: { flexDirection: "row", gap: 8, position: "absolute", bottom: 64 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+});

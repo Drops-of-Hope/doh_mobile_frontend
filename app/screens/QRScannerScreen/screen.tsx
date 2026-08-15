@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, StyleSheet, Alert, View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Alert, ActivityIndicator, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import Svg, { Path } from "react-native-svg";
+import { Search, Droplet, CheckCircle2, XCircle } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
-import DashboardHeader from "../CampaignDashboardScreen/molecules/DashboardHeader";
 import { qrService, QRScanRequest } from "../../services/qrService";
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import { AppBar, Sheet, Surface, Text, Button, Icon, useTheme } from "../../design";
 
 import { logger } from "../../utils/logger";
 // Define the param list for the stack navigator
@@ -33,10 +37,53 @@ interface ScannedUser {
   eligibleToDonate: boolean;
 }
 
+// Ink-colored corner-bracket reticle — crisp lines, no gradients/shadows.
+const ScanReticle: React.FC<{ size: number; color: string }> = ({ size, color }) => {
+  const bracket = size * 0.16;
+  const stroke = 3;
+  return (
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {/* top-left */}
+      <Path
+        d={`M ${stroke / 2} ${bracket} V ${stroke / 2} H ${bracket}`}
+        stroke={color}
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* top-right */}
+      <Path
+        d={`M ${size - bracket} ${stroke / 2} H ${size - stroke / 2} V ${bracket}`}
+        stroke={color}
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* bottom-left */}
+      <Path
+        d={`M ${stroke / 2} ${size - bracket} V ${size - stroke / 2} H ${bracket}`}
+        stroke={color}
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* bottom-right */}
+      <Path
+        d={`M ${size - bracket} ${size - stroke / 2} H ${size - stroke / 2} V ${size - bracket}`}
+        stroke={color}
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        fill="none"
+      />
+    </Svg>
+  );
+};
+
 export default function QRScannerScreen({
   navigation,
   route,
 }: QRScannerScreenProps) {
+  const theme = useTheme();
   const { user } = useAuth();
   const { t } = useLanguage();
   const { campaignId } = route?.params || {};
@@ -44,6 +91,7 @@ export default function QRScannerScreen({
   const [scanned, setScanned] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [scannedUser, setScannedUser] = useState<ScannedUser | null>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -59,7 +107,7 @@ export default function QRScannerScreen({
     data: string;
   }) => {
     if (scanned || isProcessing) return;
-    
+
     setScanned(true);
     setIsProcessing(true);
 
@@ -113,28 +161,7 @@ export default function QRScannerScreen({
 
       if (scanResult.success) {
         setScannedUser(scanResult.scannedUser);
-        
-        // Show confirmation dialog with user information
-        Alert.alert(
-          "Donor Identified",
-          `Name: ${scanResult.scannedUser.name}\n` +
-          `Blood Group: ${scanResult.scannedUser.bloodGroup}\n` +
-          `Total Donations: ${scanResult.scannedUser.totalDonations}\n` +
-          `Badge: ${scanResult.scannedUser.donationBadge}\n` +
-          `Eligible: ${scanResult.scannedUser.eligibleToDonate ? 'Yes' : 'No'}`,
-          [
-            {
-              text: "Mark Attendance",
-              onPress: () => handleMarkAttendance(scanResult.scannedUser.id),
-              style: scanResult.scannedUser.eligibleToDonate ? "default" : "destructive",
-            },
-            {
-              text: "Cancel",
-              onPress: () => resetScanner(),
-              style: "cancel",
-            },
-          ],
-        );
+        setSheetVisible(true);
       } else {
         Alert.alert("Scan Failed", scanResult.message || "Could not verify donor");
         resetScanner();
@@ -151,7 +178,7 @@ export default function QRScannerScreen({
   const handleMarkAttendance = async (userId: string) => {
     try {
       setIsProcessing(true);
-      
+
       // Use QR attendance endpoint: backend needs only campaignId + qrData (raw UUID is recommended)
       await qrService.markAttendance({
         campaignId: campaignId!,
@@ -160,9 +187,10 @@ export default function QRScannerScreen({
         // Send raw userId as qrData; backend accepts raw UUID or JSON string with uid/userId/scannedUserId
         qrData: userId,
       });
-      
+
+      setSheetVisible(false);
       Alert.alert(
-        "Success", 
+        "Success",
         "Attendance marked successfully!",
         [
           {
@@ -174,6 +202,7 @@ export default function QRScannerScreen({
     } catch (error) {
       logger.error("Mark attendance error:", error);
       Alert.alert("Error", "Failed to mark attendance. Please try again.");
+      setSheetVisible(false);
       resetScanner();
     } finally {
       setIsProcessing(false);
@@ -184,6 +213,11 @@ export default function QRScannerScreen({
     setScanned(false);
     setScannedUser(null);
     setIsProcessing(false);
+  };
+
+  const handleCloseSheet = () => {
+    setSheetVisible(false);
+    resetScanner();
   };
 
   const handleBack = () => navigation?.goBack();
@@ -202,23 +236,23 @@ export default function QRScannerScreen({
 
   if (!permission.granted) {
     return (
-      <SafeAreaView style={styles.container}>
-        <DashboardHeader
-          title="QR Scanner"
-          onBack={handleBack}
-          onAdd={() => {}}
-        />
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.color.paper }} edges={["top"]}>
+        <AppBar title="QR Scanner" onBack={handleBack} />
+        <View style={styles.permissionWrap}>
+          <Text variant="body" tone="inkMuted" align="center">
+            Camera access is required to scan donor QR codes.
+          </Text>
+          <View style={{ marginTop: theme.space.lg, width: "60%" }}>
+            <Button title="Grant Permission" onPress={requestPermission} />
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <DashboardHeader
-        title="QR Scanner"
-        onBack={handleBack}
-        onAdd={undefined}
-      />
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }} edges={["top"]}>
+      <AppBar title="QR Scanner" onBack={handleBack} transparent />
 
       <View style={styles.cameraContainer}>
         <CameraView
@@ -228,38 +262,77 @@ export default function QRScannerScreen({
             barcodeTypes: ["qr"],
           }}
         />
-        
+
         {/* Overlay with scanning frame */}
-        <View style={styles.overlay}>
-          <View style={styles.scanFrame} />
-          <Text style={styles.instructionText}>
+        <View style={styles.overlay} pointerEvents="box-none">
+          <ScanReticle size={250} color={theme.color.paper} />
+          <Text variant="body" tone="inverse" align="center" style={styles.instructionText}>
             Point camera at donor's QR code
           </Text>
-          
+
           {/* Manual search button */}
-          <TouchableOpacity style={styles.manualSearchButton} onPress={handleManualSearch}>
-            <Text style={styles.manualSearchText}>Manual Search</Text>
-          </TouchableOpacity>
-          
+          <Pressable style={styles.manualSearchButton} onPress={handleManualSearch}>
+            <Icon icon={Search} size={16} color={theme.color.inverse} />
+            <Text variant="bodyBold" tone="inverse">
+              Manual Search
+            </Text>
+          </Pressable>
+
           {/* Processing overlay */}
           {isProcessing && (
             <View style={styles.processingOverlay}>
-              <ActivityIndicator size="large" color="#fff" />
-              <Text style={styles.processingText}>Processing QR Code...</Text>
+              <ActivityIndicator size="large" color={theme.color.paper} />
+              <Text variant="body" tone="inverse" style={{ marginTop: 16 }}>
+                Processing QR Code...
+              </Text>
             </View>
           )}
         </View>
       </View>
+
+      <Sheet visible={sheetVisible} onClose={handleCloseSheet} title="Donor Identified">
+        {scannedUser ? (
+          <View>
+            <Surface style={{ marginBottom: theme.space.lg }}>
+              <Text variant="h3" style={{ marginBottom: theme.space.sm }}>
+                {scannedUser.name}
+              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space.sm, marginBottom: 6 }}>
+                <Icon icon={Droplet} size={16} color={theme.color.crimson} />
+                <Text variant="body" tone="inkMuted">
+                  {scannedUser.bloodGroup} · {scannedUser.totalDonations} donations · {scannedUser.donationBadge}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space.sm }}>
+                <Icon
+                  icon={scannedUser.eligibleToDonate ? CheckCircle2 : XCircle}
+                  size={16}
+                  color={scannedUser.eligibleToDonate ? theme.color.success : theme.color.danger}
+                />
+                <Text variant="body" tone={scannedUser.eligibleToDonate ? "success" : "danger"}>
+                  {scannedUser.eligibleToDonate ? "Eligible to donate" : "Not eligible to donate"}
+                </Text>
+              </View>
+            </Surface>
+
+            <Button
+              title="Mark Attendance"
+              variant={scannedUser.eligibleToDonate ? "solid" : "danger"}
+              onPress={() => handleMarkAttendance(scannedUser.id)}
+              loading={isProcessing}
+            />
+            <View style={{ marginTop: theme.space.md }}>
+              <Button title="Cancel" variant="ghost" onPress={handleCloseSheet} />
+            </View>
+          </View>
+        ) : null}
+      </Sheet>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000000",
-    marginTop: 40, // Additional safe area padding for device navigation
-  },
+  permissionWrap: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
   cameraContainer: {
     flex: 1,
     position: "relative",
@@ -276,21 +349,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  scanFrame: {
-    width: 250,
-    height: 250,
-    borderWidth: 2,
-    borderColor: "#fff",
-    borderRadius: 20,
-    backgroundColor: "transparent",
-  },
   instructionText: {
     position: "absolute",
     bottom: 100,
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
-    textAlign: "center",
     backgroundColor: "rgba(0, 0, 0, 0.6)",
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -306,23 +367,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  processingText: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 20,
-    fontWeight: "500",
-  },
   manualSearchButton: {
     position: "absolute",
     bottom: 40,
-    backgroundColor: "#DC2626",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#C0362C",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
-  },
-  manualSearchText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
