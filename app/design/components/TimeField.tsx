@@ -29,9 +29,13 @@ export const TimeField: React.FC<TimeFieldProps> = ({ label, value, onChange, er
   const [open, setOpen] = useState(false);
 
   const options = useMemo(() => {
+    // Blood-donation campaigns run in a daytime window (06:00-20:00); trimming
+    // the overnight hours keeps the sheet short enough to reach without a
+    // long scroll while still covering every realistic campaign time.
     const times: string[] = [];
-    for (let hour = 0; hour < 24; hour++) {
+    for (let hour = 6; hour <= 20; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
+        if (hour === 20 && minute > 0) break;
         times.push(`${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`);
       }
     }

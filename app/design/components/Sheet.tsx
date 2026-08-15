@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
-  body: { paddingHorizontal: 20 },
+  body: { paddingHorizontal: 20, flexShrink: 1 },
   bodyContent: { paddingBottom: 32 },
 });
 

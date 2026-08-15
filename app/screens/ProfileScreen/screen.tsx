@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Alert, ScrollView, ActivityIndicator } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, StyleSheet, Alert, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { User, ListChecks, BarChart3, HelpCircle, Globe, IdCard, LucideIcon } from "lucide-react-native";
@@ -27,6 +27,7 @@ import { userService } from "../../services/userService";
 import { DONOR_BADGE_DISPLAY } from "../../../constants/badgeDisplay";
 
 import { logger } from "../../utils/logger";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 interface ProfileScreenProps {
   navigation?: any;
 }
@@ -45,7 +46,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const theme = useTheme();
   // Auth and Language — AuthContext already resolved the backend profile before this
   // screen could mount (see AppNavigator), so this screen just reads it.
-  const { user, userRole, logout, hasRole, profile } = useAuth();
+  const { user, userRole, logout, hasRole, profile, refreshBackendUser } = useAuth();
   const { t } = useLanguage();
 
   // State management
@@ -53,6 +54,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [hasEmergencyResponderBadge, setHasEmergencyResponderBadge] = useState(false);
   const [badgeProgress, setBadgeProgress] = useState<BadgeProgressInfo | null>(null);
   const [showIdCard, setShowIdCard] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // AppNavigator only mounts this screen once profileStatus is "complete", so `profile`
   // is expected to already be populated — this is a defensive fallback, not a real wait.
@@ -68,48 +70,69 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     profileImageUrl,
   };
 
+  const loadAchievements = useCallback(async () => {
+    try {
+      const databaseUserId = await getDatabaseUserId();
+      if (!databaseUserId) return;
+
+      const badgeInfo = await badgeService.getBadgeInfo(databaseUserId);
+      setHasEmergencyResponderBadge(badgeInfo.emergencyResponderBadge);
+
+      const currentTier = badgeInfo.currentBadge?.badge || userData.donationBadge;
+      const progressInfo = badgeService.calculateBadgeProgress(badgeInfo.totalDonations, currentTier);
+      setBadgeProgress({
+        progress: progressInfo.progress / 100,
+        nextTierLabel: progressInfo.nextBadge?.name ?? null,
+        donationsNeeded: progressInfo.donationsNeeded,
+      });
+    } catch (error) {
+      logger.error("ProfileScreen: Failed to load achievements:", error);
+    }
+  }, [userData.donationBadge]);
+
+  // Fetch the real profile image (never a hardcoded placeholder).
+  const loadProfileImage = useCallback(async () => {
+    try {
+      const fullProfile = await userService.getUserProfile();
+      setProfileImageUrl(fullProfile.profileImageUrl);
+    } catch (error) {
+      logger.error("ProfileScreen: Failed to load profile image:", error);
+    }
+  }, []);
+
   useEffect(() => {
-    const loadAchievements = async () => {
-      try {
-        const databaseUserId = await getDatabaseUserId();
-        if (!databaseUserId) return;
-
-        const badgeInfo = await badgeService.getBadgeInfo(databaseUserId);
-        setHasEmergencyResponderBadge(badgeInfo.emergencyResponderBadge);
-
-        const currentTier = badgeInfo.currentBadge?.badge || userData.donationBadge;
-        const progressInfo = badgeService.calculateBadgeProgress(badgeInfo.totalDonations, currentTier);
-        setBadgeProgress({
-          progress: progressInfo.progress / 100,
-          nextTierLabel: progressInfo.nextBadge?.name ?? null,
-          donationsNeeded: progressInfo.donationsNeeded,
-        });
-      } catch (error) {
-        logger.error("ProfileScreen: Failed to load achievements:", error);
-      }
-    };
-
     if (!isLoadingProfile) {
       loadAchievements();
     }
-  }, [isLoadingProfile]);
+  }, [isLoadingProfile, loadAchievements]);
 
-  // Fetch the real profile image (never a hardcoded placeholder) once the
-  // profile has finished loading.
   useEffect(() => {
-    const loadProfileImage = async () => {
-      try {
-        const fullProfile = await userService.getUserProfile();
-        setProfileImageUrl(fullProfile.profileImageUrl);
-      } catch (error) {
-        logger.error("ProfileScreen: Failed to load profile image:", error);
-      }
-    };
-
     if (!isLoadingProfile && user) {
       loadProfileImage();
     }
-  }, [isLoadingProfile, user]);
+  }, [isLoadingProfile, user, loadProfileImage]);
+
+  // Badges, donation streak, and role can all change from other screens
+  // (donating, campaign-organizer approval); previously only loaded once on
+  // mount. `refreshBackendUser` is the non-navigator-collapsing profile
+  // refresh documented on AuthContext.
+  useFocusRefresh(
+    useCallback(() => {
+      if (isLoadingProfile) return;
+      void refreshBackendUser();
+      void loadAchievements();
+      void loadProfileImage();
+    }, [isLoadingProfile, refreshBackendUser, loadAchievements, loadProfileImage])
+  );
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshBackendUser(), loadAchievements(), loadProfileImage()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshBackendUser, loadAchievements, loadProfileImage]);
 
   // Navigation handlers
   const handleEditProfile = () => {
@@ -250,6 +273,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.color.crimson} />
+            }
           >
             <ProfileHeader
               userData={userData}

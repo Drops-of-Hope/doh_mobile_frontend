@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Alert, ActivityIndicator, Pressable } from "react-native";
 import { Plus, QrCode, BarChart3, Pencil, Eye, Calendar } from "lucide-react-native";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
@@ -31,6 +31,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { debugAllUserIds, testBackendEndpoints } from "../../utils/userIdUtils";
 
 import { logger } from "../../utils/logger";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 interface CampaignSection {
   active: CampaignType[];
   upcoming: CampaignType[];
@@ -118,7 +119,7 @@ export default function CampaignDashboardScreen({
     return categorized;
   };
 
-  const loadCampaigns = async () => {
+  const loadCampaigns = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     try {
       if (user?.sub) {
         const userCampaigns = await loadUserCampaigns(user.sub);
@@ -142,15 +143,22 @@ export default function CampaignDashboardScreen({
     } catch (error) {
       logger.error("Failed to load campaigns:", error);
       setCampaigns({ active: [], upcoming: [], previous: [], cancelled: [] });
-      Alert.alert(
-        "Error",
-        "Failed to load campaigns. Please check your connection and try again."
-      );
+      if (!silent) {
+        Alert.alert(
+          "Error",
+          "Failed to load campaigns. Please check your connection and try again."
+        );
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [user?.sub]);
+
+  // The dashboard used to only load once on mount, so a campaign created via
+  // CreateCampaign (a separate stack screen) never appeared without a
+  // logout/login. Refetch silently whenever this screen regains focus.
+  useFocusRefresh(useCallback(() => loadCampaigns({ silent: true }), [loadCampaigns]));
 
   const loadStats = async (campaignId: string) => {
     try {

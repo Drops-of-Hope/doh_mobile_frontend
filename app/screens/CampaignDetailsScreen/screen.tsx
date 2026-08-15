@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { MapPin, Calendar, Clock, User, Phone, Pencil } from "lucide-react-native";
-import { useFocusEffect } from "@react-navigation/native";
 import { Screen, AppBar, Surface, Text, Icon, StatRow, StatTile, SectionHeader, Button, useTheme } from "../../design";
 import { useLanguage } from "../../context/LanguageContext";
 import { campaignService } from "../../services/campaignService";
@@ -9,6 +8,7 @@ import CampaignDetailsSkeleton from "../shared/molecules/skeletons/CampaignDetai
 import { extractTimeFromISO } from "../../utils/userDataUtils";
 
 import { logger } from "../../utils/logger";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 
 interface CampaignDetailsScreenProps {
   navigation?: any;
@@ -45,25 +45,11 @@ export default function CampaignDetailsScreen({ navigation, route }: CampaignDet
 
   const campaignId = route?.params?.campaignId;
 
-  useEffect(() => {
-    if (campaignId) {
-      loadCampaignDetails();
-    }
-  }, [campaignId]);
-
-  // Refresh details whenever the screen gains focus (e.g., after marking attendance)
-  useFocusEffect(
-    React.useCallback(() => {
-      if (campaignId) {
-        loadCampaignDetails();
-      }
-    }, [campaignId])
-  );
-
-  const loadCampaignDetails = async () => {
+  const loadCampaignDetails = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
+    if (!campaignId) return;
     try {
-      setLoading(true);
-      const campaignDetails = await campaignService.getCampaignDetails(campaignId!);
+      if (!silent) setLoading(true);
+      const campaignDetails = await campaignService.getCampaignDetails(campaignId);
 
       const transformedCampaign: CampaignDetails = {
         id: campaignDetails.id,
@@ -85,7 +71,7 @@ export default function CampaignDetailsScreen({ navigation, route }: CampaignDet
 
       // Try to fetch live stats to ensure progress reflects latest counts
       try {
-        const stats = await campaignService.getCampaignStats(campaignId!);
+        const stats = await campaignService.getCampaignStats(campaignId);
         setCampaign({
           ...transformedCampaign,
           expectedDonors: stats.donationGoal || transformedCampaign.expectedDonors,
@@ -96,11 +82,21 @@ export default function CampaignDetailsScreen({ navigation, route }: CampaignDet
       }
     } catch (error) {
       logger.error("Failed to load campaign details:", error);
-      Alert.alert("Error", "Failed to load campaign details. Please check your connection and try again.");
+      if (!silent) {
+        Alert.alert("Error", "Failed to load campaign details. Please check your connection and try again.");
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => {
+    loadCampaignDetails();
+  }, [loadCampaignDetails]);
+
+  // Refresh details whenever the screen gains focus (e.g., after marking
+  // attendance via QR scan on another screen), without re-flashing the skeleton.
+  useFocusRefresh(useCallback(() => loadCampaignDetails({ silent: true }), [loadCampaignDetails]));
 
   const handleBack = () => navigation?.goBack();
   const handleEdit = () => navigation?.navigate("EditCampaign", { campaignId });

@@ -1,8 +1,8 @@
 import React from "react";
-import { FlatList, View, StyleSheet } from "react-native";
+import { FlatList, RefreshControl, View, StyleSheet } from "react-native";
 import { SearchX } from "lucide-react-native";
 import CampaignCard from "../atoms/CampaignCard";
-import { Skeleton, Surface, Button, EmptyState } from "../../../design";
+import { Skeleton, Surface, Button, EmptyState, useTheme } from "../../../design";
 import { Campaign } from "../types";
 
 interface CampaignListProps {
@@ -11,6 +11,8 @@ interface CampaignListProps {
   loading?: boolean;
   hasMore?: boolean;
   onViewMore?: () => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 const SkeletonCampaignCard = () => (
@@ -28,7 +30,11 @@ export default function CampaignList({
   loading = false,
   hasMore = false,
   onViewMore,
+  refreshing = false,
+  onRefresh,
 }: CampaignListProps) {
+  const theme = useTheme();
+
   if (loading && campaigns.length === 0) {
     return (
       <View style={styles.listContainer}>
@@ -68,6 +74,11 @@ export default function CampaignList({
       )}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContainer}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.color.crimson} />
+        ) : undefined
+      }
       ListFooterComponent={
         <>
           {loading && campaigns.length > 0 ? <SkeletonCampaignCard /> : null}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Alert, StyleSheet, ActivityIndicator } from "react-native";
 import { exploreService } from "../../services/exploreService";
 import { campaignService } from "../../services/campaignService";
@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import ExploreScreenSkeleton from "../shared/molecules/skeletons/ExploreScreenSkeleton";
 import { extractTimeFromISO } from "../../utils/userDataUtils";
 import { Screen, Text, useTheme } from "../../design";
+import { useFocusRefresh } from "../../hooks/useFocusRefresh";
 
 // Import refactored components
 import SearchAndFilterBar from "./molecules/SearchAndFilterBar";
@@ -25,6 +26,7 @@ const ExploreScreen: React.FC = () => {
   const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
   const [displayedCampaigns, setDisplayedCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState<string>("");
   const [campaignStatus, setCampaignStatus] = useState<"live" | "upcoming">("live");
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,24 +50,9 @@ const ExploreScreen: React.FC = () => {
   // Auth context
   const { user, isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    loadCampaigns();
-  }, [campaignStatus]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [campaigns, searchText, filters]);
-
-  useEffect(() => {
-    // Update displayed campaigns with pagination
-    const endIndex = currentPage * ITEMS_PER_PAGE;
-    setDisplayedCampaigns(filteredCampaigns.slice(0, endIndex));
-    setHasMore(endIndex < filteredCampaigns.length);
-  }, [filteredCampaigns, currentPage]);
-
-  const loadCampaigns = async () => {
+  const loadCampaigns = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setCurrentPage(1); // Reset pagination
       // Don't clear campaigns immediately - let them stay visible while loading
       
@@ -149,9 +136,35 @@ const ExploreScreen: React.FC = () => {
       // Set empty array on error - show "No campaigns" message
       setCampaigns([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [campaignStatus]);
+
+  // Previously loaded once per campaignStatus change and never refetched, so
+  // registering/unregistering elsewhere (or a new campaign going live) left
+  // this screen stale until the app was restarted. Refetch on focus.
+  useFocusRefresh(useCallback(() => loadCampaigns({ silent: true }), [loadCampaigns]));
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadCampaigns();
+    setRefreshing(false);
+  }, [loadCampaigns]);
+
+  useEffect(() => {
+    loadCampaigns();
+  }, [loadCampaigns]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [campaigns, searchText, filters]);
+
+  useEffect(() => {
+    // Update displayed campaigns with pagination
+    const endIndex = currentPage * ITEMS_PER_PAGE;
+    setDisplayedCampaigns(filteredCampaigns.slice(0, endIndex));
+    setHasMore(endIndex < filteredCampaigns.length);
+  }, [filteredCampaigns, currentPage]);
 
   const applyFilters = () => {
     const filtered = filterCampaigns(
@@ -364,6 +377,8 @@ const ExploreScreen: React.FC = () => {
             loading={loading}
             hasMore={hasMore}
             onViewMore={handleViewMore}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
           />
         </View>
       ) : (
@@ -373,6 +388,8 @@ const ExploreScreen: React.FC = () => {
           loading={loading}
           hasMore={hasMore}
           onViewMore={handleViewMore}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
         />
       )}
 

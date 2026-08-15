@@ -7,6 +7,14 @@
 
 export type AppointmentUrgency = "today" | "tomorrow" | "dayAfter" | "soon" | "later";
 
+/**
+ * "YYYY-MM-DD" in local time. Unlike `date.toISOString().split("T")[0]`,
+ * this never rolls back to the previous day for the early-morning hours in
+ * UTC+ offsets (e.g. 00:00-05:30 in Sri Lanka).
+ */
+export const toLocalISODate = (date: Date): string =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
 /** Calendar days from today to `date`, in local time. Negative when past. */
 export const daysUntil = (date: string | Date): number => {
   const target = date instanceof Date ? date : new Date(date);
