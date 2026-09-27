@@ -64,13 +64,25 @@ This runs the full EAS build pipeline (fetches your managed credentials, bundles
 
 ## Build profiles ([eas.json](eas.json))
 
-| Profile | Gradle task | Use |
-|---|---|---|
-| `development` | `:app:assembleDebug` | Dev-client build, needs Metro running |
-| `preview` | `:app:assembleRelease` | Standalone signed APK, internal distribution — **this is the "deployed" build for installing on a device** |
-| `production` | `:app:bundleRelease` | AAB bundle for Play Store submission |
+| Profile       | Gradle task            | Use                                                                                                        |
+| ------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `development` | `:app:assembleDebug`   | Dev-client build, needs Metro running                                                                      |
+| `preview`     | `:app:assembleRelease` | Standalone signed APK, internal distribution — **this is the "deployed" build for installing on a device** |
+| `production`  | `:app:bundleRelease`   | AAB bundle for Play Store submission                                                                       |
 
 ## Known gotchas
 
 - **`expo-dev-client` version:** if you ever reinstall it, use `npx expo install expo-dev-client` (not plain `pnpm add`), which pins the version compatible with this project's Expo SDK (currently SDK 54 → `expo-dev-client ~6.0.21`). Installing the latest major version directly causes Kotlin compile errors (`Unresolved reference 'OptimizedRecord'`, etc.) from an expo-dev-menu/expo-modules-core mismatch.
 - **`babel-preset-expo` must be a direct dependency.** `babel.config.js` requires it directly, but pnpm only symlinks direct dependencies into the top-level `node_modules`. If it's ever removed from `package.json`, release builds fail bundling JS with `Cannot find module 'babel-preset-expo'` even though debug builds work fine (debug loads JS from the Metro dev server at runtime instead of bundling it at build time).
+
+# Download the APK
+
+curl -L "https://expo.dev/artifacts/eas/U0PK1KEdc-UmB1NlbrR7NmuUKlo2JolW--_4MA2_kKU.apk" -o doh_mobile.apk
+
+# Install to your device (verify it's connected first with: adb devices)
+
+adb install -r doh_mobile.apk
+
+# Launch the app
+
+adb shell monkey -p com.dropsofhope.mobile -c android.intent.category.LAUNCHER 1
